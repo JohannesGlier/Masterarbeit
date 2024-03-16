@@ -81,6 +81,11 @@ ReactDOM.render(<InfiniteCanvas />, document.getElementById("root"));
 | panOnScroll      | boolean         | true                                | when user scrolls in canvas, instead of zooming, the content scrolls   |
 | renderScrollBar  | boolean         | true                                | a custom built scroll-bar will be rendered on canvas                   |
 | scrollBarConfig   | object         | { startingPosition: { x: 0, y: 0}, offset: { x: 0, y: 0}, color: "grey", thickness: "8px", minSize: "15px }                                    | To style the scrollbar to your preference                              |
+<<<<<<< HEAD
 | customComponents | object          | ""                                  | An array of components you can pass to render on canvas at any position|
 | onFlowMount      | function        | ""                                  | A function that is triggered once the canvas is mounted                |
 >>>>>>> aa5176f (Update README.md)
+=======
+| customComponents | object          | -                                   | An array of components you can pass to render on canvas at any position|
+| onFlowMount      | function        | -                                   | A function that is triggered once the canvas is mounted                |
+>>>>>>> 25cd1cc (Update README.md)
