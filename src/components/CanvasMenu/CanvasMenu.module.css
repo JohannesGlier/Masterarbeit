@@ -1,0 +1,31 @@
+.button {
+    display: flex;
+    flex-direction: row;
+
+    padding: 8px;
+
+    cursor: pointer;
+    font-size: 30px;
+    
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+    background-color: #fff;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.demo {
+    padding: 8px;
+    margin-bottom: 5px;
+
+    cursor: default;
+    font-size: 30px;
+    
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+    background-color: #fff;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+}
+  
+.button:hover {
+    background-color: #91d9ff9f;
+}

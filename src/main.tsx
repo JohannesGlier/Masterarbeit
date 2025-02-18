@@ -1,71 +1,55 @@
-import React, { useRef } from "react";
+import { useState, useRef } from "react";
 import ReactDOM from "react-dom";
 import { COMPONENT_POSITIONS, ReactInfiniteCanvas, ReactInfiniteCanvasHandle } from "react-infinite-canvas";
+import CanvasButton from "./components/Homescreen/CanvasButton";
+import "./styles/HomeScreen.css";
+import CanvasToolbar from "./components/CanvasToolbar/CanvasToolbar";
+import CanvasContent from "./components/CanvasContent/CanvasContent";
+import CanvasMenu from "./components/CanvasMenu/CanvasMenu";
 
-export { ReactInfiniteCanvas } from "./App";
-export type {
-  ReactInfiniteCanvasProps,
-  ReactInfiniteCanvasHandle,
-} from "./App";
-export {
-  COMPONENT_POSITIONS,
-  SCROLL_NODE_POSITIONS,
-} from "./helpers/constants";
-export { Background } from "./components/Background/background";
-export type { BackgroundProps } from "./components/Background/background";
-export { EventBlocker } from "./components/EventBlocker/event.blocker";
-export type { EventBlockerProps } from "./components/EventBlocker/event.blocker";
-
-const InfiniteCanvas = () => {
-  const canvasRef = useRef<ReactInfiniteCanvasHandle>();
+const HomeScreen = ({ onSelectCanvas }: { onSelectCanvas: (index: number) => void }) => {
+  const buttons = ["Demo 1", "Demo 2", "Demo 3", "Demo 4", "Demo 5", "Demo 6", "Demo 7", "Demo 8"];
   return (
-    <>
-      <div style={{ width: "100vw", height: "100vw" }}>
-        <ReactInfiniteCanvas
-          ref={canvasRef}
-          onCanvasMount={(mountFunc: ReactInfiniteCanvasHandle) => {
-            mountFunc.fitContentToView({ scale: 1 });
-          }}
-          customComponents={[
-            {
-              component: (
-                <button
-                  onClick={() => {
-                    canvasRef.current?.fitContentToView({ scale: 1 });
-                  }}
-                >
-                  fitToView
-                </button>
-              ),
-              position: COMPONENT_POSITIONS.TOP_LEFT,
-              offset: { x: 120, y: 10 },
-            },
-          ]}
-        >
-          <div style={{ 
-            width: "200px", 
-            height: "200px", 
-            background: "red",
-            position: "absolute",
-            top: "120px",  
-            left: "520px", 
-            }}>
-            asdasdsdas
-          </div>
-          <div style={{ 
-            width: "200px", 
-            height: "200px", 
-            background: "red",
-            position: "absolute",
-            top: "1200px",  
-            left: "100px", 
-            }}>
-            asdasdsdas
-          </div>
-        </ReactInfiniteCanvas>
+    <div className="home-container">
+      <h1>Wähle eine Demo</h1>
+      <div className="button-grid">
+        {buttons.map((btn, index) => (
+          <CanvasButton key={index} label={btn} onClick={() => onSelectCanvas(index)} />
+        ))}
       </div>
-    </>
+    </div>
   );
 };
 
-ReactDOM.render(<InfiniteCanvas />, document.getElementById("root"));
+const InfiniteCanvas = ({ onBack }: { onBack: () => void }) => {
+  const canvasRef = useRef<ReactInfiniteCanvasHandle>();
+  return (
+    <div style={{ width: "100vw", height: "100vh" }}>   
+      <ReactInfiniteCanvas
+        ref={canvasRef}
+        onCanvasMount={(mountFunc) => mountFunc.fitContentToView({ scale: 1 })}
+        customComponents={[
+          {
+            component: (
+              <div>
+                <CanvasToolbar />  
+                <CanvasMenu onBack={onBack} />        
+              </div>
+            ),
+            position: COMPONENT_POSITIONS.TOP_LEFT,
+            offset: { x: 5, y: 0 },
+          },
+        ]}
+      >
+        <CanvasContent />
+      </ReactInfiniteCanvas>
+    </div>
+  );
+};
+
+const App = () => {
+  const [showCanvas, setShowCanvas] = useState(false);
+  return showCanvas ? <InfiniteCanvas onBack={() => setShowCanvas(false)} /> : <HomeScreen onSelectCanvas={() => setShowCanvas(true)} />;
+};
+
+ReactDOM.render(<App />, document.getElementById("root"));

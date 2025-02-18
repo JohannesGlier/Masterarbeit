@@ -1,0 +1,12 @@
+.home-container {
+    text-align: center;
+    padding: 50px;
+}
+  
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Verhindert feste Button-Breite */
+    gap: 20px;
+    justify-content: center;
+    height: 500px;
+}

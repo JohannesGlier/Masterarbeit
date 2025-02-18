@@ -59,6 +59,7 @@
     "url": "git+https://github.com/KarthikAravindR/infinite-canvas.git"
   },
   "dependencies": {
+    "react-icons": "^5.4.0",
     "react-infinite-canvas": "^2.1.1"
   }
 }
