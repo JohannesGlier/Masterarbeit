@@ -248,7 +248,7 @@ const ReactInfiniteCanvasRenderer = memo(
 
         d3Zoom.on("end", () => {
           isUserPressed.current = false;
-          canvasWrapperRef.current?.classList.remove(styles.panning);
+          canvasWrapperRef.current?.classList.remove(styles.panning);       
         });
 
         onCanvasMount({
