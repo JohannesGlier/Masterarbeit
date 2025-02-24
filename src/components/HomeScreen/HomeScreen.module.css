@@ -1,0 +1,15 @@
+.home-container {
+    text-align: center;
+    padding-top: 150px;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+  
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 50px;
+    justify-content: center;
+    height: 500px;
+}

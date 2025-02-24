@@ -17,6 +17,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/HomeScreen/HomeScreen.jsx", "src/components/HomeScreen/HomeScreenButton.jsx", "src/components/canvas.jsx", "src/components/CanvasToolbar/CanvasToolbar.jsx", "src/components/CanvasMenu/CanvasMenu.jsx", "src/components/CanvasContent/CanvasContent.jsx", "src/components/CanvasContext/CanvasContext.jsx", "src/pages/_app.jsx", "src/pages/index.jsx", "src/pages/_document.jsx"],
   "exclude": ["node_modules"]
 }
