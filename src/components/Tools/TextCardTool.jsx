@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
 const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
@@ -9,7 +9,7 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
   // Mouse event handling for drawing
   useEffect(() => {
     document.body.style.cursor = "crosshair";
-    
+
     const handleMouseDown = (event) => {
       if (event.button !== 0) return;
       setIsDrawing(true);
@@ -39,29 +39,38 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
+
       if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
         // Benutzerdefiniertes Rechteck durch Ziehen
-        addTextcard(tempRectangle);
-      }
-      else {
+        addTextcard({ ...tempRectangle, text: '' }); // Füge eine leere Textkarte hinzu
+      } else {
         // Vordefiniertes Rechteck durch Click
         const defaultWidth = 100;
-        const defaultHeight = 100;  
-        const finalRectangle = {x: tempRectangle.x, y: tempRectangle.y, width: defaultWidth, height: defaultHeight};
+        const defaultHeight = 50;
+        const finalRectangle = {
+          x: tempRectangle.x,
+          y: tempRectangle.y,
+          width: defaultWidth,
+          height: defaultHeight,
+          text: '', // Füge eine leere Textkarte hinzu
+        };
         addTextcard(finalRectangle);
       }
+
       setTempRectangle(null);
       setIsDrawing(false);
     };
 
-    canvasWrapperRef.current.addEventListener("mousedown", handleMouseDown);
-    canvasWrapperRef.current.addEventListener("mousemove", handleMouseMove);
-    canvasWrapperRef.current.addEventListener("mouseup", handleMouseUp);
+    const canvasWrapper = canvasWrapperRef.current;
+
+    canvasWrapper.addEventListener("mousedown", handleMouseDown);
+    canvasWrapper.addEventListener("mousemove", handleMouseMove);
+    canvasWrapper.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      canvasWrapperRef.current.removeEventListener("mousedown", handleMouseDown);
-      canvasWrapperRef.current.removeEventListener("mousemove", handleMouseMove);
-      canvasWrapperRef.current.removeEventListener("mouseup", handleMouseUp);
+      canvasWrapper.removeEventListener("mousedown", handleMouseDown);
+      canvasWrapper.removeEventListener("mousemove", handleMouseMove);
+      canvasWrapper.removeEventListener("mouseup", handleMouseUp);
     };
   }, [canvasRef, canvasWrapperRef, isDrawing, tempRectangle, scaleRef, offsetRef]);
 
@@ -77,7 +86,7 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
             height: `${tempRectangle.height * scaleRef.current}px`,
             backgroundColor: "rgba(0, 0, 255, 0.3)",
             border: "1px dashed blue",
-            borderRadius: "8px",
+            borderRadius: "25px",
             pointerEvents: "none",
           }}
         />

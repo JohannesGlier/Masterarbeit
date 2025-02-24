@@ -4,6 +4,7 @@ import FrameTool from '@/components/Tools/FrameTool';
 import ArrowTool from '@/components/Tools/ArrowTool';
 import TextCardTool from '@/components/Tools/TextCardTool';
 import PointerTool from '@/components/Tools/PointerTool';
+import TextCard from '@/components/Tools/TextCard';
 
 const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const { selectedTool, offsetRef, scaleRef } = useCanvas();
@@ -42,27 +43,21 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
             height: `${rect.height * scaleRef.current}px`,
             backgroundColor: "rgba(0, 0, 255, 0.5)",
             border: "1px solid blue",
-            borderRadius: "8px",
             pointerEvents: "none",
           }}
         />
       ))}
 
       {/* Rendern der gespeicherten Textkarten */}
-      {textcards.map((card, index) => (
-        <div
+      {textcards.map((textcard, index) => (
+        <TextCard
           key={index}
-          style={{
-            position: "absolute",
-            top: card.y * scaleRef.current + offsetRef.current.y,
-            left: card.x * scaleRef.current + offsetRef.current.x,
-            width: `${card.width * scaleRef.current}px`,
-            height: `${card.height * scaleRef.current}px`,
-            backgroundColor: "rgba(0, 0, 255, 0.5)",
-            border: "1px solid blue",
-            borderRadius: "8px",
-            pointerEvents: "none",
-          }}
+          x={textcard.x * scaleRef.current + offsetRef.current.x}
+          y={textcard.y * scaleRef.current + offsetRef.current.y}
+          width={textcard.width * scaleRef.current}
+          height={textcard.height * scaleRef.current}
+          text={textcard.text}
+          onTextChange={() => {}}
         />
       ))}
 

@@ -54,14 +54,16 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
       setIsDrawing(false);
     };
 
-    canvasWrapperRef.current.addEventListener("mousedown", handleMouseDown);
-    canvasWrapperRef.current.addEventListener("mousemove", handleMouseMove);
-    canvasWrapperRef.current.addEventListener("mouseup", handleMouseUp);
+    const canvasWrapper = canvasWrapperRef.current;
+
+    canvasWrapper.addEventListener("mousedown", handleMouseDown);
+    canvasWrapper.addEventListener("mousemove", handleMouseMove);
+    canvasWrapper.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      canvasWrapperRef.current.removeEventListener("mousedown", handleMouseDown);
-      canvasWrapperRef.current.removeEventListener("mousemove", handleMouseMove);
-      canvasWrapperRef.current.removeEventListener("mouseup", handleMouseUp);
+        canvasWrapper.removeEventListener("mousedown", handleMouseDown);
+        canvasWrapper.removeEventListener("mousemove", handleMouseMove);
+        canvasWrapper.removeEventListener("mouseup", handleMouseUp);
     };
   }, [canvasRef, canvasWrapperRef, isDrawing, tempRectangle, scaleRef, offsetRef]);
 
@@ -77,7 +79,6 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
             height: `${tempRectangle.height * scaleRef.current}px`,
             backgroundColor: "rgba(0, 0, 255, 0.3)",
             border: "1px dashed blue",
-            borderRadius: "8px",
             pointerEvents: "none",
           }}
         />
