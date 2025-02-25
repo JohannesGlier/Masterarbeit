@@ -135,6 +135,7 @@ const InfiniteCanvas = ({ onBack }) => {
           position: "absolute",
           top: "16px",
           left: "16px",
+          zIndex: 20,
         }}
       >
         <CanvasToolbar />

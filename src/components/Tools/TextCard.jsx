@@ -18,6 +18,7 @@ const TextCard = ({ x, y, width, height }) => {
           padding: "12px",
           boxSizing: "border-box",
           cursor: "text",
+          zIndex: 6,
         }}
         onClick={() => setIsEditing(true)}
       >

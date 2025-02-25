@@ -4,12 +4,12 @@ import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
   const { offsetRef, scaleRef } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
-  const [tempRectangle, setTempRectangle] = useState(null);
+  const [startPoint, setStartPoint] = useState(null);
+  const [endPoint, setEndPoint] = useState(null);
 
-  // Mouse event handling for drawing
   useEffect(() => {
     document.body.style.cursor = "crosshair";
-    
+
     const handleMouseDown = (event) => {
       if (event.button !== 0) return;
       setIsDrawing(true);
@@ -18,39 +18,29 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
       const startX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
       const startY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
 
-      setTempRectangle({ x: startX, y: startY, width: 0, height: 0 });
+      setStartPoint({ x: startX, y: startY });
+      setEndPoint({ x: startX, y: startY }); // Setze den Endpunkt gleich dem Startpunkt
     };
 
     const handleMouseMove = (event) => {
-      if (event.button !== 0) return;
-      if (!isDrawing || !tempRectangle) return;
+      if (!isDrawing) return;
 
       const rect = canvasRef.current.getBoundingClientRect();
       const endX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
       const endY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
 
-      setTempRectangle({
-        x: tempRectangle.x,
-        y: tempRectangle.y,
-        width: endX - tempRectangle.x,
-        height: endY - tempRectangle.y,
-      });
+      setEndPoint({ x: endX, y: endY });
     };
 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
-      if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
-        // Benutzerdefiniertes Rechteck durch Ziehen
-        addArrow(tempRectangle);
+
+      if (startPoint && endPoint) {
+        addArrow({ start: startPoint, end: endPoint });
       }
-      else {
-        // Vordefiniertes Rechteck durch Click
-        const defaultWidth = 100;
-        const defaultHeight = 100;  
-        const finalRectangle = {x: tempRectangle.x, y: tempRectangle.y, width: defaultWidth, height: defaultHeight};
-        addArrow(finalRectangle);
-      }
-      setTempRectangle(null);
+
+      setStartPoint(null);
+      setEndPoint(null);
       setIsDrawing(false);
     };
 
@@ -61,26 +51,27 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-        canvasWrapper.removeEventListener("mousedown", handleMouseDown);
-        canvasWrapper.removeEventListener("mousemove", handleMouseMove);
-        canvasWrapper.removeEventListener("mouseup", handleMouseUp);
+      canvasWrapper.removeEventListener("mousedown", handleMouseDown);
+      canvasWrapper.removeEventListener("mousemove", handleMouseMove);
+      canvasWrapper.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [canvasRef, canvasWrapperRef, isDrawing, tempRectangle, scaleRef, offsetRef]);
+  }, [canvasRef, canvasWrapperRef, isDrawing, scaleRef, offsetRef, addArrow, startPoint, endPoint]);
 
   return (
     <div>
-      {tempRectangle && (
+      {isDrawing && startPoint && endPoint && (
         <div
           style={{
             position: "absolute",
-            top: tempRectangle.y * scaleRef.current + offsetRef.current.y,
-            left: tempRectangle.x * scaleRef.current + offsetRef.current.x,
-            width: `${tempRectangle.width * scaleRef.current}px`,
-            height: `${tempRectangle.height * scaleRef.current}px`,
-            backgroundColor: "rgba(0, 0, 255, 0.3)",
-            border: "1px dashed blue",
-            borderRadius: "8px",
+            top: startPoint.y * scaleRef.current + offsetRef.current.y,
+            left: startPoint.x * scaleRef.current + offsetRef.current.x,
+            width: `${Math.sqrt(Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2)) * scaleRef.current}px`,
+            height: "2px",
+            backgroundColor: "blue",
+            transform: `rotate(${Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x)}rad)`,
+            transformOrigin: "0 0",
             pointerEvents: "none",
+            zIndex: 5,
           }}
         />
       )}

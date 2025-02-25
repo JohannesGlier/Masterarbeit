@@ -88,6 +88,7 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
             border: "1px dashed blue",
             borderRadius: "25px",
             pointerEvents: "none",
+            zIndex: 10,
           }}
         />
       )}

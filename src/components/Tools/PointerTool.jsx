@@ -8,10 +8,9 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
 
   // Mouse event handling for drawing
   useEffect(() => {
-    document.body.style.cursor = "crosshair";
-    
     const handleMouseDown = (event) => {
       if (event.button !== 0) return;
+      document.body.style.cursor = "crosshair";
       setIsDrawing(true);
 
       const rect = canvasRef.current.getBoundingClientRect();
@@ -85,6 +84,7 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
             border: "1px dashed blue",
             borderRadius: "8px",
             pointerEvents: "none",
+            zIndex: 10,
           }}
         />
       )}
