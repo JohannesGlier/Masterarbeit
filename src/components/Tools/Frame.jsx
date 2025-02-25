@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
 const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
+  const { selectedTool } = useCanvas();
   const [isSelected, setIsSelected] = useState(false);
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
@@ -182,6 +184,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
         border: isSelected ? "2px solid blue" : "1px solid black",
         cursor: "grab",
         zIndex: isSelected ? 10 : 5,
+        pointerEvents: selectedTool !== "Pointer" ? "none" : "auto",
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}

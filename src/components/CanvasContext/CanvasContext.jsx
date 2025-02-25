@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useRef } from 'react';
 const CanvasContext = createContext();
 
 export const CanvasProvider = ({ children }) => {
-  const [selectedTool, setSelectedTool] = useState('');
+  const [selectedTool, setSelectedTool] = useState('Pointer');
   const offsetRef = useRef({ x: 0, y: 0 });
   const scaleRef = useRef(2);
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
 const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
-  const { offsetRef, scaleRef } = useCanvas();
+  const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
 
@@ -42,6 +42,7 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
       if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
         // Benutzerdefiniertes Rechteck durch Ziehen
         addRectangle(tempRectangle);
+        setSelectedTool('Pointer');
       }
       else {
         // Vordefiniertes Rechteck durch Click
@@ -49,6 +50,7 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
         const defaultHeight = 100;  
         const finalRectangle = {x: tempRectangle.x, y: tempRectangle.y, width: defaultWidth, height: defaultHeight};
         addRectangle(finalRectangle);
+        setSelectedTool('Pointer');
       }
       setTempRectangle(null);
       setIsDrawing(false);

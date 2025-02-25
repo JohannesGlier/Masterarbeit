@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
 const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
-  const { offsetRef, scaleRef } = useCanvas();
+  const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
   const [endPoint, setEndPoint] = useState(null);
@@ -37,6 +37,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
 
       if (startPoint && endPoint) {
         addArrow({ start: startPoint, end: endPoint });
+        setSelectedTool('Pointer');
       }
 
       setStartPoint(null);
@@ -71,7 +72,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
             transform: `rotate(${Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x)}rad)`,
             transformOrigin: "0 0",
             pointerEvents: "none",
-            zIndex: 5,
+            zIndex: 10,
           }}
         />
       )}

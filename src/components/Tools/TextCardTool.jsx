@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
 const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
-  const { offsetRef, scaleRef } = useCanvas();
+  const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
 
@@ -42,7 +42,8 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
 
       if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
         // Benutzerdefiniertes Rechteck durch Ziehen
-        addTextcard({ ...tempRectangle, text: '' }); // Füge eine leere Textkarte hinzu
+        addTextcard({ ...tempRectangle, text: '' });
+        setSelectedTool('Pointer');
       } else {
         // Vordefiniertes Rechteck durch Click
         const defaultWidth = 100;
@@ -52,9 +53,10 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
           y: tempRectangle.y,
           width: defaultWidth,
           height: defaultHeight,
-          text: '', // Füge eine leere Textkarte hinzu
+          text: '',
         };
         addTextcard(finalRectangle);
+        setSelectedTool('Pointer');
       }
 
       setTempRectangle(null);

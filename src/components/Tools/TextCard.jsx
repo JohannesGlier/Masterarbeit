@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
 const TextCard = ({ x, y, width, height }) => {
+    const { selectedTool } = useCanvas();
     const [text, setText] = useState('');
     const [isEditing, setIsEditing] = useState(false);
   
@@ -19,6 +21,7 @@ const TextCard = ({ x, y, width, height }) => {
           boxSizing: "border-box",
           cursor: "text",
           zIndex: 6,
+          pointerEvents: selectedTool !== "Pointer" ? "none" : "auto",
         }}
         onClick={() => setIsEditing(true)}
       >
