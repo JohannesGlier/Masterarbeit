@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import FrameTool from '@/components/Tools/FrameTool';
 import ArrowTool from '@/components/Tools/ArrowTool';
@@ -8,23 +8,77 @@ import TextCard from '@/components/Tools/TextCard';
 import Frame from '@/components/Tools/Frame';
 
 const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
-  const { selectedTool, offsetRef, scaleRef } = useCanvas();
+  const { selectedTool, offsetRef, scaleRef, selectedElements, setSelectedElements } = useCanvas();
   const [rectangles, setRectangles] = useState([]);
   const [textcards, setTextCards] = useState([]);
   const [arrows, setArrows] = useState([]);
   const [selectedFrame, setSelectedFrame] = useState(null);
 
+
+  
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'x' && selectedElements.length > 0) {
+        deleteSelectedElements();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedElements]);
+
+
+
   const addRectangle = (rect) => {
-    setRectangles((prevRectangles) => [...prevRectangles, rect]);
+    setRectangles((prevRectangles) => [
+      ...prevRectangles,
+      {
+        id: Date.now(),
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+      },
+    ]);
   };
 
   const addTextcards = (textcard) => {
-    setTextCards((prevTextcards) => [...prevTextcards, textcard]);
+    setTextCards((prevRectangles) => [
+      ...prevRectangles,
+      {
+        id: Date.now(),
+        x: textcard.x,
+        y: textcard.y,
+        width: textcard.width,
+        height: textcard.height,
+      },
+    ]);
   };
 
   const addArrows = (arrow) => {
     setArrows((prevArrows) => [...prevArrows, arrow]);
   };
+
+
+
+  const deleteSelectedElements = () => {
+    setRectangles((prev) =>
+      prev.filter((rect) => !selectedElements.some((el) => el.id === rect.id))
+    );
+    setTextCards((prev) =>
+      prev.filter((textcard) => !selectedElements.some((el) => el.id === textcard.id))
+    );
+    setArrows((prev) =>
+      prev.filter((arrow) => !selectedElements.some((el) => el.id === arrow.id))
+    );
+  
+    // Auswahl zurücksetzen
+    setSelectedElements([]);
+  };
+  
+
 
   const handleFrameUpdate = (id, newX, newY) => {
     setRectangles((prev) =>
@@ -34,6 +88,18 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
   const handleFrameResize = (id, newWidth, newHeight) => {
     setRectangles((prev) =>
+      prev.map((rect) => (rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect))
+    );
+  };
+
+  const handleTextcardUpdate = (id, newX, newY) => {
+    setTextCards((prev) =>
+      prev.map((rect) => (rect.id === id ? { ...rect, x: newX, y: newY } : rect))
+    );
+  };
+
+  const handleTextcardResize = (id, newWidth, newHeight) => {
+    setTextCards((prev) =>
       prev.map((rect) => (rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect))
     );
   };
@@ -63,12 +129,15 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       {textcards.map((textcard, index) => (
         <TextCard
           key={index}
-          x={textcard.x * scaleRef.current + offsetRef.current.x}
-          y={textcard.y * scaleRef.current + offsetRef.current.y}
-          width={textcard.width * scaleRef.current}
-          height={textcard.height * scaleRef.current}
+          rect={textcard}
           text={textcard.text}
           onTextChange={() => {}}
+          scaleRef={scaleRef} 
+          offsetRef={offsetRef} 
+          isSelected={selectedFrame === textcard.id}
+          onUpdate={handleTextcardUpdate}
+          onResize={handleTextcardResize}
+          canvasWrapperRef={canvasWrapperRef}
         />
       ))}
 

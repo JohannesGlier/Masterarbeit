@@ -2,17 +2,22 @@ import { useState, useEffect, useRef } from "react";
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
 const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
-  const { selectedTool } = useCanvas();
+  const { selectedTool, selectedElements, toggleSelectedElement } = useCanvas();
   const [isSelected, setIsSelected] = useState(false);
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
+  const [onDragging, setOnDragging] = useState(false);
   const isDragging = useRef(false);
   const isResizing = useRef(false);
+  const alreadySelected = useRef(false);
   const resizeHandle = useRef(null);
   const startPos = useRef({ x: 0, y: 0 });
   const frameRef = useRef(null);
-  const clickTimeout = useRef(null);
 
+
+  useEffect(() => {
+    setIsSelected(selectedElements.some(el => el.id === rect.id));
+  }, [selectedElements, rect.id]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -22,11 +27,11 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
     };
 
     const handleMouseMove = (e) => {
-        HandleResizing(e);
+      HandleResizing(e);
     };
 
-    const handleMouseUp = () => {
-        StopResizing();
+    const handleMouseUp = (e) => {
+      StopResizing(e);
     };
 
     const canvasWrapper = canvasWrapperRef.current;
@@ -47,9 +52,18 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const handleMouseDown = (e) => {
     e.stopPropagation();
 
-    clickTimeout.current = setTimeout(() => {
-      setIsSelected((prev) => !prev);
-    }, 150);
+    if (selectedTool === "Pointer") {
+      // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
+      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+
+      // Umschalten der Auswahl
+      toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+    }
+
+    if(isSelected) {
+      alreadySelected.current = true;
+    }
+    setIsSelected(true);
 
     isDragging.current = true;
     startPos.current = {
@@ -69,38 +83,56 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   };
 
   const handleMouseMove = (e) => {
-    HandleDragging(e);
+    HandleDragging(e); 
     HandleResizing(e);
   };
 
-  const handleMouseUp = () => {
-    StopDragging();
-    StopResizing();
+  const handleMouseUp = (e) => {
+    StopDragging(e);
+    StopResizing(e);
   };
 
 
 
-
-  const StopResizing = () => {
+  const StopResizing = (e) => {
     if (isResizing.current) {
         setIsSelected(false);
         isResizing.current = false;
         resizeHandle.current = null;
+
+        if (selectedTool === "Pointer") {
+          // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
+          const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+    
+          // Umschalten der Auswahl
+          toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+        }
+        
         if (onResize) {
           onResize(rect.id, size.width, size.height);
         }
       }
   }
 
-  const StopDragging = () => {
-    if (isDragging.current) {
-        setIsSelected(false);
-        isDragging.current = false;
-      }
+  const StopDragging = (e) => {
+    isDragging.current = false; 
+    setOnDragging(false);
+    if(alreadySelected.current) {
+      alreadySelected.current = false;
+      setIsSelected(false);
+    }
   }
 
   const HandleResizing = (e) => {
     if (isResizing.current) {
+        if (selectedTool === "Pointer") {
+          // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
+          const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+    
+          // Umschalten der Auswahl
+          toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+        }
+
         // Größenänderung des Frames
         const mouseX = e.clientX;
         const mouseY = e.clientY;
@@ -152,24 +184,31 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
     }
   }
 
-  const HandleDragging = (e) => {
-    if (isDragging.current) {
-        clearTimeout(clickTimeout.current);
-        setIsSelected(true);
-  
-        const newX = (e.clientX - startPos.current.x) / scaleRef.current;
-        const newY = (e.clientY - startPos.current.y) / scaleRef.current;
-  
-        setPosition({ x: newX, y: newY });
-  
-        if (onUpdate) {
-          onUpdate(rect.id, newX, newY);
-        }
+  const HandleDragging = (e) => {  
+    if (isDragging.current && e.buttons === 1) {
+      setOnDragging(true);
+
+      const newX = (e.clientX - startPos.current.x) / scaleRef.current;
+      const newY = (e.clientY - startPos.current.y) / scaleRef.current;
+
+      setPosition({ x: newX, y: newY });
+
+      if (onUpdate) {
+        onUpdate(rect.id, newX, newY);
       }
+    }
   }
 
 
 
+  const pointerEvents =
+  selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
+    ? "none" // Deaktiviere pointer-events für alle Elemente
+    : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
+    ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
+      ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
+      : "none" // Deaktiviere pointer-events für alle anderen Elemente
+    : "auto";
 
   return (
     <div
@@ -184,13 +223,13 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
         border: isSelected ? "2px solid blue" : "1px solid black",
         cursor: "grab",
         zIndex: isSelected ? 10 : 5,
-        pointerEvents: selectedTool !== "Pointer" ? "none" : "auto",
+        pointerEvents,
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
-      {isSelected && (
+      {(isSelected && !onDragging && selectedElements.length === 1) && (
         <>
           <div
             style={{
