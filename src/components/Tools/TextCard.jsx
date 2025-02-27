@@ -248,6 +248,7 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
               outline: "none",
               resize: "none",
               backgroundColor: "transparent",
+              color: "black",
               fontFamily: "inherit",
               fontSize: "inherit",
               cursor: "text",
