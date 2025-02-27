@@ -24,6 +24,8 @@
     border: 1px solid #cccccc;
     background-color: #fff;
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+
+    pointer-events: none;
 }
   
 .button:hover {

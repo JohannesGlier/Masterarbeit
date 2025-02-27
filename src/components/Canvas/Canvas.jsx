@@ -5,7 +5,7 @@ import CanvasMenu from "@/components/CanvasMenu/CanvasMenu";
 import CanvasContent from "@/components/CanvasContent/CanvasContent";
 
 const InfiniteCanvas = ({ onBack }) => {
-  const { scaleRef, offsetRef } = useCanvas();
+  const { scaleRef, offsetRef, selectedTool, selectedElements } = useCanvas();
   const [scale, setScale] = useState(2);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef(null);
@@ -99,6 +99,12 @@ const InfiniteCanvas = ({ onBack }) => {
     document.body.style.cursor = 'default';
   };
 
+
+  const pointerEvents =
+  selectedElements.some(el => el.isResizing || el.isDragging)
+    ? "none"
+    : "auto";
+
   return (
     <div
       ref={canvasRef}
@@ -136,6 +142,7 @@ const InfiniteCanvas = ({ onBack }) => {
           top: "16px",
           left: "16px",
           zIndex: 20,
+          pointerEvents,
         }}
       >
         <CanvasToolbar />

@@ -5,7 +5,7 @@ import { TiHome } from "react-icons/ti";
 
 const CanvasMenu = ({ onBack }) => {
   return (
-    <div className={styles['canvasToolbar']}>
+    <div>
       <button className={styles['demo']}>
         Demo 1
       </button>

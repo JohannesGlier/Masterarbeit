@@ -57,7 +57,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
       const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
 
       // Umschalten der Auswahl
-      toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+      toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
     }
 
     if(isSelected) {
@@ -105,7 +105,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
           const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
     
           // Umschalten der Auswahl
-          toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
         }
         
         if (onResize) {
@@ -117,6 +117,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const StopDragging = (e) => {
     isDragging.current = false; 
     setOnDragging(false);
+
     if(alreadySelected.current) {
       alreadySelected.current = false;
       setIsSelected(false);
@@ -130,7 +131,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
           const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
     
           // Umschalten der Auswahl
-          toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
         }
 
         // Größenänderung des Frames
@@ -187,6 +188,14 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const HandleDragging = (e) => {  
     if (isDragging.current && e.buttons === 1) {
       setOnDragging(true);
+
+      if (selectedTool === "Pointer") {
+        // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
+        const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+  
+        // Umschalten der Auswahl
+        toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
+      }
 
       const newX = (e.clientX - startPos.current.x) / scaleRef.current;
       const newY = (e.clientY - startPos.current.y) / scaleRef.current;
