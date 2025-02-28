@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
 const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
-  const { offsetRef, scaleRef } = useCanvas();
-  const [isDrawing, setIsDrawing] = useState(false);
+  const { offsetRef, scaleRef, isDrawing, setIsDrawing, setSelectedElements } = useCanvas();
   const [tempRectangle, setTempRectangle] = useState(null);
 
   // Mouse event handling for drawing
@@ -12,6 +11,8 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
       if (event.button !== 0) return;
       document.body.style.cursor = "crosshair";
       setIsDrawing(true);
+
+      setSelectedElements([]);
 
       const rect = canvasRef.current.getBoundingClientRect();
       const startX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
@@ -84,7 +85,7 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
             border: "1px dashed blue",
             borderRadius: "8px",
             pointerEvents: "none",
-            zIndex: 10,
+            zIndex: 4,
           }}
         />
       )}

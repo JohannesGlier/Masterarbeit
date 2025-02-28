@@ -49,8 +49,8 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
         const defaultWidth = 100;
         const defaultHeight = 50;
         const finalRectangle = {
-          x: tempRectangle.x,
-          y: tempRectangle.y,
+          x: tempRectangle.x - defaultWidth / 2, // Zentriere horizontal
+          y: tempRectangle.y - defaultHeight / 2, // Zentriere vertikal
           width: defaultWidth,
           height: defaultHeight,
           text: '',

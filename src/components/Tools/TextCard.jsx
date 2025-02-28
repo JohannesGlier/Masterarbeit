@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
+import ResizePoint from '@/components/Helper/ResizePoint';
 
 const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
-    const { selectedTool, selectedElements, toggleSelectedElement } = useCanvas();
+    const { selectedTool, selectedElements, toggleSelectedElement, isDrawing } = useCanvas();
     const frameRef = useRef(null);
     const [text, setText] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -30,10 +31,12 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
   
       const handleMouseMove = (e) => {
           HandleResizing(e);
+          HandleDragging(e);
       };
   
       const handleMouseUp = (e) => {
           StopResizing(e);
+          StopDragging(e);
       };
   
       const canvasWrapper = canvasWrapperRef.current;
@@ -59,7 +62,7 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
         const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
   
         // Umschalten der Auswahl
-        toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+        toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
       }
 
       if(isSelected) {
@@ -105,9 +108,9 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
           if (selectedTool === "Pointer") {
             // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
             const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-
+      
             // Umschalten der Auswahl
-            toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+            toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
           }
 
           
@@ -131,9 +134,9 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
         if (selectedTool === "Pointer") {
           // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
           const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-
+    
           // Umschalten der Auswahl
-          toggleSelectedElement({ ...rect, isResizing: isResizing.current }, isMultiSelect);
+          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
         }
 
           // Größenänderung des Frames
@@ -191,6 +194,14 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
       if (isDragging.current) {
           setOnDragging(true);
 
+          if (selectedTool === "Pointer") {
+            // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
+            const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+      
+            // Umschalten der Auswahl
+            toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
+          }
+
           const newX = (e.clientX - startPos.current.x) / scaleRef.current;
           const newY = (e.clientY - startPos.current.y) / scaleRef.current;
     
@@ -205,13 +216,15 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
 
 
     const pointerEvents =
-      selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
-        ? "none" // Deaktiviere pointer-events für alle Elemente
-        : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
-        ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
-          ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
-          : "none" // Deaktiviere pointer-events für alle anderen Elemente
-        : "auto";
+  selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
+    ? "none" // Deaktiviere pointer-events für alle Elemente
+    : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
+    ? "none" // Deaktiviere pointer-events für alle Elemente
+    : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
+    ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
+      ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
+      : "none" // Deaktiviere pointer-events für alle anderen Elemente
+    : "auto";
     
     return (
       <div
@@ -223,8 +236,9 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
           width: `${size.width * scaleRef.current}px`,
           height: `${size.height * scaleRef.current}px`,
           backgroundColor: "white",
-          border: "1px solid #ccc",
+          border: isSelected ? "3px solid rgb(23, 104, 255)" : "0px solid black",
           borderRadius: "25px",
+          boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
           padding: "12px",
           boxSizing: "border-box",
           cursor: "grab",
@@ -259,56 +273,24 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
         )}
         {(isSelected && !onDragging && selectedElements.length === 1) && (
         <>
-          <div
-            style={{
-              position: "absolute",
-              top: "-5px",
-              left: "-5px",
-              width: "10px",
-              height: "10px",
-              backgroundColor: "blue",
-              borderRadius: "50%",
-              cursor: "nwse-resize",
-            }}
+          <ResizePoint
+            position="top-left"
+            cursor="nwse-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "top-left")}
           />
-          <div
-            style={{
-              position: "absolute",
-              top: "-5px",
-              right: "-5px",
-              width: "10px",
-              height: "10px",
-              backgroundColor: "blue",
-              borderRadius: "50%",
-              cursor: "nesw-resize",
-            }}
+          <ResizePoint
+            position="top-right"
+            cursor="nesw-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "top-right")}
           />
-          <div
-            style={{
-              position: "absolute",
-              bottom: "-5px",
-              left: "-5px",
-              width: "10px",
-              height: "10px",
-              backgroundColor: "blue",
-              borderRadius: "50%",
-              cursor: "nesw-resize",
-            }}
+          <ResizePoint
+            position="bottom-left"
+            cursor="nesw-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom-left")}
           />
-          <div
-            style={{
-              position: "absolute",
-              bottom: "-5px",
-              right: "-5px",
-              width: "10px",
-              height: "10px",
-              backgroundColor: "blue",
-              borderRadius: "50%",
-              cursor: "nwse-resize",
-            }}
+          <ResizePoint
+            position="bottom-right"
+            cursor="nwse-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}
           />
         </>

@@ -104,6 +104,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     );
   };
 
+  
   return (
     <div>
       {selectedTool === "Pointer" && <PointerTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef}/>}

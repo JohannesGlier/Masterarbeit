@@ -5,6 +5,7 @@ const CanvasContext = createContext();
 export const CanvasProvider = ({ children }) => {
   const [selectedTool, setSelectedTool] = useState('Pointer');
   const [selectedElements, setSelectedElements] = useState([]);
+  const [isDrawing, setIsDrawing] = useState(false);
   const offsetRef = useRef({ x: 0, y: 0 });
   const scaleRef = useRef(2);
 
@@ -42,6 +43,8 @@ export const CanvasProvider = ({ children }) => {
         selectedElements,
         setSelectedElements,
         toggleSelectedElement,
+        isDrawing,
+        setIsDrawing,
         offsetRef,
         scaleRef,
       }}

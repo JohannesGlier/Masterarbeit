@@ -48,7 +48,12 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
         // Vordefiniertes Rechteck durch Click
         const defaultWidth = 100;
         const defaultHeight = 100;  
-        const finalRectangle = {x: tempRectangle.x, y: tempRectangle.y, width: defaultWidth, height: defaultHeight};
+        const finalRectangle = {
+          x: tempRectangle.x - defaultWidth / 2,
+          y: tempRectangle.y - defaultHeight / 2,
+          width: defaultWidth,
+          height: defaultHeight,
+        };
         addRectangle(finalRectangle);
         setSelectedTool('Pointer');
       }
