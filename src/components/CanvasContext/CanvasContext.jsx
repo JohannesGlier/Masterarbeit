@@ -8,6 +8,8 @@ export const CanvasProvider = ({ children }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const offsetRef = useRef({ x: 0, y: 0 });
   const scaleRef = useRef(2);
+  const [mouseDownElement, setMouseDownElement] = useState(null);
+  const [hoveredElement, setHoveredElement] = useState(null);
 
   const changeTool = (tool) => {
     if (tool !== selectedTool) {
@@ -47,6 +49,10 @@ export const CanvasProvider = ({ children }) => {
         setIsDrawing,
         offsetRef,
         scaleRef,
+        mouseDownElement,
+        setMouseDownElement,
+        hoveredElement,
+        setHoveredElement,
       }}
     >
       {children}

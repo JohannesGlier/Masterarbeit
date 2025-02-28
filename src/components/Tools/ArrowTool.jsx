@@ -1,48 +1,103 @@
 import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
-const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
-  const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
+const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements }) => {
+  const { offsetRef, scaleRef, setSelectedTool, setMouseDownElement, setHoveredElement } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
   const [endPoint, setEndPoint] = useState(null);
+
+  const getElementAtPosition = (x, y) => {
+    return elements.find((element) => {
+      const elementX = element.position.x;
+      const elementY = element.position.y;
+      const elementWidth = element.size.width;
+      const elementHeight = element.size.height;
+
+      return (
+        x >= elementX &&
+        x <= elementX + elementWidth &&
+        y >= elementY &&
+        y <= elementY + elementHeight
+      );
+    });
+  };
 
   useEffect(() => {
     document.body.style.cursor = "crosshair";
 
     const handleMouseDown = (event) => {
-      if (event.button !== 0) return;
-      setIsDrawing(true);
+        if (event.button !== 0) return;
+        event.stopPropagation();
+        
+        setIsDrawing(true);
+      
+        const rect = canvasRef.current.getBoundingClientRect();
+        const mouseX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
+        const mouseY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
+      
+        const element = getElementAtPosition(mouseX, mouseY);
 
-      const rect = canvasRef.current.getBoundingClientRect();
-      const startX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const startY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
-      setStartPoint({ x: startX, y: startY });
-      setEndPoint({ x: startX, y: startY }); // Setze den Endpunkt gleich dem Startpunkt
-    };
+        if (element) {
+          const centerX = element.position.x + element.size.width / 2;
+          const centerY = element.position.y + element.size.height / 2;
+      
+          setStartPoint({ x: centerX, y: centerY });
+          setEndPoint({ x: centerX, y: centerY });
+          setMouseDownElement(element);
+        } else {
+          setStartPoint({ x: mouseX, y: mouseY });
+          setEndPoint({ x: mouseX, y: mouseY });
+          setMouseDownElement(null);        
+        }
+      };
 
     const handleMouseMove = (event) => {
-      if (!isDrawing) return;
+        const rect = canvasRef.current.getBoundingClientRect();
+        const mouseX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
+        const mouseY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
 
-      const rect = canvasRef.current.getBoundingClientRect();
-      const endX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const endY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
+        // Überprüfen, ob die Maus über einem Element ist
+        const element = getElementAtPosition(mouseX, mouseY);
+        setHoveredElement(element);
 
-      setEndPoint({ x: endX, y: endY });
+        if (isDrawing) {
+            setEndPoint({ x: mouseX, y: mouseY });
+        }
     };
 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
 
-      if (startPoint && endPoint) {
-        addArrow({ start: startPoint, end: endPoint });
+      const rect = canvasRef.current.getBoundingClientRect();
+      const mouseX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
+      const mouseY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
+
+      // Überprüfen, ob die Maus über einem Element ist
+      const element = getElementAtPosition(mouseX, mouseY);
+
+      let finalEndPoint;
+      if (element) {
+        // Wenn über einem Element, verwende die Mitte des Elements als Endpunkt
+        finalEndPoint = {
+          x: element.position.x + element.size.width / 2,
+          y: element.position.y + element.size.height / 2,
+        };
+      } else {
+        // Wenn im Nichts, verwende die Mausposition als Endpunkt
+        finalEndPoint = { x: mouseX, y: mouseY };
+      }
+
+      if (startPoint) {
+        addArrow({ start: startPoint, end: finalEndPoint });
         setSelectedTool('Pointer');
       }
 
       setStartPoint(null);
       setEndPoint(null);
       setIsDrawing(false);
+      setMouseDownElement(null);
+      setHoveredElement(null);
     };
 
     const canvasWrapper = canvasWrapperRef.current;
@@ -56,7 +111,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
       canvasWrapper.removeEventListener("mousemove", handleMouseMove);
       canvasWrapper.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [canvasRef, canvasWrapperRef, isDrawing, scaleRef, offsetRef, addArrow, startPoint, endPoint]);
+  }, [canvasRef, canvasWrapperRef, isDrawing, scaleRef, offsetRef, addArrow, startPoint, elements]);
 
   return (
     <div>
@@ -72,7 +127,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow }) => {
             transform: `rotate(${Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x)}rad)`,
             transformOrigin: "0 0",
             pointerEvents: "none",
-            zIndex: 10,
+            zIndex: 4,
           }}
         />
       )}

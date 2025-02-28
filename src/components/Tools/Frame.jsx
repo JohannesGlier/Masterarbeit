@@ -3,7 +3,7 @@ import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ResizePoint from '@/components/Helper/ResizePoint';
 
 const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
-  const { selectedTool, selectedElements, toggleSelectedElement, isDrawing } = useCanvas();
+  const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement } = useCanvas();
   const [isSelected, setIsSelected] = useState(false);
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
@@ -14,6 +14,9 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const resizeHandle = useRef(null);
   const startPos = useRef({ x: 0, y: 0 });
   const frameRef = useRef(null);
+
+  const isMouseDownElement = mouseDownElement?.id === rect.id;
+  const isHoveredElement = hoveredElement?.id === rect.id;
 
 
   useEffect(() => {
@@ -214,15 +217,15 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
 
 
   const pointerEvents =
-  selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
-    ? "none" // Deaktiviere pointer-events für alle Elemente
-    : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
-    ? "none" // Deaktiviere pointer-events für alle Elemente
-    : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
-    ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
-      ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
-      : "none" // Deaktiviere pointer-events für alle anderen Elemente
-    : "auto";
+    selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
+      ? "none" // Deaktiviere pointer-events für alle Elemente
+      : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
+      ? "none" // Deaktiviere pointer-events für alle Elemente
+      : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
+      ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
+        ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
+        : "none" // Deaktiviere pointer-events für alle anderen Elemente
+      : "auto";
 
   return (
     <div
@@ -234,9 +237,13 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
         width: `${size.width * scaleRef.current}px`,
         height: `${size.height * scaleRef.current}px`,
         backgroundColor: "rgba(143, 143, 143, 0.5)",
-        border: isSelected ? "3px solid rgb(23, 104, 255)" : "1px solid black",
+        border: isSelected
+          ? "3px solid rgb(23, 104, 255)"
+          : isMouseDownElement || isHoveredElement
+          ? "3px solid orange" // Highlighting-Stil
+          : "1px solid black",
         cursor: "grab",
-        zIndex: 4,
+        zIndex: 5,
         pointerEvents,
       }}
       onMouseDown={handleMouseDown}

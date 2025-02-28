@@ -14,8 +14,23 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [arrows, setArrows] = useState([]);
   const [selectedFrame, setSelectedFrame] = useState(null);
 
-
+  const elements = [
+    ...rectangles.map((rect) => ({
+      id: rect.id,
+      position: { x: rect.x, y: rect.y },
+      size: { width: rect.width, height: rect.height },
+      type: 'rectangle',
+    })),
+    ...textcards.map((textcard) => ({
+      id: textcard.id,
+      position: { x: textcard.x, y: textcard.y },
+      size: { width: textcard.width, height: textcard.height },
+      type: 'textcard',
+    })),
+  ];
   
+
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'x' && selectedElements.length > 0) {
@@ -110,7 +125,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       {selectedTool === "Pointer" && <PointerTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef}/>}
       {selectedTool === "Frame" && <FrameTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef} addRectangle={addRectangle}/>}
       {selectedTool === "TextCard" && <TextCardTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef} addTextcard={addTextcards}/>}
-      {selectedTool === "Arrow" && <ArrowTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef} addArrow={addArrows}/>}
+      {selectedTool === "Arrow" && <ArrowTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef} addArrow={addArrows} elements={elements}/>}
 
       {/* Rendern der gespeicherten Rechtecke */}
       {rectangles.map((rect, index) => (
@@ -156,7 +171,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
             transform: `rotate(${Math.atan2(arrow.end.y - arrow.start.y, arrow.end.x - arrow.start.x)}rad)`,
             transformOrigin: "0 0",
             pointerEvents: "none",
-            zIndex: 5,
+            zIndex: 4,
           }}
         />
       ))}

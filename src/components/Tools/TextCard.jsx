@@ -3,7 +3,7 @@ import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ResizePoint from '@/components/Helper/ResizePoint';
 
 const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
-    const { selectedTool, selectedElements, toggleSelectedElement, isDrawing } = useCanvas();
+    const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement } = useCanvas();
     const frameRef = useRef(null);
     const [text, setText] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -16,6 +16,9 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
     const alreadySelected = useRef(false);
     const resizeHandle = useRef(null);
     const startPos = useRef({ x: 0, y: 0 });
+    
+    const isMouseDownElement = mouseDownElement?.id === rect.id;
+    const isHoveredElement = hoveredElement?.id === rect.id;
 
 
     useEffect(() => {
@@ -123,6 +126,7 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
     const StopDragging = (e) => {
       isDragging.current = false; 
       setOnDragging(false);
+      
       if(alreadySelected.current) {
         alreadySelected.current = false;
         setIsSelected(false);
@@ -216,15 +220,15 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
 
 
     const pointerEvents =
-  selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
-    ? "none" // Deaktiviere pointer-events für alle Elemente
-    : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
-    ? "none" // Deaktiviere pointer-events für alle Elemente
-    : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
-    ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
-      ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
-      : "none" // Deaktiviere pointer-events für alle anderen Elemente
-    : "auto";
+      selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
+        ? "none" // Deaktiviere pointer-events für alle Elemente
+        : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
+        ? "none" // Deaktiviere pointer-events für alle Elemente
+        : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
+        ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
+          ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
+          : "none" // Deaktiviere pointer-events für alle anderen Elemente
+        : "auto";
     
     return (
       <div
@@ -236,7 +240,11 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
           width: `${size.width * scaleRef.current}px`,
           height: `${size.height * scaleRef.current}px`,
           backgroundColor: "white",
-          border: isSelected ? "3px solid rgb(23, 104, 255)" : "0px solid black",
+          border: isSelected
+          ? "3px solid rgb(23, 104, 255)"
+          : isMouseDownElement || isHoveredElement
+          ? "3px solid orange" // Highlighting-Stil
+          : "0px solid black",
           borderRadius: "25px",
           boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
           padding: "12px",
@@ -266,10 +274,11 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
               fontFamily: "inherit",
               fontSize: "inherit",
               cursor: "text",
+              wordWrap: "break-word",
             }}
           />
         ) : (
-          <div style={{ whiteSpace: "pre-wrap" }}>{text}</div>
+          <div style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>{text}</div>
         )}
         {(isSelected && !onDragging && selectedElements.length === 1) && (
         <>
