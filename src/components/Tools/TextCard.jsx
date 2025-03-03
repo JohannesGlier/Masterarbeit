@@ -129,6 +129,11 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
     const StopDragging = (e) => {
       isDragging.current = false; 
       setOnDragging(false);
+
+      if (selectedTool === "Pointer") {
+        const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+        toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
+      }
     }
   
     const HandleResizing = (e) => {
@@ -138,54 +143,54 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
           toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
         }
 
-          // Größenänderung des Frames
-          const mouseX = e.clientX;
-          const mouseY = e.clientY;
-        
-          // Berechne die Mausposition relativ zum Canvas unter Berücksichtigung von Zoom und Offset
-          const mouseCanvasX = (mouseX - offsetRef.current.x) / scaleRef.current;
-          const mouseCanvasY = (mouseY - offsetRef.current.y) / scaleRef.current;
-        
-          switch (resizeHandle.current) {
-            case "top-left":
-              setPosition({
-                x: mouseCanvasX, // Neue Position basierend auf der Mausposition
-                y: mouseCanvasY,
-              });
-              setSize({
-                width: position.x + size.width - mouseCanvasX, // Neue Breite
-                height: position.y + size.height - mouseCanvasY, // Neue Höhe
-              });
-              break;
-            case "top-right":
-              setPosition((prev) => ({
-                ...prev,
-                y: mouseCanvasY, // Neue Y-Position basierend auf der Mausposition
-              }));
-              setSize({
-                width: mouseCanvasX - position.x, // Neue Breite
-                height: position.y + size.height - mouseCanvasY, // Neue Höhe
-              });
-              break;
-            case "bottom-left":
-              setPosition((prev) => ({
-                ...prev,
-                x: mouseCanvasX, // Neue X-Position basierend auf der Mausposition
-              }));
-              setSize({
-                width: position.x + size.width - mouseCanvasX, // Neue Breite
-                height: mouseCanvasY - position.y, // Neue Höhe
-              });
-              break;
-            case "bottom-right":
-              setSize({
-                width: mouseCanvasX - position.x, // Neue Breite
-                height: mouseCanvasY - position.y, // Neue Höhe
-              });
-              break;
-            default:
-              break;
-          }
+        // Größenänderung des Frames
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+      
+        // Berechne die Mausposition relativ zum Canvas unter Berücksichtigung von Zoom und Offset
+        const mouseCanvasX = (mouseX - offsetRef.current.x) / scaleRef.current;
+        const mouseCanvasY = (mouseY - offsetRef.current.y) / scaleRef.current;
+      
+        switch (resizeHandle.current) {
+          case "top-left":
+            setPosition({
+              x: mouseCanvasX, // Neue Position basierend auf der Mausposition
+              y: mouseCanvasY,
+            });
+            setSize({
+              width: position.x + size.width - mouseCanvasX, // Neue Breite
+              height: position.y + size.height - mouseCanvasY, // Neue Höhe
+            });
+            break;
+          case "top-right":
+            setPosition((prev) => ({
+              ...prev,
+              y: mouseCanvasY, // Neue Y-Position basierend auf der Mausposition
+            }));
+            setSize({
+              width: mouseCanvasX - position.x, // Neue Breite
+              height: position.y + size.height - mouseCanvasY, // Neue Höhe
+            });
+            break;
+          case "bottom-left":
+            setPosition((prev) => ({
+              ...prev,
+              x: mouseCanvasX, // Neue X-Position basierend auf der Mausposition
+            }));
+            setSize({
+              width: position.x + size.width - mouseCanvasX, // Neue Breite
+              height: mouseCanvasY - position.y, // Neue Höhe
+            });
+            break;
+          case "bottom-right":
+            setSize({
+              width: mouseCanvasX - position.x, // Neue Breite
+              height: mouseCanvasY - position.y, // Neue Höhe
+            });
+            break;
+          default:
+            break;
+        }
       }
     }
   
@@ -216,8 +221,8 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
         ? "none" // Deaktiviere pointer-events für alle Elemente
         : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
         ? "none" // Deaktiviere pointer-events für alle Elemente
-        : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
-        ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
+        : selectedElements.some(el => el.isResizing || el.isDragging)
+        ? selectedElements.find(el => el.id === rect.id)?.isResizing || selectedElements.find(el => el.id === rect.id)?.isDragging
           ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
           : "none" // Deaktiviere pointer-events für alle anderen Elemente
         : "auto";

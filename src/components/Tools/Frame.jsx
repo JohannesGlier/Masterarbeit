@@ -56,12 +56,13 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
 
   const handleMouseDown = (e) => {
     e.stopPropagation();
-    setIsSelected(true);
-
+  
     if (selectedTool === "Pointer") {
       const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
       toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
     }
+
+    setIsSelected(true);
 
     isDragging.current = true;
     startPos.current = {
@@ -86,13 +87,8 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   };
 
   const handleMouseUp = (e) => {
-    StopDragging(e);
     StopResizing(e);
-
-    if (selectedTool === "Pointer") {
-      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-      toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
-    }
+    StopDragging(e);
   };
 
 
@@ -101,6 +97,11 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
     if (isResizing.current) {
         isResizing.current = false;
         resizeHandle.current = null;
+
+        if (selectedTool === "Pointer") {
+          const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
+        }
         
         if (onResize) {
           onResize(rect.id, size.width, size.height);
@@ -111,10 +112,15 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const StopDragging = (e) => {
     isDragging.current = false; 
     setOnDragging(false);
+
+    if (selectedTool === "Pointer") {
+      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+      toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
+    }
   }
 
   const HandleResizing = (e) => {
-    if (isResizing.current) {
+    if (isResizing.current && e.buttons === 1) {
         if (selectedTool === "Pointer") {
           const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
           toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
@@ -198,8 +204,8 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
       ? "none" // Deaktiviere pointer-events für alle Elemente
       : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
       ? "none" // Deaktiviere pointer-events für alle Elemente
-      : selectedElements.some(el => el.isResizing) // Wenn irgendein Element geresized wird
-      ? selectedElements.find(el => el.id === rect.id)?.isResizing // Überprüfe, ob dieses Element geresized wird
+      : selectedElements.some(el => el.isResizing || el.isDragging)
+      ? selectedElements.find(el => el.id === rect.id)?.isResizing || selectedElements.find(el => el.id === rect.id)?.isDragging
         ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
         : "none" // Deaktiviere pointer-events für alle anderen Elemente
       : "auto";
@@ -213,7 +219,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
         left: position.x * scaleRef.current + offsetRef.current.x,
         width: `${size.width * scaleRef.current}px`,
         height: `${size.height * scaleRef.current}px`,
-        backgroundColor: "rgba(143, 143, 143, 0.5)",
+        backgroundColor: "rgba(143, 143, 143, 1.0)",
         border: isSelected
           ? "3px solid rgb(23, 104, 255)"
           : isMouseDownElement || isHoveredElement

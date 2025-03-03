@@ -32,6 +32,8 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements }) => {
   const handleClick = (e) => {
     e.stopPropagation(); // Verhindere das Bubbling des Events
 
+    console.log("Click");
+
     if (selectedTool === "Pointer") {
       const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey; // Überprüfe, ob Multi-Select aktiv ist
       toggleSelectedElement(arrow, isMultiSelect); // Füge den Pfeil zur Auswahl hinzu oder entferne ihn
