@@ -10,7 +10,6 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const [onDragging, setOnDragging] = useState(false);
   const isDragging = useRef(false);
   const isResizing = useRef(false);
-  const alreadySelected = useRef(false);
   const resizeHandle = useRef(null);
   const startPos = useRef({ x: 0, y: 0 });
   const frameRef = useRef(null);
@@ -57,19 +56,12 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
 
   const handleMouseDown = (e) => {
     e.stopPropagation();
+    setIsSelected(true);
 
     if (selectedTool === "Pointer") {
-      // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
       const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-
-      // Umschalten der Auswahl
       toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
     }
-
-    if(isSelected) {
-      alreadySelected.current = true;
-    }
-    setIsSelected(true);
 
     isDragging.current = true;
     startPos.current = {
@@ -96,23 +88,19 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const handleMouseUp = (e) => {
     StopDragging(e);
     StopResizing(e);
+
+    if (selectedTool === "Pointer") {
+      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+      toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
+    }
   };
 
 
 
   const StopResizing = (e) => {
     if (isResizing.current) {
-        setIsSelected(false);
         isResizing.current = false;
         resizeHandle.current = null;
-
-        if (selectedTool === "Pointer") {
-          // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
-          const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-    
-          // Umschalten der Auswahl
-          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
-        }
         
         if (onResize) {
           onResize(rect.id, size.width, size.height);
@@ -123,20 +111,12 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const StopDragging = (e) => {
     isDragging.current = false; 
     setOnDragging(false);
-
-    if(alreadySelected.current) {
-      alreadySelected.current = false;
-      setIsSelected(false);
-    }
   }
 
   const HandleResizing = (e) => {
     if (isResizing.current) {
         if (selectedTool === "Pointer") {
-          // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
           const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-    
-          // Umschalten der Auswahl
           toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
         }
 
@@ -196,10 +176,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
       setOnDragging(true);
 
       if (selectedTool === "Pointer") {
-        // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
         const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-  
-        // Umschalten der Auswahl
         toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
       }
 

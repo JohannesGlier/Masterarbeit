@@ -7,13 +7,13 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
     const frameRef = useRef(null);
     const [text, setText] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const [isEditingEnabled, setIsEditingEnabled] = useState(false);
     const [isSelected, setIsSelected] = useState(false);
     const [position, setPosition] = useState({ x: rect.x, y: rect.y });
     const [size, setSize] = useState({ width: rect.width, height: rect.height });
     const [onDragging, setOnDragging] = useState(false);
     const isDragging = useRef(false);
     const isResizing = useRef(false);
-    const alreadySelected = useRef(false);
     const resizeHandle = useRef(null);
     const startPos = useRef({ x: 0, y: 0 });
     
@@ -29,6 +29,8 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
       const handleClickOutside = (e) => {
         if (frameRef.current && !frameRef.current.contains(e.target)) {
           setIsSelected(false);
+          setIsEditingEnabled(false);
+          setIsEditing(false);
         }
       };
   
@@ -61,16 +63,10 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
       e.stopPropagation();
 
       if (selectedTool === "Pointer") {
-        // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
         const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-  
-        // Umschalten der Auswahl
         toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
       }
 
-      if(isSelected) {
-        alreadySelected.current = true;
-      }
       setIsSelected(true);
   
       isDragging.current = true;
@@ -99,24 +95,31 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
       StopDragging(e);
       StopResizing(e);
     };
+
+    const handleClick = (e) => {
+      e.stopPropagation();
+
+      // Wenn die Textkarte bereits ausgewählt ist, aktiviere den Bearbeitungsmodus
+      if (isSelected && isEditingEnabled) {
+        setIsEditing(true);
+      } else {
+        // Andernfalls aktiviere die Auswahl
+        setIsEditingEnabled(true);
+      }
+    };
   
   
   
     const StopResizing = (e) => {
       if (isResizing.current) {
-          setIsSelected(false);
           isResizing.current = false;
           resizeHandle.current = null;
 
           if (selectedTool === "Pointer") {
-            // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
             const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-      
-            // Umschalten der Auswahl
             toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
           }
 
-          
           if (onResize) {
             onResize(rect.id, size.width, size.height);
           }
@@ -126,20 +129,12 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
     const StopDragging = (e) => {
       isDragging.current = false; 
       setOnDragging(false);
-      
-      if(alreadySelected.current) {
-        alreadySelected.current = false;
-        setIsSelected(false);
-      }
     }
   
     const HandleResizing = (e) => {
       if (isResizing.current) {
         if (selectedTool === "Pointer") {
-          // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
           const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-    
-          // Umschalten der Auswahl
           toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
         }
 
@@ -195,14 +190,11 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
     }
   
     const HandleDragging = (e) => {
-      if (isDragging.current) {
+      if (isDragging.current && !isEditing) {
           setOnDragging(true);
 
           if (selectedTool === "Pointer") {
-            // Überprüfe, ob Shift oder Strg gedrückt wurde (Multi-Select)
             const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-      
-            // Umschalten der Auswahl
             toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
           }
 
@@ -249,11 +241,11 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
           boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
           padding: "12px",
           boxSizing: "border-box",
-          cursor: "grab",
+          cursor: isEditing ? "text" : "grab",
           zIndex: 6,
           pointerEvents,
         }}
-        onClick={() => setIsEditing(true)}
+        onClick={handleClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import FrameTool from '@/components/Tools/FrameTool';
 import ArrowTool from '@/components/Tools/ArrowTool';
@@ -8,6 +8,10 @@ import TextCard from '@/components/Tools/TextCard';
 import Frame from '@/components/Tools/Frame';
 import Arrow from '@/components/Tools/Arrow';
 
+const generateUniqueId = () => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
 const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const { selectedTool, offsetRef, scaleRef, selectedElements, setSelectedElements } = useCanvas();
   const [rectangles, setRectangles] = useState([]);
@@ -15,21 +19,23 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [arrows, setArrows] = useState([]);
   const [selectedFrame, setSelectedFrame] = useState(null);
 
-  const elements = [   
-    ...textcards.map((textcard) => ({
-      id: textcard.id,
-      position: { x: textcard.x, y: textcard.y },
-      size: { width: textcard.width, height: textcard.height },
-      type: 'textcard',
-    })),
-    ...rectangles.map((rect) => ({
-      id: rect.id,
-      position: { x: rect.x, y: rect.y },
-      size: { width: rect.width, height: rect.height },
-      type: 'rectangle',
-    })),
-  ];
-  
+  const elements = useMemo(() => {
+    return [
+      ...textcards.map((textcard) => ({
+        id: textcard.id,
+        position: { x: textcard.x, y: textcard.y },
+        size: { width: textcard.width, height: textcard.height },
+        type: 'textcard',
+      })),
+      ...rectangles.map((rect) => ({
+        id: rect.id,
+        position: { x: rect.x, y: rect.y },
+        size: { width: rect.width, height: rect.height },
+        type: 'rectangle',
+      })),
+    ];
+  }, [textcards, rectangles]);
+
 
 
   useEffect(() => {
@@ -53,8 +59,14 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       if (newArrow.start.elementId) {
         const startElement = elements.find(element => element.id === newArrow.start.elementId);
         if (startElement) {
-          newArrow.start.x = startElement.position.x + startElement.size.width / 2;
-          newArrow.start.y = startElement.position.y + startElement.size.height / 2;
+          const newX = startElement.position.x + startElement.size.width / 2;
+          const newY = startElement.position.y + startElement.size.height / 2;
+  
+          // Nur aktualisieren, wenn sich die Position geändert hat
+          if (newArrow.start.x !== newX || newArrow.start.y !== newY) {
+            newArrow.start.x = newX;
+            newArrow.start.y = newY;
+          }
         }
       }
   
@@ -62,16 +74,25 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       if (newArrow.end.elementId) {
         const endElement = elements.find(element => element.id === newArrow.end.elementId);
         if (endElement) {
-          newArrow.end.x = endElement.position.x + endElement.size.width / 2;
-          newArrow.end.y = endElement.position.y + endElement.size.height / 2;
+          const newX = endElement.position.x + endElement.size.width / 2;
+          const newY = endElement.position.y + endElement.size.height / 2;
+  
+          // Nur aktualisieren, wenn sich die Position geändert hat
+          if (newArrow.end.x !== newX || newArrow.end.y !== newY) {
+            newArrow.end.x = newX;
+            newArrow.end.y = newY;
+          }
         }
       }
   
       return newArrow;
     });
   
-    setArrows(updatedArrows);
-  }, [elements]); // Abhängigkeit: elements
+    // Nur setArrows aufrufen, wenn sich die Pfeile tatsächlich geändert haben
+    if (JSON.stringify(updatedArrows) !== JSON.stringify(arrows)) {
+      setArrows(updatedArrows);
+    }
+  }, [elements]);
 
 
 
@@ -79,7 +100,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     setRectangles((prevRectangles) => [
       ...prevRectangles,
       {
-        id: Date.now(),
+        id: generateUniqueId(),
         x: rect.x,
         y: rect.y,
         width: rect.width,
@@ -92,7 +113,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     setTextCards((prevRectangles) => [
       ...prevRectangles,
       {
-        id: Date.now(),
+        id: generateUniqueId(),
         x: textcard.x,
         y: textcard.y,
         width: textcard.width,
@@ -102,7 +123,13 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   };
 
   const addArrows = (arrow) => {
-    setArrows((prevArrows) => [...prevArrows, arrow]);
+    setArrows((prevArrows) => [
+      ...prevArrows,
+      {
+        ...arrow,
+        id: generateUniqueId(),
+      },
+    ]);
   };
 
 
@@ -117,8 +144,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     setArrows((prev) =>
       prev.filter((arrow) => !selectedElements.some((el) => el.id === arrow.id))
     );
-  
-    // Auswahl zurücksetzen
+
+    // Zurücksetzen der Auswahl
     setSelectedElements([]);
   };
   
