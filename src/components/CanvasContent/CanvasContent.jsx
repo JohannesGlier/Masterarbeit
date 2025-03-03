@@ -6,6 +6,7 @@ import TextCardTool from '@/components/Tools/TextCardTool';
 import PointerTool from '@/components/Tools/PointerTool';
 import TextCard from '@/components/Tools/TextCard';
 import Frame from '@/components/Tools/Frame';
+import Arrow from '@/components/Tools/Arrow';
 
 const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const { selectedTool, offsetRef, scaleRef, selectedElements, setSelectedElements } = useCanvas();
@@ -14,18 +15,18 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [arrows, setArrows] = useState([]);
   const [selectedFrame, setSelectedFrame] = useState(null);
 
-  const elements = [
-    ...rectangles.map((rect) => ({
-      id: rect.id,
-      position: { x: rect.x, y: rect.y },
-      size: { width: rect.width, height: rect.height },
-      type: 'rectangle',
-    })),
+  const elements = [   
     ...textcards.map((textcard) => ({
       id: textcard.id,
       position: { x: textcard.x, y: textcard.y },
       size: { width: textcard.width, height: textcard.height },
       type: 'textcard',
+    })),
+    ...rectangles.map((rect) => ({
+      id: rect.id,
+      position: { x: rect.x, y: rect.y },
+      size: { width: rect.width, height: rect.height },
+      type: 'rectangle',
     })),
   ];
   
@@ -43,6 +44,34 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [selectedElements]);
+
+  useEffect(() => {
+    const updatedArrows = arrows.map(arrow => {
+      const newArrow = { ...arrow };
+  
+      // Startpunkt aktualisieren, falls an ein Element gekoppelt
+      if (newArrow.start.elementId) {
+        const startElement = elements.find(element => element.id === newArrow.start.elementId);
+        if (startElement) {
+          newArrow.start.x = startElement.position.x + startElement.size.width / 2;
+          newArrow.start.y = startElement.position.y + startElement.size.height / 2;
+        }
+      }
+  
+      // Endpunkt aktualisieren, falls an ein Element gekoppelt
+      if (newArrow.end.elementId) {
+        const endElement = elements.find(element => element.id === newArrow.end.elementId);
+        if (endElement) {
+          newArrow.end.x = endElement.position.x + endElement.size.width / 2;
+          newArrow.end.y = endElement.position.y + endElement.size.height / 2;
+        }
+      }
+  
+      return newArrow;
+    });
+  
+    setArrows(updatedArrows);
+  }, [elements]); // Abhängigkeit: elements
 
 
 
@@ -159,20 +188,12 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
       {/* Rendern der gespeicherten Verbindungen */}
       {arrows.map((arrow, index) => (
-        <div
+        <Arrow
           key={index}
-          style={{
-            position: "absolute",
-            top: arrow.start.y * scaleRef.current + offsetRef.current.y,
-            left: arrow.start.x * scaleRef.current + offsetRef.current.x,
-            width: `${Math.sqrt(Math.pow(arrow.end.x - arrow.start.x, 2) + Math.pow(arrow.end.y - arrow.start.y, 2)) * scaleRef.current}px`,
-            height: "2px",
-            backgroundColor: "black",
-            transform: `rotate(${Math.atan2(arrow.end.y - arrow.start.y, arrow.end.x - arrow.start.x)}rad)`,
-            transformOrigin: "0 0",
-            pointerEvents: "none",
-            zIndex: 4,
-          }}
+          arrow={arrow}
+          scaleRef={scaleRef}
+          offsetRef={offsetRef}
+          elements={elements} // Elemente übergeben
         />
       ))}
     </div>

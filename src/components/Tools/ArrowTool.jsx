@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 
+
 const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements }) => {
   const { offsetRef, scaleRef, setSelectedTool, setMouseDownElement, setHoveredElement } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
@@ -42,7 +43,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements }) => {
           const centerX = element.position.x + element.size.width / 2;
           const centerY = element.position.y + element.size.height / 2;
       
-          setStartPoint({ x: centerX, y: centerY });
+          setStartPoint({ elementId: element.id, x: centerX, y: centerY });
           setEndPoint({ x: centerX, y: centerY });
           setMouseDownElement(element);
         } else {
@@ -74,22 +75,21 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements }) => {
       const mouseY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
 
       // Überprüfen, ob die Maus über einem Element ist
-      const element = getElementAtPosition(mouseX, mouseY);
+      const endElement = getElementAtPosition(mouseX, mouseY);
 
-      let finalEndPoint;
-      if (element) {
-        // Wenn über einem Element, verwende die Mitte des Elements als Endpunkt
-        finalEndPoint = {
-          x: element.position.x + element.size.width / 2,
-          y: element.position.y + element.size.height / 2,
-        };
-      } else {
-        // Wenn im Nichts, verwende die Mausposition als Endpunkt
-        finalEndPoint = { x: mouseX, y: mouseY };
-      }
+      // Startpunkt: Entweder das geklickte Element oder die Mausposition
+      const start = startPoint.elementId
+      ? { elementId: startPoint.elementId } // Gekoppelt an ein Element
+      : { x: startPoint.x, y: startPoint.y }; // Freie Position
+
+      // Endpunkt: Entweder das geklickte Element oder die Mausposition
+      const end = endElement
+      ? { elementId: endElement.id } // Gekoppelt an ein Element
+      : { x: mouseX, y: mouseY }; // Freie Position
 
       if (startPoint) {
-        addArrow({ start: startPoint, end: finalEndPoint });
+        addArrow({ start, end });
+        //addArrow({ start: startPoint, end: finalEndPoint });
         setSelectedTool('Pointer');
       }
 
