@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
-import ResizePoint from '@/components/Helper/ResizePoint';
+import ResizeHandle from '@/components/Helper/ResizeHandle';
 
 const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
   const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement } = useCanvas();
@@ -210,22 +210,22 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
     >
       {(isSelected && !onDragging && selectedElements.length === 1) && (
         <>
-          <ResizePoint
+          <ResizeHandle
             position="top-left"
             cursor="nwse-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "top-left")}
           />
-          <ResizePoint
+          <ResizeHandle
             position="top-right"
             cursor="nesw-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "top-right")}
           />
-          <ResizePoint
+          <ResizeHandle
             position="bottom-left"
             cursor="nesw-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom-left")}
           />
-          <ResizePoint
+          <ResizeHandle
             position="bottom-right"
             cursor="nwse-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}

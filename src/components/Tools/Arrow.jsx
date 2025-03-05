@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
+import ArrowHandle from '@/components/Helper/ArrowHandle';
 
 const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canvasWrapperRef, canvasRef }) => {
   const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, setHoveredElement } = useCanvas();
@@ -166,54 +167,32 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
         onClick={(e) => SelectArrow(e)}
       />
       {isSelected && (
-        <>
-          {/* Startpunkt */}
-          <div
-            style={{
-              position: "absolute",
-              top: startY * scaleRef.current + offsetRef.current.y - 5,
-              left: startX * scaleRef.current + offsetRef.current.x - 5,
-              width: "20px",
-              height: "20px",
-              backgroundColor: "red",
-              borderRadius: "50%",
-              cursor: "pointer",
-              zIndex: 10,
-            }}
-            onMouseDown={(e) => StartDragging('start', e)}
-            onMouseUp={(e) => StopDragging(e)}
-          />
-          {/* Mittelpunkt */}
-          <div
-            style={{
-              position: "absolute",
-              top: middleY * scaleRef.current + offsetRef.current.y - 5,
-              left: middleX * scaleRef.current + offsetRef.current.x - 5,
-              width: "10px",
-              height: "10px",
-              backgroundColor: "green",
-              borderRadius: "50%",
-              zIndex: 10,
-            }}
-          />
-          {/* Endpunkt */}
-          <div
-            style={{
-              position: "absolute",
-              top: endY * scaleRef.current + offsetRef.current.y - 5,
-              left: endX * scaleRef.current + offsetRef.current.x - 5,
-              width: "20px",
-              height: "20px",
-              backgroundColor: "red",
-              borderRadius: "50%",
-              cursor: "pointer",
-              zIndex: 10,
-            }}
-            onMouseDown={(e) => StartDragging('end', e)}
-            onMouseUp={(e) => StopDragging(e)}
-          />
-        </>
-      )}
+      <>
+        {/* Startpunkt */}
+        <ArrowHandle
+          top={startY * scaleRef.current + offsetRef.current.y}
+          left={startX * scaleRef.current + offsetRef.current.x}
+          size={20}
+          onMouseDown={(e) => StartDragging('start', e)}
+          onMouseUp={(e) => StopDragging(e)}
+        />
+        {/* Mittelpunkt */}
+        <ArrowHandle
+          top={middleY * scaleRef.current + offsetRef.current.y}
+          left={middleX * scaleRef.current + offsetRef.current.x}
+          cursor="default"
+          size={15}
+        />
+        {/* Endpunkt */}
+        <ArrowHandle
+          top={endY * scaleRef.current + offsetRef.current.y}
+          left={endX * scaleRef.current + offsetRef.current.x}
+          onMouseDown={(e) => StartDragging('end', e)}
+          onMouseUp={(e) => StopDragging(e)}
+          size={20}
+        />
+      </>
+    )}
     </>
   );
 };

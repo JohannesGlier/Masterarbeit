@@ -1,6 +1,6 @@
 import React from "react";
 
-const ResizePoint = ({ position, cursor, onMouseDown }) => {
+const ResizeHandle = ({ position, cursor, onMouseDown }) => {
   const styles = {
     position: "absolute",
     width: "15px",
@@ -18,4 +18,4 @@ const ResizePoint = ({ position, cursor, onMouseDown }) => {
   return <div style={styles} onMouseDown={onMouseDown} />;
 };
 
-export default ResizePoint;
+export default ResizeHandle;
