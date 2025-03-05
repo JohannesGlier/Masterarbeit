@@ -3,7 +3,7 @@ import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ResizeHandle from '@/components/Helper/ResizeHandle';
 
 const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
-    const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement } = useCanvas();
+    const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement, isArrowDragging } = useCanvas();
     const frameRef = useRef(null);
     const [text, setText] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -60,16 +60,6 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
         y: e.clientY,
       };
     };
-  
-    const handleMouseMove = (e) => {
-      HandleDragging(e);
-      HandleResizing(e);
-    };
-  
-    const handleMouseUp = (e) => {
-      StopDragging(e);
-      StopResizing(e);
-    };
 
     const handleClick = (e) => {
       e.stopPropagation();
@@ -83,6 +73,15 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
       }
     };
   
+    const handleMouseMove = (e) => {
+      HandleDragging(e);
+      HandleResizing(e);
+    };
+  
+    const handleMouseUp = (e) => {
+      StopDragging(e);
+      StopResizing(e);
+    };
   
   
     const StopResizing = (e) => {
@@ -188,7 +187,6 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
         }
       }
     }
-  
 
 
     const pointerEvents =
@@ -196,7 +194,7 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
         ? "none" // Deaktiviere pointer-events für alle Elemente
         : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
         ? "none" // Deaktiviere pointer-events für alle Elemente
-        : selectedElements.some(el => el.isResizing || el.isDragging)
+        : selectedElements.some(el => el.isResizing || el.isDragging) || isArrowDragging
         ? selectedElements.find(el => el.id === rect.id)?.isResizing || selectedElements.find(el => el.id === rect.id)?.isDragging
           ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
           : "none" // Deaktiviere pointer-events für alle anderen Elemente
@@ -212,10 +210,8 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
           width: `${size.width * scaleRef.current}px`,
           height: `${size.height * scaleRef.current}px`,
           backgroundColor: "white",
-          border: isSelected
+          border: isSelected || isMouseDownElement || isHoveredElement
           ? "3px solid rgb(23, 104, 255)"
-          : isMouseDownElement || isHoveredElement
-          ? "3px solid orange" // Highlighting-Stil
           : "0px solid black",
           borderRadius: "25px",
           boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",

@@ -3,7 +3,7 @@ import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ArrowHandle from '@/components/Helper/ArrowHandle';
 
 const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canvasWrapperRef, canvasRef }) => {
-  const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, setHoveredElement } = useCanvas();
+  const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, setHoveredElement, setIsArrowDragging } = useCanvas();
   const [isSelected, setIsSelected] = useState(false);
   const [draggingPoint, setDraggingPoint] = useState(null);
   const frameRef = useRef(null);
@@ -57,6 +57,7 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
 
       setDraggingPoint(point);
       isDragging.current = true;
+      setIsArrowDragging(true);
     }
   };
 
@@ -102,6 +103,7 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
       setDraggingPoint(null);
       setHoveredElement(null);
       isDragging.current = false;
+      setIsArrowDragging(false);
 
       if (selectedTool === "Pointer") {
         const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;

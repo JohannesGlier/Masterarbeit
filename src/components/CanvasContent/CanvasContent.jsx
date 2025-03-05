@@ -40,7 +40,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === 'x' && selectedElements.length > 0) {
+      if (event.ctrlKey && event.key === 'x' && selectedElements.length > 0) {
         deleteSelectedElements();
       }
     };
@@ -52,6 +52,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   }, [selectedElements]);
 
   useEffect(() => {
+    console.log("Hier");
     const updatedArrows = arrows.map(arrow => {
       const newArrow = { ...arrow };
   

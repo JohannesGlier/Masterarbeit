@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ResizeHandle from '@/components/Helper/ResizeHandle';
+import FrameHeadingInput from '@/components/Helper/FrameHeadingInput';
 
 const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
-  const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement } = useCanvas();
+  const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement, isArrowDragging } = useCanvas();
   const [isSelected, setIsSelected] = useState(false);
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
@@ -13,6 +14,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   const resizeHandle = useRef(null);
   const startPos = useRef({ x: 0, y: 0 });
   const frameRef = useRef(null);
+  const [heading, setHeading] = useState("");
 
   const isMouseDownElement = mouseDownElement?.id === rect.id;
   const isHoveredElement = hoveredElement?.id === rect.id;
@@ -32,7 +34,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
 
 
   const handleMouseDown = (e) => {
-    e.preventDefault();
+    //e.preventDefault();
 
     if (selectedTool === "Pointer") {
       const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
@@ -179,7 +181,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
       ? "none" // Deaktiviere pointer-events für alle Elemente
       : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
       ? "none" // Deaktiviere pointer-events für alle Elemente
-      : selectedElements.some(el => el.isResizing || el.isDragging)
+      : selectedElements.some(el => el.isResizing || el.isDragging) || isArrowDragging
       ? selectedElements.find(el => el.id === rect.id)?.isResizing || selectedElements.find(el => el.id === rect.id)?.isDragging
         ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
         : "none" // Deaktiviere pointer-events für alle anderen Elemente
@@ -195,10 +197,8 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
         width: `${size.width * scaleRef.current}px`,
         height: `${size.height * scaleRef.current}px`,
         backgroundColor: "rgba(143, 143, 143, 1.0)",
-        border: isSelected
+        border: isSelected || isMouseDownElement || isHoveredElement
           ? "3px solid rgb(23, 104, 255)"
-          : isMouseDownElement || isHoveredElement
-          ? "3px solid orange" // Highlighting-Stil
           : "1px solid black",
         cursor: "grab",
         zIndex: 5,
@@ -208,6 +208,22 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
+      {/* Eingabefeld für Text (Überschrift) */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-35px",
+          left: "0",
+          zIndex: 5,
+        }}
+      >
+         <FrameHeadingInput
+          placeholder="Überschrift"
+          value={heading}
+          onChange={(e) => setHeading(e.target.value)}
+          maxWidth={`${size.width * scaleRef.current}px`}
+        />
+      </div>
       {(isSelected && !onDragging && selectedElements.length === 1) && (
         <>
           <ResizeHandle

@@ -10,6 +10,7 @@ export const CanvasProvider = ({ children }) => {
   const scaleRef = useRef(2);
   const [mouseDownElement, setMouseDownElement] = useState(null);
   const [hoveredElement, setHoveredElement] = useState(null);
+  const [isArrowDragging, setIsArrowDragging] = useState(false);
 
   const changeTool = (tool) => {
     if (tool !== selectedTool) {
@@ -53,6 +54,8 @@ export const CanvasProvider = ({ children }) => {
         setMouseDownElement,
         hoveredElement,
         setHoveredElement,
+        isArrowDragging,
+        setIsArrowDragging,
       }}
     >
       {children}
