@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ArrowHandle from '@/components/Helper/ArrowHandle';
+import TextInput from '@/components/Helper/TextInput';
 
 const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canvasWrapperRef, canvasRef }) => {
   const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, setHoveredElement, setIsArrowDragging } = useCanvas();
   const [isSelected, setIsSelected] = useState(false);
   const [draggingPoint, setDraggingPoint] = useState(null);
+  const [text, setText] = useState("");
   const frameRef = useRef(null);
   const isDragging = useRef(false);
 
@@ -168,6 +170,24 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
         }}
         onClick={(e) => SelectArrow(e)}
       />
+      <div
+        style={{
+          position: "absolute",
+          top: middleY * scaleRef.current + offsetRef.current.y - 25,
+          left: middleX * scaleRef.current + offsetRef.current.x,
+          transform: `translate(-50%, -50%) rotate(${Math.atan2(endY - startY, endX - startX)}rad)`,
+          zIndex: 5,
+        }}
+      >
+        <TextInput
+          placeholder="Enter Prompt.."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          maxWidth={250}
+          textAlign={"center"}
+        />
+      </div>
+
       {isSelected && (
       <>
         {/* Startpunkt */}

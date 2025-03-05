@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-const FrameHeadingInput = ({ placeholder, value, onChange, maxWidth }) => {
+const TextInput = ({ placeholder, value, onChange, maxWidth, textAlign }) => {
   const inputRef = useRef(null);
   const [width, setWidth] = useState("auto");
   const minWidth = 150;
@@ -30,9 +30,11 @@ const FrameHeadingInput = ({ placeholder, value, onChange, maxWidth }) => {
         backgroundColor: "transparent",
         outline: "none",
         color: "black",
+        textAlign: textAlign,
+        fontStyle: value ? "normal" : "italic",
       }}
     />
   );
 };
 
-export default FrameHeadingInput;
+export default TextInput;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ResizeHandle from '@/components/Helper/ResizeHandle';
-import FrameHeadingInput from '@/components/Helper/FrameHeadingInput';
+import TextInput from '@/components/Helper/TextInput';
 
 const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
   const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement, isArrowDragging } = useCanvas();
@@ -217,11 +217,12 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
           zIndex: 5,
         }}
       >
-         <FrameHeadingInput
+        <TextInput
           placeholder="Überschrift"
           value={heading}
           onChange={(e) => setHeading(e.target.value)}
           maxWidth={`${size.width * scaleRef.current}px`}
+          textAlign={"start"}
         />
       </div>
       {(isSelected && !onDragging && selectedElements.length === 1) && (
