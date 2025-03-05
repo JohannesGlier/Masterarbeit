@@ -63,7 +63,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements }) => {
         setHoveredElement(element);
 
         if (isDrawing) {
-            setEndPoint({ x: mouseX, y: mouseY });
+          setEndPoint({ x: mouseX, y: mouseY });
         }
     };
 

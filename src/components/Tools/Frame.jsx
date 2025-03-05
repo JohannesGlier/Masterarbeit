@@ -23,40 +23,17 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   }, [selectedElements, rect.id]);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (frameRef.current && !frameRef.current.contains(e.target)) {
-        setIsSelected(false);
-      }
-    };
-
-    const handleMouseMove = (e) => {
-      HandleResizing(e);
-      HandleDragging(e)
-    };
-
-    const handleMouseUp = (e) => {
-      StopResizing(e);
-      StopDragging(e);
-    };
-
     const canvasWrapper = canvasWrapperRef.current;
-
     canvasWrapper.addEventListener("mousemove", handleMouseMove);
-    canvasWrapper.addEventListener("mouseup", handleMouseUp);
-    canvasWrapper.addEventListener("mousedown", handleClickOutside);
-  
     return () => {
         canvasWrapper.removeEventListener("mousemove", handleMouseMove);
-        canvasWrapper.removeEventListener("mouseup", handleMouseUp);
-        canvasWrapper.removeEventListener("mousedown", handleClickOutside);
     };
   }, [canvasWrapperRef, isDragging, isResizing, scaleRef, offsetRef, onUpdate, onResize, rect.id, size, position]);
 
 
-
   const handleMouseDown = (e) => {
-    e.stopPropagation();
-  
+    e.preventDefault();
+
     if (selectedTool === "Pointer") {
       const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
       toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
@@ -92,21 +69,20 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
   };
 
 
-
   const StopResizing = (e) => {
     if (isResizing.current) {
-        isResizing.current = false;
-        resizeHandle.current = null;
+      isResizing.current = false;
+      resizeHandle.current = null;
 
-        if (selectedTool === "Pointer") {
-          const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
-        }
-        
-        if (onResize) {
-          onResize(rect.id, size.width, size.height);
-        }
+      if (selectedTool === "Pointer") {
+        const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+        toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
       }
+      
+      if (onResize) {
+        onResize(rect.id, size.width, size.height);
+      }
+    }
   }
 
   const StopDragging = (e) => {
@@ -121,59 +97,59 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
 
   const HandleResizing = (e) => {
     if (isResizing.current && e.buttons === 1) {
-        if (selectedTool === "Pointer") {
-          const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
-        }
+      if (selectedTool === "Pointer") {
+        const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+        toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
+      }
 
-        // Größenänderung des Frames
-        const mouseX = e.clientX;
-        const mouseY = e.clientY;
-      
-        // Berechne die Mausposition relativ zum Canvas unter Berücksichtigung von Zoom und Offset
-        const mouseCanvasX = (mouseX - offsetRef.current.x) / scaleRef.current;
-        const mouseCanvasY = (mouseY - offsetRef.current.y) / scaleRef.current;
-      
-        switch (resizeHandle.current) {
-          case "top-left":
-            setPosition({
-              x: mouseCanvasX, // Neue Position basierend auf der Mausposition
-              y: mouseCanvasY,
-            });
-            setSize({
-              width: position.x + size.width - mouseCanvasX, // Neue Breite
-              height: position.y + size.height - mouseCanvasY, // Neue Höhe
-            });
-            break;
-          case "top-right":
-            setPosition((prev) => ({
-              ...prev,
-              y: mouseCanvasY, // Neue Y-Position basierend auf der Mausposition
-            }));
-            setSize({
-              width: mouseCanvasX - position.x, // Neue Breite
-              height: position.y + size.height - mouseCanvasY, // Neue Höhe
-            });
-            break;
-          case "bottom-left":
-            setPosition((prev) => ({
-              ...prev,
-              x: mouseCanvasX, // Neue X-Position basierend auf der Mausposition
-            }));
-            setSize({
-              width: position.x + size.width - mouseCanvasX, // Neue Breite
-              height: mouseCanvasY - position.y, // Neue Höhe
-            });
-            break;
-          case "bottom-right":
-            setSize({
-              width: mouseCanvasX - position.x, // Neue Breite
-              height: mouseCanvasY - position.y, // Neue Höhe
-            });
-            break;
-          default:
-            break;
-        }
+      // Größenänderung des Frames
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+    
+      // Berechne die Mausposition relativ zum Canvas unter Berücksichtigung von Zoom und Offset
+      const mouseCanvasX = (mouseX - offsetRef.current.x) / scaleRef.current;
+      const mouseCanvasY = (mouseY - offsetRef.current.y) / scaleRef.current;
+    
+      switch (resizeHandle.current) {
+        case "top-left":
+          setPosition({
+            x: mouseCanvasX, // Neue Position basierend auf der Mausposition
+            y: mouseCanvasY,
+          });
+          setSize({
+            width: position.x + size.width - mouseCanvasX, // Neue Breite
+            height: position.y + size.height - mouseCanvasY, // Neue Höhe
+          });
+          break;
+        case "top-right":
+          setPosition((prev) => ({
+            ...prev,
+            y: mouseCanvasY, // Neue Y-Position basierend auf der Mausposition
+          }));
+          setSize({
+            width: mouseCanvasX - position.x, // Neue Breite
+            height: position.y + size.height - mouseCanvasY, // Neue Höhe
+          });
+          break;
+        case "bottom-left":
+          setPosition((prev) => ({
+            ...prev,
+            x: mouseCanvasX, // Neue X-Position basierend auf der Mausposition
+          }));
+          setSize({
+            width: position.x + size.width - mouseCanvasX, // Neue Breite
+            height: mouseCanvasY - position.y, // Neue Höhe
+          });
+          break;
+        case "bottom-right":
+          setSize({
+            width: mouseCanvasX - position.x, // Neue Breite
+            height: mouseCanvasY - position.y, // Neue Höhe
+          });
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -196,7 +172,6 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
       }
     }
   }
-
 
 
   const pointerEvents =

@@ -26,37 +26,12 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
     }, [selectedElements, rect.id]);
 
     useEffect(() => {
-      const handleClickOutside = (e) => {
-        if (frameRef.current && !frameRef.current.contains(e.target)) {
-          setIsSelected(false);
-          setIsEditingEnabled(false);
-          setIsEditing(false);
-        }
-      };
-  
-      const handleMouseMove = (e) => {
-          HandleResizing(e);
-          HandleDragging(e);
-      };
-  
-      const handleMouseUp = (e) => {
-          StopResizing(e);
-          StopDragging(e);
-      };
-  
       const canvasWrapper = canvasWrapperRef.current;
-  
       canvasWrapper.addEventListener("mousemove", handleMouseMove);
-      canvasWrapper.addEventListener("mouseup", handleMouseUp);
-      canvasWrapper.addEventListener("mousedown", handleClickOutside);
-    
       return () => {
           canvasWrapper.removeEventListener("mousemove", handleMouseMove);
-          canvasWrapper.removeEventListener("mouseup", handleMouseUp);
-          canvasWrapper.removeEventListener("mousedown", handleClickOutside);
       };
     }, [canvasWrapperRef, isDragging, isResizing, scaleRef, offsetRef, onUpdate, onResize, rect.id, size, position]);
-  
   
   
     const handleMouseDown = (e) => {
@@ -112,18 +87,18 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
   
     const StopResizing = (e) => {
       if (isResizing.current) {
-          isResizing.current = false;
-          resizeHandle.current = null;
+        isResizing.current = false;
+        resizeHandle.current = null;
 
-          if (selectedTool === "Pointer") {
-            const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-            toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
-          }
-
-          if (onResize) {
-            onResize(rect.id, size.width, size.height);
-          }
+        if (selectedTool === "Pointer") {
+          const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
         }
+
+        if (onResize) {
+          onResize(rect.id, size.width, size.height);
+        }
+      }
     }
   
     const StopDragging = (e) => {
@@ -196,22 +171,22 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
   
     const HandleDragging = (e) => {
       if (isDragging.current && !isEditing) {
-          setOnDragging(true);
+        setOnDragging(true);
 
-          if (selectedTool === "Pointer") {
-            const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-            toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
-          }
-
-          const newX = (e.clientX - startPos.current.x) / scaleRef.current;
-          const newY = (e.clientY - startPos.current.y) / scaleRef.current;
-    
-          setPosition({ x: newX, y: newY });
-    
-          if (onUpdate) {
-            onUpdate(rect.id, newX, newY);
-          }
+        if (selectedTool === "Pointer") {
+          const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+          toggleSelectedElement({ ...rect, isResizing: isResizing.current, isDragging: isDragging.current }, isMultiSelect);
         }
+
+        const newX = (e.clientX - startPos.current.x) / scaleRef.current;
+        const newY = (e.clientY - startPos.current.y) / scaleRef.current;
+  
+        setPosition({ x: newX, y: newY });
+  
+        if (onUpdate) {
+          onUpdate(rect.id, newX, newY);
+        }
+      }
     }
   
 

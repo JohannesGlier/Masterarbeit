@@ -174,8 +174,39 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       prev.map((rect) => (rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect))
     );
   };
-
   
+  const updateArrowPosition = (arrowId, newPosition, pointType) => {
+    setArrows((prevArrows) =>
+      prevArrows.map((arrow) => {
+        if (arrow.id === arrowId) {
+          // Wenn newPosition eine elementId enthält, kopple den Punkt an das Element
+          if (newPosition.elementId) {
+            return {
+              ...arrow,
+              [pointType]: {
+                elementId: newPosition.elementId, // Kopple an das Element
+                x: null, // Freie Position wird nicht mehr verwendet
+                y: null, // Freie Position wird nicht mehr verwendet
+              },
+            };
+          } else {
+            // Wenn newPosition keine elementId enthält, aktualisiere die freie Position
+            return {
+              ...arrow,
+              [pointType]: {
+                elementId: null, // Entkopple vom Element
+                x: newPosition.x, // Neue freie X-Position
+                y: newPosition.y, // Neue freie Y-Position
+              },
+            };
+          }
+        }
+        return arrow;
+      })
+    );
+  };
+  
+
   return (
     <div>
       {selectedTool === "Pointer" && <PointerTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef}/>}
@@ -220,7 +251,10 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           arrow={arrow}
           scaleRef={scaleRef}
           offsetRef={offsetRef}
-          elements={elements} // Elemente übergeben
+          elements={elements}
+          updateArrowPosition={updateArrowPosition}
+          canvasWrapperRef={canvasWrapperRef}
+          canvasRef={canvasRef}
         />
       ))}
     </div>

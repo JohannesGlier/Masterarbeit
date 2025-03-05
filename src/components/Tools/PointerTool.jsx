@@ -9,7 +9,6 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
   useEffect(() => {
     const handleMouseDown = (event) => {
       if (event.button !== 0) return;  
-
       document.body.style.cursor = "crosshair";
       setIsDrawing(true);
 
