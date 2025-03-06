@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
-import FrameTool from '@/components/Tools/FrameTool';
-import ArrowTool from '@/components/Tools/ArrowTool';
-import TextCardTool from '@/components/Tools/TextCardTool';
-import PointerTool from '@/components/Tools/PointerTool';
+import FrameTool from '@/components/Tools/PreviewTools/FrameTool';
+import ArrowTool from '@/components/Tools/PreviewTools/ArrowTool';
+import TextCardTool from '@/components/Tools/PreviewTools/TextCardTool';
+import PointerTool from '@/components/Tools/PreviewTools/PointerTool';
 import TextCard from '@/components/Tools/TextCard';
 import Frame from '@/components/Tools/Frame';
 import Arrow from '@/components/Tools/Arrow';

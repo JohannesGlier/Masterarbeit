@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ArrowHandle from '@/components/Helper/ArrowHandle';
 import TextInput from '@/components/Helper/TextInput';
+import ArrowActionBar from '@/components/Tools/ActionBars/ArrowActionBar';
 
 const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canvasWrapperRef, canvasRef }) => {
   const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, setHoveredElement, setIsArrowDragging } = useCanvas();
@@ -212,6 +213,24 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
           onMouseDown={(e) => StartDragging('end', e)}
           onMouseUp={(e) => StopDragging(e)}
           size={20}
+        />
+
+        {/* Aktionsbar */}
+        <ArrowActionBar
+          arrow={{
+            id: arrow.id,
+            middleX: middleX * scaleRef.current + offsetRef.current.x,
+            middleY: middleY * scaleRef.current + offsetRef.current.y,
+            lineStyle: arrow.lineStyle,
+            arrowHeadStart: arrow.arrowHeadStart,
+            arrowHeadEnd: arrow.arrowHeadEnd,
+            lineColor: arrow.lineColor,
+            lineWidth: arrow.lineWidth,
+            textSize: arrow.textSize,
+            textColor: arrow.textColor,
+            textAlignment: arrow.textAlignment,
+          }}
+          updateArrowStyle={updateArrowPosition}
         />
       </>
     )}
