@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-const TextInput = ({ placeholder, value, onChange, maxWidth, textAlign }) => {
+const TextInput = ({ placeholder, value, onChange, maxWidth, textAlign, fontSize, textColor }) => {
   const inputRef = useRef(null);
   const [width, setWidth] = useState("auto");
   const minWidth = 150;
@@ -25,11 +25,11 @@ const TextInput = ({ placeholder, value, onChange, maxWidth, textAlign }) => {
         minWidth: minWidth,
         maxWidth: maxWidth,
         padding: "5px",
-        fontSize: "18px",
+        fontSize: fontSize,
         border: "none",
         backgroundColor: "transparent",
         outline: "none",
-        color: "black",
+        color: textColor,
         textAlign: textAlign,
         fontStyle: value ? "normal" : "italic",
       }}

@@ -5,6 +5,26 @@ import TextInput from '@/components/Helper/TextInput';
 import ArrowActionBar from '@/components/Tools/ActionBars/ArrowActionBar';
 
 const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canvasWrapperRef, canvasRef }) => {
+  const defaultArrowProperties = {
+    lineColor: "#000000",
+    lineStyle: "solid",
+    lineWidth: 2,
+    arrowHeadStart: false,
+    arrowHeadEnd: false,
+    textSize: 14,
+    textColor: "#000000",
+    textAlignment: "horizontal",
+  };
+  const arrowProperties = { ...defaultArrowProperties, ...arrow };
+  const [properties, setProperties] = useState(arrowProperties);
+
+  const updateArrowStyle = (newProperties) => {
+    setProperties((prevProperties) => ({
+      ...prevProperties,
+      ...newProperties,
+    }));
+  };
+
   const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, setHoveredElement, setIsArrowDragging } = useCanvas();
   const [isSelected, setIsSelected] = useState(false);
   const [draggingPoint, setDraggingPoint] = useState(null);
@@ -141,6 +161,7 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
     });
   };
 
+
   const pointerEvents =
       selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
         ? "none" // Deaktiviere pointer-events für alle Elemente
@@ -162,7 +183,9 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
           left: startX * scaleRef.current + offsetRef.current.x,
           width: `${Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2)) * scaleRef.current}px`,
           height: "2px",
-          backgroundColor: isSelected ? "blue" : "black",
+          color: isSelected ? "blue" : properties.lineColor,
+          borderStyle: properties.lineStyle,
+          borderWidth: properties.lineWidth,
           transform: `rotate(${Math.atan2(endY - startY, endX - startX)}rad)`,
           transformOrigin: "0 0",
           pointerEvents,
@@ -176,7 +199,7 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
           position: "absolute",
           top: middleY * scaleRef.current + offsetRef.current.y - 25,
           left: middleX * scaleRef.current + offsetRef.current.x,
-          transform: `translate(-50%, -50%) rotate(${Math.atan2(endY - startY, endX - startX)}rad)`,
+          transform: properties.textAlignment === "horizontal" ? `translate(-50%, -50%) rotate(${Math.atan2(endY - startY, endX - startX)}rad)` : "translate(-50%, -50%)",
           zIndex: 5,
         }}
       >
@@ -186,6 +209,8 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
           onChange={(e) => setText(e.target.value)}
           maxWidth={250}
           textAlign={"center"}
+          fontSize={properties.textSize}
+          textColor={properties.textColor}
         />
       </div>
 
@@ -193,26 +218,26 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
       <>
         {/* Startpunkt */}
         <ArrowHandle
-          top={startY * scaleRef.current + offsetRef.current.y}
+          top={startY * scaleRef.current + offsetRef.current.y + properties.lineWidth}
           left={startX * scaleRef.current + offsetRef.current.x}
-          size={20}
+          size={20 + properties.lineWidth}
           onMouseDown={(e) => StartDragging('start', e)}
           onMouseUp={(e) => StopDragging(e)}
         />
         {/* Mittelpunkt */}
         <ArrowHandle
-          top={middleY * scaleRef.current + offsetRef.current.y}
+          top={middleY * scaleRef.current + offsetRef.current.y + properties.lineWidth}
           left={middleX * scaleRef.current + offsetRef.current.x}
           cursor="default"
-          size={15}
+          size={15 + properties.lineWidth}
         />
         {/* Endpunkt */}
         <ArrowHandle
-          top={endY * scaleRef.current + offsetRef.current.y}
+          top={endY * scaleRef.current + offsetRef.current.y + properties.lineWidth}
           left={endX * scaleRef.current + offsetRef.current.x}
           onMouseDown={(e) => StartDragging('end', e)}
           onMouseUp={(e) => StopDragging(e)}
-          size={20}
+          size={20 + properties.lineWidth}
         />
 
         {/* Aktionsbar */}
@@ -223,16 +248,16 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
             startY: startY * scaleRef.current + offsetRef.current.y,
             middleX: middleX * scaleRef.current + offsetRef.current.x,
             middleY: middleY * scaleRef.current + offsetRef.current.y,
-            lineStyle: arrow.lineStyle,
-            arrowHeadStart: arrow.arrowHeadStart,
-            arrowHeadEnd: arrow.arrowHeadEnd,
-            lineColor: arrow.lineColor,
-            lineWidth: arrow.lineWidth,
-            textSize: arrow.textSize,
-            textColor: arrow.textColor,
-            textAlignment: arrow.textAlignment,
+            lineStyle: properties.lineStyle,
+            arrowHeadStart: properties.arrowHeadStart,
+            arrowHeadEnd: properties.arrowHeadEnd,
+            lineColor: properties.lineColor,
+            lineWidth: properties.lineWidth,
+            textSize: properties.textSize,
+            textColor: properties.textColor,
+            textAlignment: properties.textAlignment,
           }}
-          updateArrowStyle={updateArrowPosition}
+          updateArrowStyle={updateArrowStyle}
         />
       </>
     )}

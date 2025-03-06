@@ -23,42 +23,42 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
 
   const handleLineStyleChange = (style) => {
     setLineStyle(style);
-    updateArrowStyle(arrow.id, { lineStyle: style });
+    updateArrowStyle({ lineStyle: style });
   };
 
   const handleArrowHeadStartChange = (hasHead) => {
     setArrowHeadStart(hasHead);
-    updateArrowStyle(arrow.id, { arrowHeadStart: hasHead });
+    updateArrowStyle({ arrowHeadStart: hasHead });
   };
 
   const handleArrowHeadEndChange = (hasHead) => {
     setArrowHeadEnd(hasHead);
-    updateArrowStyle(arrow.id, { arrowHeadEnd: hasHead });
+    updateArrowStyle({ arrowHeadEnd: hasHead });
   };
 
   const handleLineColorChange = (color) => {
     setLineColor(color.hex);
-    updateArrowStyle(arrow.id, { lineColor: color.hex });
+    updateArrowStyle({ lineColor: color.hex });
   };
 
   const handleLineWidthChange = (width) => {
     setLineWidth(width);
-    updateArrowStyle(arrow.id, { lineWidth: width });
+    updateArrowStyle({ lineWidth: width });
   };
 
   const handleTextSizeChange = (size) => {
     setTextSize(size);
-    updateArrowStyle(arrow.id, { textSize: size });
+    updateArrowStyle({ textSize: size });
   };
 
   const handleTextColorChange = (color) => {
     setTextColor(color.hex);
-    updateArrowStyle(arrow.id, { textColor: color.hex });
+    updateArrowStyle({ textColor: color.hex });
   };
 
   const handleTextAlignmentChange = (alignment) => {
     setTextAlignment(alignment);
-    updateArrowStyle(arrow.id, { textAlignment: alignment });
+    updateArrowStyle({ textAlignment: alignment });
   };
 
   const increaseTextSize = () => {
