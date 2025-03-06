@@ -1,21 +1,18 @@
 import React, { useState } from "react";
 import { Slider, Dropdown, Button } from "antd";
-import {
-  BiArrowFromLeft,
-  BiArrowFromRight,
-  BiLineChart,
-  BiDotsHorizontalRounded,
-  BiFontSize,
-  BiFontColor,
-  BiAlignLeft,
-  BiCircle,
-} from "react-icons/bi";
+import { IoIosArrowUp } from "react-icons/io";
+import { BiSolidLeftArrow } from "react-icons/bi";
+import { TbLineDotted } from "react-icons/tb";
+import { TfiLineDashed } from "react-icons/tfi";
+import { TfiLayoutLineSolid } from "react-icons/tfi";
+import { MdOutlineTextRotationAngleup } from "react-icons/md";
+import { MdOutlineTextRotationNone } from "react-icons/md";
 import { ChromePicker } from "react-color";
 
 const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
   const [lineStyle, setLineStyle] = useState(arrow.lineStyle || "solid");
   const [arrowHeadStart, setArrowHeadStart] = useState(arrow.arrowHeadStart || false);
-  const [arrowHeadEnd, setArrowHeadEnd] = useState(arrow.arrowHeadEnd || true);
+  const [arrowHeadEnd, setArrowHeadEnd] = useState(arrow.arrowHeadEnd || false);
   const [lineColor, setLineColor] = useState(arrow.lineColor || "#000000");
   const [lineWidth, setLineWidth] = useState(arrow.lineWidth || 2);
   const [textSize, setTextSize] = useState(arrow.textSize || 14);
@@ -75,44 +72,45 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
   };
 
   const lineStyleIcons = {
-    solid: <BiLineChart />,
-    dashed: <BiDotsHorizontalRounded />,
-    dotted: <BiCircle />,
+    solid: <TfiLayoutLineSolid />,
+    dashed: <TfiLineDashed />,
+    dotted: <TbLineDotted />,
   };
+
+  const actionBarHeight = arrow.startY < arrow.endY ? arrow.startY : arrow.endY;
 
   return (
     <div
       style={{
-        position: "absolute",
-        top: arrow.middleY - 225, // Position über dem Pfeil
+        position: "relative",
+        width: "880px",
+        top: actionBarHeight - 225, // Position über dem Pfeil
         left: arrow.middleX,
         transform: "translateX(-50%)",
         display: "flex",
-        gap: "32px", // Größerer Abstand zwischen den Aktionen
+        gap: "32px",
         backgroundColor: "#fff",
-        padding: "16px", // Größeres Padding
+        padding: "16px",
         borderRadius: "8px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
         zIndex: 10,
       }}
     >
       {/* Pfeilspitze links */}
-      <div style={{ display: "flex", alignItems: "center"}}>
+      <div style={{ display: "flex", alignItems: "center" }}>
         <Button
-          icon={<BiArrowFromRight />}
-          type={arrowHeadStart ? "primary" : "default"}
+          icon={<BiSolidLeftArrow style={{ color: arrowHeadStart ? "rgb(0, 0, 0)" : "rgb(200, 200, 200)"}}/>}
           onClick={() => handleArrowHeadStartChange(!arrowHeadStart)}
-          style={{ width: "60px", height: "60px", fontSize: "40px", border: "none" }} // Größere Buttons
+          style={{ width: "60px", height: "60px", fontSize: "40px", border: "none" }}
         />
       </div>
 
       {/* Pfeilspitze rechts */}
       <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
         <Button
-          icon={<BiArrowFromLeft />}
-          type={arrowHeadEnd ? "primary" : "default"}
+          icon={<BiSolidLeftArrow style={{color: arrowHeadEnd ? "rgb(0, 0, 0)" : "rgb(200, 200, 200)", transform: "rotate(180deg)" }}/>}
           onClick={() => handleArrowHeadEndChange(!arrowHeadEnd)}
-          style={{ width: "60px", height: "60px", fontSize: "40px", border: "none" }} // Größere Buttons
+          style={{ width: "60px", height: "60px", fontSize: "40px", border: "none" }}
         />
       </div>
 
@@ -121,14 +119,15 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
         <Dropdown
           menu={{
             items: [
-              { key: "solid", label: "Durchgezogen", icon: <BiLineChart /> },
-              { key: "dashed", label: "Gestrichelt", icon: <BiDotsHorizontalRounded /> },
-              { key: "dotted", label: "Gepunktet", icon: <BiCircle /> },
+              { key: "solid", label: "Durchgezogen", icon: <TfiLayoutLineSolid style={{ fontSize: "24px", marginRight: "20px" }}/>, style: { fontSize: "24px" } },
+              { key: "dashed", label: "Gestrichelt", icon: <TfiLineDashed style={{ fontSize: "24px", marginRight: "20px" }}/>, style: { fontSize: "24px" } },
+              { key: "dotted", label: "Gepunktet", icon: <TbLineDotted style={{ fontSize: "24px", marginRight: "20px" }}/>, style: { fontSize: "24px" } },
             ],
             onClick: (e) => handleLineStyleChange(e.key),
           }}
+          overlayStyle={{ minWidth: "250px", paddingTop: "25px" }}
         >
-          <Button icon={lineStyleIcons[lineStyle]} style={{ width: "60px", height: "60px", fontSize: "40px", border: "none" }} />
+          <Button icon={lineStyleIcons[lineStyle]} style={{ width: "60px", height: "60px", fontSize: "50px", border: "none" }} />
         </Dropdown>
       </div>
 
@@ -146,7 +145,7 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
           onClick={() => setShowColorPicker(!showColorPicker)}
         />
         {showColorPicker && (
-          <div style={{ position: "absolute", zIndex: 20, top: "75px" }}>
+          <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
             <ChromePicker
               color={lineColor}
               onChange={handleLineColorChange}
@@ -171,10 +170,9 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
       {/* Textausrichtung */}
       <div style={{ display: "flex", alignItems: "center", paddingRight: "16px" }}>
         <Button
-            icon={<BiAlignLeft />}
-            type={textAlignment === "horizontal" ? "primary" : "default"}
+            icon={textAlignment === "horizontal" ? <MdOutlineTextRotationAngleup /> : <MdOutlineTextRotationNone/>}
             onClick={() => handleTextAlignmentChange(textAlignment === "horizontal" ? "aligned" : "horizontal")}
-            style={{ width: "50px", height: "50px", fontSize: "40px", border: "none" }}
+            style={{ width: "50px", height: "50px", fontSize: "50px", border: "none" }}
         />
       </div>
 
@@ -192,7 +190,7 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
           onClick={() => setShowTextColorPicker(!showTextColorPicker)}
         />
         {showTextColorPicker && (
-          <div style={{ position: "absolute", zIndex: 20, top: "75px" }}>
+          <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
             <ChromePicker
               color={textColor}
               onChange={handleTextColorChange}
@@ -210,19 +208,21 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
               key: size,
               label: `${size}px`,
               onClick: () => handleTextSizeChange(size),
+              style: { fontSize: "24px", marginBottom: "5px" }
             })),
           }}
+          overlayStyle={{ paddingTop: "40px" }}
         >
           <Button style={{ fontSize: "28px", padding: "8px 12px", bottom: "2px", border: "none" }}>{textSize}</Button>
         </Dropdown>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <Button
-            icon={<BiArrowFromRight style={{ transform: "rotate(90deg)" }} />}
+            icon={<IoIosArrowUp style={{ transform: "rotate(0deg)" }} />}
             onClick={increaseTextSize}
             style={{ fontSize: "24px", border: "none" }}
           />
           <Button
-            icon={<BiArrowFromRight style={{ transform: "rotate(-90deg)" }} />}
+            icon={<IoIosArrowUp style={{ transform: "rotate(-180deg)" }} />}
             onClick={decreaseTextSize}
             style={{ fontSize: "24px", border: "none" }}
           />

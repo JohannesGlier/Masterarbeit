@@ -52,7 +52,6 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   }, [selectedElements]);
 
   useEffect(() => {
-    console.log("Hier");
     const updatedArrows = arrows.map(arrow => {
       const newArrow = { ...arrow };
   

@@ -219,6 +219,8 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
         <ArrowActionBar
           arrow={{
             id: arrow.id,
+            endY: endY * scaleRef.current + offsetRef.current.y,
+            startY: startY * scaleRef.current + offsetRef.current.y,
             middleX: middleX * scaleRef.current + offsetRef.current.x,
             middleY: middleY * scaleRef.current + offsetRef.current.y,
             lineStyle: arrow.lineStyle,
