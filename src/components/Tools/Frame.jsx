@@ -2,8 +2,27 @@ import { useState, useEffect, useRef } from "react";
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ResizeHandle from '@/components/Helper/ResizeHandle';
 import TextInput from '@/components/Helper/TextInput';
+import FrameActionBar from '@/components/Tools/ActionBars/FrameActionBar';
 
 const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
+  const defaultFrameProperties = {
+    frameColor: "#000000",
+    frameBorderColor: "#000000",
+    borderWidth: 2,
+    textSize: 14,
+    textColor: "#000000",
+    textAlignment: "horizontal",
+  };
+  const frameProperties = { ...defaultFrameProperties, ...rect };
+  const [properties, setProperties] = useState(frameProperties);
+
+  const updateFrameStyle = (newProperties) => {
+    setProperties((prevProperties) => ({
+      ...prevProperties,
+      ...newProperties,
+    }));
+  };
+
   const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement, isArrowDragging } = useCanvas();
   const [isSelected, setIsSelected] = useState(false);
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
@@ -188,6 +207,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
       : "auto";
 
   return (
+    <>
     <div
       ref={frameRef}
       style={{
@@ -246,10 +266,32 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
             position="bottom-right"
             cursor="nwse-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}
-          />
+          /> 
         </>
       )}
     </div>
+
+    {/* Aktionsbar */}
+    {(isSelected && !onDragging && selectedElements.length === 1) && (
+    <FrameActionBar
+      rect={{
+        id: rect.id,
+        top: position.y * scaleRef.current + offsetRef.current.y,
+        left: position.x * scaleRef.current + offsetRef.current.x,
+        width: size.width  * scaleRef.current,
+
+        frameColor: properties.frameColor,
+        frameBorderColor: properties.frameBorderColor,
+        borderWidth: properties.borderWidth,
+
+        textSize: properties.textSize,
+        textColor: properties.textColor,
+        textAlignment: properties.textAlignment,
+      }}
+      updateFrameStyle={updateFrameStyle}
+    />
+    )}
+  </>
   );
 };
 
