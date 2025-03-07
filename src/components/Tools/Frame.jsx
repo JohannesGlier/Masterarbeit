@@ -9,9 +9,14 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
     frameColor: "#000000",
     frameBorderColor: "#000000",
     borderWidth: 2,
+
+    font: 'Arial',
+    fontStyles: { bold: false, italic: false, underline: false },
     textSize: 14,
     textColor: "#000000",
-    textAlignment: "horizontal",
+    textAlignment: "left",
+
+    layer: 5,
   };
   const frameProperties = { ...defaultFrameProperties, ...rect };
   const [properties, setProperties] = useState(frameProperties);
@@ -216,10 +221,10 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
         left: position.x * scaleRef.current + offsetRef.current.x,
         width: `${size.width * scaleRef.current}px`,
         height: `${size.height * scaleRef.current}px`,
-        backgroundColor: "rgba(143, 143, 143, 1.0)",
+        backgroundColor: properties.frameColor,
         border: isSelected || isMouseDownElement || isHoveredElement
           ? "3px solid rgb(23, 104, 255)"
-          : "1px solid black",
+          : `${properties.borderWidth}px solid ${properties.frameBorderColor}`,
         cursor: "grab",
         zIndex: 5,
         pointerEvents,
@@ -232,7 +237,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
       <div
         style={{
           position: "absolute",
-          top: "-35px",
+          top: "-40px",
           left: "0",
           zIndex: 5,
         }}
@@ -241,8 +246,13 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
           placeholder="Überschrift"
           value={heading}
           onChange={(e) => setHeading(e.target.value)}
+          minWidth={`${size.width * scaleRef.current}px`}
           maxWidth={`${size.width * scaleRef.current}px`}
-          textAlign={"start"}
+          textAlign={properties.textAlignment}
+          fontSize={properties.textSize}
+          textColor={properties.textColor}
+          fontStyles={properties.fontStyles}
+          font={properties.font}
         />
       </div>
       {(isSelected && !onDragging && selectedElements.length === 1) && (
@@ -276,6 +286,7 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
     <FrameActionBar
       rect={{
         id: rect.id,
+
         top: position.y * scaleRef.current + offsetRef.current.y,
         left: position.x * scaleRef.current + offsetRef.current.x,
         width: size.width  * scaleRef.current,
@@ -284,9 +295,13 @@ const Frame = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef
         frameBorderColor: properties.frameBorderColor,
         borderWidth: properties.borderWidth,
 
+        font: properties.font,
+        fontStyles: properties.fontStyles,
         textSize: properties.textSize,
         textColor: properties.textColor,
         textAlignment: properties.textAlignment,
+
+        layer: properties.layer,
       }}
       updateFrameStyle={updateFrameStyle}
     />

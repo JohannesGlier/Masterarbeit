@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 
-const TextInput = ({ placeholder, value, onChange, maxWidth, textAlign, fontSize, textColor }) => {
+const TextInput = ({ placeholder, value, onChange, maxWidth, minWidth, textAlign, fontSize, textColor, fontStyles, font }) => {
   const inputRef = useRef(null);
   const [width, setWidth] = useState("auto");
-  const minWidth = 150;
 
   useEffect(() => {
     if (inputRef.current) {
@@ -25,13 +24,16 @@ const TextInput = ({ placeholder, value, onChange, maxWidth, textAlign, fontSize
         minWidth: minWidth,
         maxWidth: maxWidth,
         padding: "5px",
-        fontSize: fontSize,
         border: "none",
         backgroundColor: "transparent",
         outline: "none",
         color: textColor,
         textAlign: textAlign,
-        fontStyle: value ? "normal" : "italic",
+        fontSize: fontSize,
+        fontFamily: font,
+        fontWeight: fontStyles.bold ? "bold" : "normal",
+        fontStyle: fontStyles.italic ? "italic" : "normal",
+        textDecoration: fontStyles.underline ? "underline" : "none",
       }}
     />
   );

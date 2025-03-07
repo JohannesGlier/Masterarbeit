@@ -207,10 +207,13 @@ const Arrow = ({ arrow, scaleRef, offsetRef, elements, updateArrowPosition, canv
           placeholder="Enter Prompt.."
           value={text}
           onChange={(e) => setText(e.target.value)}
+          minWidth={150}
           maxWidth={250}
           textAlign={"center"}
           fontSize={properties.textSize}
           textColor={properties.textColor}
+          fontStyles={{ bold: false, italic: false, underline: false }}
+          font={'Arial'}
         />
       </div>
 

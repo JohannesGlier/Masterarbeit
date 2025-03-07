@@ -1,8 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCanvas } from '@/components/CanvasContext/CanvasContext';
 import ResizeHandle from '@/components/Helper/ResizeHandle';
+import TextCardActionBar from '@/components/Tools/ActionBars/TextCardActionBar';
 
 const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapperRef }) => {
+  const defaultTextcardProperties = {
+    textcardColor: " #E6E6E6",
+    textcardBorderColor: "#000000",
+    borderWidth: 0,
+
+    font: 'Arial',
+    fontStyles: { bold: false, italic: false, underline: false },
+    textSize: 20,
+    textColor: "#000000",
+    textAlignment: "left",
+  };
+  const textcardProperties = { ...defaultTextcardProperties, ...rect };
+  const [properties, setProperties] = useState(textcardProperties);
+
+  const updateTextcardStyle = (newProperties) => {
+    setProperties((prevProperties) => ({
+      ...prevProperties,
+      ...newProperties,
+    }));
+  };
+
     const { selectedTool, selectedElements, toggleSelectedElement, isDrawing, mouseDownElement, hoveredElement, isArrowDragging } = useCanvas();
     const frameRef = useRef(null);
     const [text, setText] = useState('');
@@ -201,78 +223,118 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
         : "auto";
     
     return (
-      <div
-        ref={frameRef}
-        style={{
-          position: "absolute",
-          top: position.y * scaleRef.current + offsetRef.current.y,
-          left: position.x * scaleRef.current + offsetRef.current.x,
-          width: `${size.width * scaleRef.current}px`,
-          height: `${size.height * scaleRef.current}px`,
-          backgroundColor: "white",
-          border: isSelected || isMouseDownElement || isHoveredElement
-          ? "3px solid rgb(23, 104, 255)"
-          : "0px solid black",
-          borderRadius: "25px",
-          boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
-          padding: "12px",
-          boxSizing: "border-box",
-          cursor: isEditing ? "text" : "grab",
-          zIndex: 6,
-          pointerEvents,
-        }}
-        onClick={handleClick}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-      >
-        {isEditing ? (
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onBlur={() => setIsEditing(false)}
-            style={{
-              width: "100%",
-              height: "100%",
-              border: "none",
-              outline: "none",
-              resize: "none",
-              backgroundColor: "transparent",
-              color: "black",
-              fontFamily: "inherit",
-              fontSize: "inherit",
-              cursor: "text",
-              wordWrap: "break-word",
-            }}
-          />
-        ) : (
-          <div style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>{text}</div>
-        )}
+      <>
+        <div
+          ref={frameRef}
+          style={{
+            position: "absolute",
+            top: position.y * scaleRef.current + offsetRef.current.y,
+            left: position.x * scaleRef.current + offsetRef.current.x,
+            width: `${size.width * scaleRef.current}px`,
+            height: `${size.height * scaleRef.current}px`,
+            backgroundColor: properties.textcardColor,
+            border: isSelected || isMouseDownElement || isHoveredElement
+            ? "3px solid rgb(23, 104, 255)"
+            : `${properties.borderWidth}px solid ${properties.textcardBorderColor}`,
+            borderRadius: "25px",
+            boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
+            padding: "12px",
+            boxSizing: "border-box",
+            cursor: isEditing ? "text" : "grab",
+            zIndex: 6,
+            pointerEvents,
+          }}
+          onClick={handleClick}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+        >
+          {isEditing ? (
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onBlur={() => setIsEditing(false)}
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "none",
+                outline: "none",
+                resize: "none",
+                backgroundColor: "transparent",
+                textAlign: properties.textAlignment,
+                color: properties.textColor,
+                fontFamily: properties.font,
+                fontSize: properties.textSize,
+                fontWeight: properties.fontStyles.bold ? "bold" : "normal",
+                fontStyle: properties.fontStyles.italic ? "italic" : "normal",
+                textDecoration: properties.fontStyles.underline ? "underline" : "none",
+                cursor: "text",
+                wordWrap: "break-word",
+              }}
+            />
+          ) : (
+            <div style={{ 
+              whiteSpace: "pre-wrap", 
+              wordWrap: "break-word", 
+              textAlign: properties.textAlignment,
+              color: properties.textColor,
+              fontFamily: properties.font,
+              fontSize: properties.textSize,
+              fontWeight: properties.fontStyles.bold ? "bold" : "normal",
+              fontStyle: properties.fontStyles.italic ? "italic" : "normal",
+              textDecoration: properties.fontStyles.underline ? "underline" : "none", 
+            }}>{text}</div>
+          )}
+          {(isSelected && !onDragging && selectedElements.length === 1) && (
+          <>
+            <ResizeHandle
+              position="top-left"
+              cursor="nwse-resize"
+              onMouseDown={(e) => handleResizeMouseDown(e, "top-left")}
+            />
+            <ResizeHandle
+              position="top-right"
+              cursor="nesw-resize"
+              onMouseDown={(e) => handleResizeMouseDown(e, "top-right")}
+            />
+            <ResizeHandle
+              position="bottom-left"
+              cursor="nesw-resize"
+              onMouseDown={(e) => handleResizeMouseDown(e, "bottom-left")}
+            />
+            <ResizeHandle
+              position="bottom-right"
+              cursor="nwse-resize"
+              onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}
+            />
+          </>
+          )}
+        </div>
+
+        {/* Aktionsbar */}
         {(isSelected && !onDragging && selectedElements.length === 1) && (
-        <>
-          <ResizeHandle
-            position="top-left"
-            cursor="nwse-resize"
-            onMouseDown={(e) => handleResizeMouseDown(e, "top-left")}
-          />
-          <ResizeHandle
-            position="top-right"
-            cursor="nesw-resize"
-            onMouseDown={(e) => handleResizeMouseDown(e, "top-right")}
-          />
-          <ResizeHandle
-            position="bottom-left"
-            cursor="nesw-resize"
-            onMouseDown={(e) => handleResizeMouseDown(e, "bottom-left")}
-          />
-          <ResizeHandle
-            position="bottom-right"
-            cursor="nwse-resize"
-            onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}
-          />
-        </>
+        <TextCardActionBar
+          rect={{
+            id: rect.id,
+
+            top: position.y * scaleRef.current + offsetRef.current.y,
+            left: position.x * scaleRef.current + offsetRef.current.x,
+            width: size.width  * scaleRef.current,
+
+            textcardColor: properties.textcardColor,
+            textcardBorderColor: properties.textcardBorderColor,
+            borderWidth: properties.borderWidth,
+
+            font: properties.font,
+            fontStyles: properties.fontStyles,
+            textSize: properties.textSize,
+            textColor: properties.textColor,
+            textAlignment: properties.textAlignment,
+          }}
+          updateTextcardStyle={updateTextcardStyle}
+        />
         )}
-      </div>
+      </>
     );
 };
 

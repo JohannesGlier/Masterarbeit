@@ -4,71 +4,64 @@ import { IoIosArrowUp } from "react-icons/io";
 import { FaBold, FaItalic, FaUnderline, FaFont } from 'react-icons/fa';
 import { FiAlignLeft, FiAlignCenter, FiAlignRight } from "react-icons/fi";
 import { MdOutlineRectangle, MdRectangle } from "react-icons/md";
-import { BsLayerBackward, BsLayerForward } from "react-icons/bs";
 import { ChromePicker } from "react-color";
 
-const FrameActionBar = ({ rect, updateFrameStyle }) => {
+const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
   const [selectedFont, setSelectedFont] = useState(rect.font);
   const [fontStyles, setFontStyles] = useState(rect.fontStyles);
-  const [layer, setLayer] = useState(rect.layer);
 
   const [textColor, setTextColor] = useState(rect.textColor || "#000000");
-  const [frameColor, setFrameColor] = useState(rect.frameColor || "#000000");
-  const [frameBorderColor, setFrameBorderColor] = useState(rect.frameBorderColor || "#000000");
+  const [textcardColor, setTextcardColor] = useState(rect.textcardColor || "#000000");
+  const [textcardBorderColor, setTextcardBorderColor] = useState(rect.textcardBorderColor || "#000000");
 
-  const [borderWidth, setBorderWidth] = useState(rect.borderWidth || 2);
+  const [borderWidth, setBorderWidth] = useState(rect.borderWidth);
   const [textSize, setTextSize] = useState(rect.textSize || 14);
   const [textAlignment, setTextAlignment] = useState(rect.textAlignment);
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [showFrameColorPicker, setShowFrameColorPicker] = useState(false);
-  const [showFrameBorderColorPicker, setShowFrameBorderColorPicker] = useState(false);
+  const [showTextcardColorPicker, setShowTextcardColorPicker] = useState(false);
+  const [showTextcardBorderColorPicker, setShowTextcardBorderColorPicker] = useState(false);
 
   const handleFontChange = (font) => {
     setSelectedFont(font);
-    updateFrameStyle({ font: font });
+    updateTextcardStyle({ font: font });
   };
 
   const toggleFontStyle = (style) => {
     setFontStyles(prev => {
       const newFontStyles = { ...prev, [style]: !prev[style] };
-      updateFrameStyle({ fontStyles: newFontStyles });
+      updateTextcardStyle({ fontStyles: newFontStyles });
       return newFontStyles;
     });
   };
 
   const handleBorderWidthChange = (width) => {
     setBorderWidth(width);
-    updateFrameStyle({ borderWidth: width });
+    updateTextcardStyle({ borderWidth: width });
   };
 
   const handleTextSizeChange = (size) => {
     setTextSize(size);
-    updateFrameStyle({ textSize: size });
-  };
-
-  const handleLayerChange = (layer) => {
-    setLayer(layer);
-    updateFrameStyle({ layer: layer });
+    updateTextcardStyle({ textSize: size });
   };
 
   const handleTextColorChange = (color) => {
     setTextColor(color.hex);
-    updateFrameStyle({ textColor: color.hex });
+    updateTextcardStyle({ textColor: color.hex });
   };
 
-  const handleFrameColorChange = (color) => {
-    setFrameColor(color.hex);
-    updateFrameStyle({ frameColor: color.hex });
+  const handleTextcardColorChange = (color) => {
+    setTextcardColor(color.hex);
+    updateTextcardStyle({ textcardColor: color.hex });
   };
 
-  const handleFrameBorderColorChange = (color) => {
-    setFrameBorderColor(color.hex);
-    updateFrameStyle({ frameBorderColor: color.hex });
+  const handleTextcardBorderColorChange = (color) => {
+    setTextcardBorderColor(color.hex);
+    updateTextcardStyle({ textcardBorderColor: color.hex });
   };
 
   const handleTextAlignmentChange = (alignment) => {
     setTextAlignment(alignment);
-    updateFrameStyle({ textAlignment: alignment });
+    updateTextcardStyle({ textAlignment: alignment });
   };
 
   const increaseTextSize = () => {
@@ -81,16 +74,6 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
     handleTextSizeChange(newSize);
   };
 
-  const layerUp = () => {
-    const newLayer = layer + 1;
-    handleLayerChange(newLayer);
-  };
-
-  const layerDown = () => {
-    const newLayer = layer - 1;
-    handleLayerChange(newLayer);
-  };
-
   const icons = {
     left: <FiAlignLeft />,
     center: <FiAlignCenter />,
@@ -101,9 +84,9 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
     <div
       style={{
         position: "relative",
-        width: "1170px",
+        width: "1000px",
         top: rect.top - 200,
-        left: rect.left + (rect.width - 1170) / 2,
+        left: rect.left + (rect.width - 1000) / 2,
         display: "flex",
         gap: "32px",
         backgroundColor: "#fff",
@@ -134,7 +117,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         >
             <Button 
                 style={{ 
-                    fontFamily: selectedFont,  // selectedFont sollte aus deinem State kommen
+                    fontFamily: selectedFont, 
                     fontSize: "24px", 
                     padding: "8px 20px", 
                     border: "none",
@@ -310,20 +293,20 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
 
       {/* Frame Background Color */}
       <div style={{ display: "flex", alignItems: "center" }}>
-        <div onClick={() => setShowFrameColorPicker(!showFrameColorPicker)}>
+        <div onClick={() => setShowTextcardColorPicker(!showTextcardColorPicker)}>
             <MdRectangle
             style={{
                 fontSize: "45px",
-                color: frameColor,
+                color: textcardColor,
                 cursor: "pointer",
             }}
             />
         </div>
-        {showFrameColorPicker && (
+        {showTextcardColorPicker && (
             <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
             <ChromePicker
-                color={frameColor}
-                onChange={handleFrameColorChange}
+                color={textcardColor}
+                onChange={handleTextcardColorChange}
                 disableAlpha={false}
             />
             </div>
@@ -332,20 +315,20 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
 
       {/* Frame Border Color */}
       <div style={{ display: "flex", alignItems: "center" }}>
-        <div onClick={() => setShowFrameBorderColorPicker(!showFrameBorderColorPicker)}>
+        <div onClick={() => setShowTextcardBorderColorPicker(!showTextcardBorderColorPicker)}>
             <MdOutlineRectangle
             style={{
                 fontSize: "45px",
-                color: frameBorderColor,
-                cursor: "pointer",
+                color: textcardBorderColor,
+                cursor: "pointer", 
             }}
             />
         </div>
-        {showFrameBorderColorPicker && (
+        {showTextcardBorderColorPicker && (
             <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
             <ChromePicker
-                color={frameBorderColor}
-                onChange={handleFrameBorderColorChange}
+                color={textcardBorderColor}
+                onChange={handleTextcardBorderColorChange}
                 disableAlpha={false}
             />
             </div>
@@ -353,7 +336,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
       </div>
 
       {/* Frame Broder Thickness */}
-      <div style={{ display: "flex", flexDirection: "column", alignSelf: "end", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignSelf: "end", alignItems: "center"}}>
         <span style={{ marginBottom: "2px", fontSize: "20px" }}>Border Thickness</span>
         <Slider
           min={0}
@@ -363,26 +346,8 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
           style={{ width: "100%" }}
         />
       </div>
-
-      {/* Layer */}
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <Button
-          icon={<BsLayerForward />}
-          onClick={layerUp}
-          style={{ fontSize: "32px", border: "none" }}
-        />
-      </div>
-
-      {/* Layer */}
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <Button
-          icon={<BsLayerBackward />}
-          onClick={layerDown}
-          style={{ fontSize: "32px", border: "none" }}
-        />
-      </div>
     </div>
   );
 };
 
-export default FrameActionBar;
+export default TextCardActionBar;
