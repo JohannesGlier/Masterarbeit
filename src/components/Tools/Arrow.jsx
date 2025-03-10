@@ -5,6 +5,7 @@ import TextInput from "@/components/Helper/TextInput";
 import ArrowActionBar from "@/components/Tools/ActionBars/ArrowActionBar";
 import { getAnchorPosition, getClosestAnchor } from "@/utils/anchorUtils";
 import { getElementAtPosition } from "@/utils/elementUtils";
+import ArrowHead from "@/components/Tools/ArrowHead/ArrowHead";
 
 const Arrow = ({
   arrow,
@@ -73,6 +74,8 @@ const Arrow = ({
   // Mittelpunkt berechnen
   const middleX = (startX + endX) / 2;
   const middleY = (startY + endY) / 2;
+
+  const lineAngle = Math.atan2(endY - startY, endX - startX);
 
   useEffect(() => {
     setIsSelected(selectedElements.some((el) => el.id === arrow.id));
@@ -261,6 +264,28 @@ const Arrow = ({
         }}
         onClick={(e) => SelectArrow(e)}
       />
+      {/* Pfeilspitze am Startpunkt */}
+      {properties.arrowHeadStart && (
+        <ArrowHead
+          x={startX * scaleRef.current + offsetRef.current.x}
+          y={startY * scaleRef.current + offsetRef.current.y}
+          angle={lineAngle + Math.PI} // Umgedrehte Richtung
+          size={10 * scaleRef.current}
+          color={properties.lineColor}
+        />
+      )}
+
+      {/* Pfeilspitze am Endpunkt */}
+      {properties.arrowHeadEnd && (
+        <ArrowHead
+          x={endX * scaleRef.current + offsetRef.current.x}
+          y={endY * scaleRef.current + offsetRef.current.y}
+          angle={lineAngle}
+          size={10 * scaleRef.current}
+          color={properties.lineColor}
+        />
+      )}
+
       <div
         style={{
           position: "absolute",

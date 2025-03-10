@@ -20,11 +20,13 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     scaleRef,
     selectedElements,
     setSelectedElements,
+    setSelectedTool,
   } = useCanvas();
   const [rectangles, setRectangles] = useState([]);
   const [textcards, setTextCards] = useState([]);
   const [arrows, setArrows] = useState([]);
   const [selectedFrame, setSelectedFrame] = useState(null);
+  const [initialArrowStart, setInitialArrowStart] = useState(null);
 
   const elements = useMemo(() => {
     return [
@@ -206,6 +208,15 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     );
   };
 
+  const handleStartArrowFromFrame = (startData) => {
+    setSelectedTool("Arrow");
+    setInitialArrowStart(startData);
+  };
+
+  const handleEndArrowFromFrame = (endData) => {
+    setInitialArrowStart(endData);
+  };
+
   return (
     <div>
       {selectedTool === "Pointer" && (
@@ -234,6 +245,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasWrapperRef={canvasWrapperRef}
           addArrow={addArrows}
           elements={elements}
+          initialStart={initialArrowStart}
+          onEndArrowFromFrame={handleEndArrowFromFrame}
         />
       )}
 
@@ -248,6 +261,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           onUpdate={handleFrameUpdate}
           onResize={handleFrameResize}
           canvasWrapperRef={canvasWrapperRef}
+          onStartArrowFromFrame={handleStartArrowFromFrame}
         />
       ))}
 
@@ -264,6 +278,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           onUpdate={handleTextcardUpdate}
           onResize={handleTextcardResize}
           canvasWrapperRef={canvasWrapperRef}
+          onStartArrowFromFrame={handleStartArrowFromFrame}
         />
       ))}
 
@@ -277,7 +292,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           elements={elements}
           updateArrowPosition={updateArrowPosition}
           canvasWrapperRef={canvasWrapperRef}
-          canvasRef={canvasRef}
+          canvasRef={canvasRef} 
         />
       ))}
     </div>

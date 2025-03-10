@@ -9,6 +9,7 @@ const ResizeHandle = ({ position, cursor, onMouseDown, color }) => {
     border: "2px solid rgb(88, 88, 88)",
     borderRadius: "50%",
     cursor: cursor,
+    zIndex: 15,
   };
 
   const positionStyles = {

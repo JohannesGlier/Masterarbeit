@@ -53,3 +53,17 @@ export const getClosestAnchor = (element, referenceX, referenceY) => {
     ...anchors[closestAnchor],
   };
 };
+
+export const getAnchorFromPosition = (position, element) => {
+  const { x, y } = element.position;
+  const { width, height } = element.size;
+
+  const anchors = {
+    top: { x: x + width/2, y: y },
+    bottom: { x: x + width/2, y: y + height },
+    left: { x: x, y: y + height/2 },
+    right: { x: x + width, y: y + height/2 }
+  };
+
+  return anchors[position] || { x, y };
+};

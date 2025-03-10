@@ -20,7 +20,7 @@ const ArrowHandle = ({
         border: "2px solid rgb(88, 88, 88)",
         borderRadius: "50%",
         cursor: cursor,
-        zIndex: 10,
+        zIndex: 14,
       }}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}

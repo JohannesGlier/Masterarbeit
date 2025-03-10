@@ -11,6 +11,7 @@ const Frame = ({
   onUpdate,
   onResize,
   canvasWrapperRef,
+  onStartArrowFromFrame,
 }) => {
   const defaultFrameProperties = {
     frameColor: "rgb(205, 205, 205)",
@@ -103,6 +104,17 @@ const Frame = ({
       x: e.clientX - position.x * scaleRef.current,
       y: e.clientY - position.y * scaleRef.current,
     };
+  };
+
+  const shortcutArrowCreation = (e, handle) => {
+    e.stopPropagation();
+    const anchor = position;
+    onStartArrowFromFrame({
+      elementId: rect.id,
+      anchor: anchor,
+      x: anchor.x,
+      y: anchor.y,
+    });
   };
 
   const handleResizeMouseDown = (e, handle) => {
@@ -346,25 +358,25 @@ const Frame = ({
             <ResizeHandle
               position="top"
               cursor="grab"
-              onMouseDown={(e) => handleResizeMouseDown(e, "top")}
+              onMouseDown={(e) => shortcutArrowCreation(e, "top")}
               color="rgb(23, 104, 255)"
             />
             <ResizeHandle
               position="bottom"
               cursor="grab"
-              onMouseDown={(e) => handleResizeMouseDown(e, "bottom")}
+              onMouseDown={(e) => shortcutArrowCreation(e, "bottom")}
               color="rgb(23, 104, 255)"
             />
             <ResizeHandle
               position="left"
               cursor="grab"
-              onMouseDown={(e) => handleResizeMouseDown(e, "left")}
+              onMouseDown={(e) => shortcutArrowCreation(e, "left")}
               color="rgb(23, 104, 255)"
             />
             <ResizeHandle
               position="right"
               cursor="grab"
-              onMouseDown={(e) => handleResizeMouseDown(e, "right")}
+              onMouseDown={(e) => shortcutArrowCreation(e, "right")}
               color="rgb(23, 104, 255)"
             />
           </>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useCanvas } from "@/components/CanvasContext/CanvasContext";
-import { getClosestAnchor } from "@/utils/anchorUtils";
+import { getAnchorFromPosition, getClosestAnchor } from "@/utils/anchorUtils";
 import { getElementAtPosition } from "@/utils/elementUtils";
 
-const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements }) => {
+const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialStart, onEndArrowFromFrame }) => {
   const {
     offsetRef,
     scaleRef,
@@ -16,10 +16,27 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements }) => {
   const [endPoint, setEndPoint] = useState(null);
 
   useEffect(() => {
+    if (initialStart) {
+      // Setze den Startpunkt automatisch
+      const element = elements.find(el => el.id === initialStart.elementId);
+      if (element) {
+        const pos = getAnchorFromPosition(initialStart.anchor, element);
+        setStartPoint({
+          elementId: element.id,
+          anchor: initialStart.anchor,
+          x: pos.x,
+          y: pos.y
+        });
+        setIsDrawing(true);
+      }
+    }
+  }, [initialStart]);
+
+  useEffect(() => {
     document.body.style.cursor = "crosshair";
 
     const handleMouseDown = (event) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || initialStart) return;
       event.stopPropagation();
 
       setIsDrawing(true);
@@ -152,6 +169,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements }) => {
       setIsDrawing(false);
       setMouseDownElement(null);
       setHoveredElement(null);
+      onEndArrowFromFrame(null);
     };
 
     const canvasWrapper = canvasWrapperRef.current;
