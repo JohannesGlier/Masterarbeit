@@ -1,19 +1,26 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useCanvas } from '@/components/CanvasContext/CanvasContext';
-import FrameTool from '@/components/Tools/PreviewTools/FrameTool';
-import ArrowTool from '@/components/Tools/PreviewTools/ArrowTool';
-import TextCardTool from '@/components/Tools/PreviewTools/TextCardTool';
-import PointerTool from '@/components/Tools/PreviewTools/PointerTool';
-import TextCard from '@/components/Tools/TextCard';
-import Frame from '@/components/Tools/Frame';
-import Arrow from '@/components/Tools/Arrow';
+import React, { useState, useEffect, useMemo } from "react";
+import { useCanvas } from "@/components/CanvasContext/CanvasContext";
+import FrameTool from "@/components/Tools/PreviewTools/FrameTool";
+import ArrowTool from "@/components/Tools/PreviewTools/ArrowTool";
+import TextCardTool from "@/components/Tools/PreviewTools/TextCardTool";
+import PointerTool from "@/components/Tools/PreviewTools/PointerTool";
+import TextCard from "@/components/Tools/TextCard";
+import Frame from "@/components/Tools/Frame";
+import Arrow from "@/components/Tools/Arrow";
+import { getAnchorPosition } from "@/utils/anchorUtils";
 
 const generateUniqueId = () => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
 const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
-  const { selectedTool, offsetRef, scaleRef, selectedElements, setSelectedElements } = useCanvas();
+  const {
+    selectedTool,
+    offsetRef,
+    scaleRef,
+    selectedElements,
+    setSelectedElements,
+  } = useCanvas();
   const [rectangles, setRectangles] = useState([]);
   const [textcards, setTextCards] = useState([]);
   const [arrows, setArrows] = useState([]);
@@ -25,76 +32,58 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         id: textcard.id,
         position: { x: textcard.x, y: textcard.y },
         size: { width: textcard.width, height: textcard.height },
-        type: 'textcard',
+        type: "textcard",
       })),
       ...rectangles.map((rect) => ({
         id: rect.id,
         position: { x: rect.x, y: rect.y },
         size: { width: rect.width, height: rect.height },
-        type: 'rectangle',
+        type: "rectangle",
       })),
     ];
   }, [textcards, rectangles]);
 
-
-
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.ctrlKey && event.key === 'x' && selectedElements.length > 0) {
+      if (event.ctrlKey && event.key === "x" && selectedElements.length > 0) {
         deleteSelectedElements();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedElements]);
 
   useEffect(() => {
-    const updatedArrows = arrows.map(arrow => {
+    const updatedArrows = arrows.map((arrow) => {
       const newArrow = { ...arrow };
-  
-      // Startpunkt aktualisieren, falls an ein Element gekoppelt
-      if (newArrow.start.elementId) {
-        const startElement = elements.find(element => element.id === newArrow.start.elementId);
-        if (startElement) {
-          const newX = startElement.position.x + startElement.size.width / 2;
-          const newY = startElement.position.y + startElement.size.height / 2;
-  
-          // Nur aktualisieren, wenn sich die Position geändert hat
-          if (newArrow.start.x !== newX || newArrow.start.y !== newY) {
-            newArrow.start.x = newX;
-            newArrow.start.y = newY;
-          }
+
+      // Nur aktualisieren wenn beide Werte vorhanden sind
+      if (newArrow.start?.elementId && newArrow.start?.anchor) {
+        const element = elements.find((e) => e.id === newArrow.start.elementId);
+        const pos = getAnchorPosition(element, newArrow.start.anchor);
+        if (pos) {
+          newArrow.start.x = pos.x;
+          newArrow.start.y = pos.y;
         }
       }
-  
-      // Endpunkt aktualisieren, falls an ein Element gekoppelt
-      if (newArrow.end.elementId) {
-        const endElement = elements.find(element => element.id === newArrow.end.elementId);
-        if (endElement) {
-          const newX = endElement.position.x + endElement.size.width / 2;
-          const newY = endElement.position.y + endElement.size.height / 2;
-  
-          // Nur aktualisieren, wenn sich die Position geändert hat
-          if (newArrow.end.x !== newX || newArrow.end.y !== newY) {
-            newArrow.end.x = newX;
-            newArrow.end.y = newY;
-          }
+
+      if (newArrow.end?.elementId && newArrow.end?.anchor) {
+        const element = elements.find((e) => e.id === newArrow.end.elementId);
+        const pos = getAnchorPosition(element, newArrow.end.anchor);
+        if (pos) {
+          newArrow.end.x = pos.x;
+          newArrow.end.y = pos.y;
         }
       }
-  
+
       return newArrow;
     });
-  
-    // Nur setArrows aufrufen, wenn sich die Pfeile tatsächlich geändert haben
-    if (JSON.stringify(updatedArrows) !== JSON.stringify(arrows)) {
-      setArrows(updatedArrows);
-    }
+
+    setArrows(updatedArrows);
   }, [elements]);
-
-
 
   const addRectangle = (rect) => {
     setRectangles((prevRectangles) => [
@@ -128,18 +117,30 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       {
         ...arrow,
         id: generateUniqueId(),
+        start: {
+          elementId: arrow.start.elementId,
+          anchor: arrow.start.anchor,
+          x: arrow.start.x,
+          y: arrow.start.y,
+        },
+        end: {
+          elementId: arrow.end.elementId,
+          anchor: arrow.end.anchor,
+          x: arrow.end.x,
+          y: arrow.end.y,
+        },
       },
     ]);
   };
-
-
 
   const deleteSelectedElements = () => {
     setRectangles((prev) =>
       prev.filter((rect) => !selectedElements.some((el) => el.id === rect.id))
     );
     setTextCards((prev) =>
-      prev.filter((textcard) => !selectedElements.some((el) => el.id === textcard.id))
+      prev.filter(
+        (textcard) => !selectedElements.some((el) => el.id === textcard.id)
+      )
     );
     setArrows((prev) =>
       prev.filter((arrow) => !selectedElements.some((el) => el.id === arrow.id))
@@ -148,79 +149,101 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     // Zurücksetzen der Auswahl
     setSelectedElements([]);
   };
-  
-
 
   const handleFrameUpdate = (id, newX, newY) => {
     setRectangles((prev) =>
-      prev.map((rect) => (rect.id === id ? { ...rect, x: newX, y: newY } : rect))
+      prev.map((rect) =>
+        rect.id === id ? { ...rect, x: newX, y: newY } : rect
+      )
     );
   };
 
   const handleFrameResize = (id, newWidth, newHeight) => {
     setRectangles((prev) =>
-      prev.map((rect) => (rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect))
+      prev.map((rect) =>
+        rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect
+      )
     );
   };
 
   const handleTextcardUpdate = (id, newX, newY) => {
     setTextCards((prev) =>
-      prev.map((rect) => (rect.id === id ? { ...rect, x: newX, y: newY } : rect))
+      prev.map((rect) =>
+        rect.id === id ? { ...rect, x: newX, y: newY } : rect
+      )
     );
   };
 
   const handleTextcardResize = (id, newWidth, newHeight) => {
     setTextCards((prev) =>
-      prev.map((rect) => (rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect))
+      prev.map((rect) =>
+        rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect
+      )
     );
   };
-  
+
   const updateArrowPosition = (arrowId, newPosition, pointType) => {
     setArrows((prevArrows) =>
       prevArrows.map((arrow) => {
         if (arrow.id === arrowId) {
-          // Wenn newPosition eine elementId enthält, kopple den Punkt an das Element
-          if (newPosition.elementId) {
-            return {
-              ...arrow,
-              [pointType]: {
-                elementId: newPosition.elementId, // Kopple an das Element
-                x: null, // Freie Position wird nicht mehr verwendet
-                y: null, // Freie Position wird nicht mehr verwendet
-              },
-            };
-          } else {
-            // Wenn newPosition keine elementId enthält, aktualisiere die freie Position
-            return {
-              ...arrow,
-              [pointType]: {
-                elementId: null, // Entkopple vom Element
-                x: newPosition.x, // Neue freie X-Position
-                y: newPosition.y, // Neue freie Y-Position
-              },
-            };
-          }
+          return {
+            ...arrow,
+            [pointType]: {
+              // Lösche Element-Referenz wenn keine vorhanden
+              ...(newPosition.elementId
+                ? {
+                    elementId: newPosition.elementId,
+                    anchor: newPosition.anchor,
+                  }
+                : {}),
+              x: newPosition.x,
+              y: newPosition.y,
+            },
+          };
         }
         return arrow;
       })
     );
   };
-  
 
   return (
     <div>
-      {selectedTool === "Pointer" && <PointerTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef}/>}
-      {selectedTool === "Frame" && <FrameTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef} addRectangle={addRectangle}/>}
-      {selectedTool === "TextCard" && <TextCardTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef} addTextcard={addTextcards}/>}
-      {selectedTool === "Arrow" && <ArrowTool canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef} addArrow={addArrows} elements={elements}/>}
+      {selectedTool === "Pointer" && (
+        <PointerTool
+          canvasRef={canvasRef}
+          canvasWrapperRef={canvasWrapperRef}
+        />
+      )}
+      {selectedTool === "Frame" && (
+        <FrameTool
+          canvasRef={canvasRef}
+          canvasWrapperRef={canvasWrapperRef}
+          addRectangle={addRectangle}
+        />
+      )}
+      {selectedTool === "TextCard" && (
+        <TextCardTool
+          canvasRef={canvasRef}
+          canvasWrapperRef={canvasWrapperRef}
+          addTextcard={addTextcards}
+        />
+      )}
+      {selectedTool === "Arrow" && (
+        <ArrowTool
+          canvasRef={canvasRef}
+          canvasWrapperRef={canvasWrapperRef}
+          addArrow={addArrows}
+          elements={elements}
+        />
+      )}
 
       {/* Rendern der gespeicherten Rechtecke */}
       {rectangles.map((rect, index) => (
-        <Frame 
-          key={index} 
-          rect={rect} 
-          scaleRef={scaleRef} 
-          offsetRef={offsetRef} 
+        <Frame
+          key={index}
+          rect={rect}
+          scaleRef={scaleRef}
+          offsetRef={offsetRef}
           isSelected={selectedFrame === rect.id}
           onUpdate={handleFrameUpdate}
           onResize={handleFrameResize}
@@ -235,8 +258,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           rect={textcard}
           text={textcard.text}
           onTextChange={() => {}}
-          scaleRef={scaleRef} 
-          offsetRef={offsetRef} 
+          scaleRef={scaleRef}
+          offsetRef={offsetRef}
           isSelected={selectedFrame === textcard.id}
           onUpdate={handleTextcardUpdate}
           onResize={handleTextcardResize}

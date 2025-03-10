@@ -291,21 +291,51 @@ const TextCard = ({ rect, scaleRef, offsetRef, onUpdate, onResize, canvasWrapper
               position="top-left"
               cursor="nwse-resize"
               onMouseDown={(e) => handleResizeMouseDown(e, "top-left")}
+              color="rgb(252, 252, 252)"
             />
             <ResizeHandle
               position="top-right"
               cursor="nesw-resize"
               onMouseDown={(e) => handleResizeMouseDown(e, "top-right")}
+              color="rgb(252, 252, 252)"
             />
             <ResizeHandle
               position="bottom-left"
               cursor="nesw-resize"
               onMouseDown={(e) => handleResizeMouseDown(e, "bottom-left")}
+              color="rgb(252, 252, 252)"
             />
             <ResizeHandle
               position="bottom-right"
               cursor="nwse-resize"
               onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}
+              color="rgb(252, 252, 252)"
+            />
+
+            {/* New middle handles */}
+            <ResizeHandle
+              position="top"
+              cursor="grab"
+              onMouseDown={(e) => handleResizeMouseDown(e, "top")}
+              color="rgb(23, 104, 255)"
+            />
+            <ResizeHandle
+              position="bottom"
+              cursor="grab"
+              onMouseDown={(e) => handleResizeMouseDown(e, "bottom")}
+              color="rgb(23, 104, 255)"
+            />
+            <ResizeHandle
+              position="left"
+              cursor="grab"
+              onMouseDown={(e) => handleResizeMouseDown(e, "left")}
+              color="rgb(23, 104, 255)"
+            />
+            <ResizeHandle
+              position="right"
+              cursor="grab"
+              onMouseDown={(e) => handleResizeMouseDown(e, "right")}
+              color="rgb(23, 104, 255)"
             />
           </>
           )}
