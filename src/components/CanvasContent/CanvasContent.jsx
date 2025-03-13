@@ -4,8 +4,8 @@ import FrameTool from "@/components/Tools/PreviewTools/FrameTool";
 import ArrowTool from "@/components/Tools/PreviewTools/ArrowTool";
 import TextCardTool from "@/components/Tools/PreviewTools/TextCardTool";
 import PointerTool from "@/components/Tools/PreviewTools/PointerTool";
-import TextCard from "@/components/Tools/TextCard";
-import Frame from "@/components/Tools/Frame";
+import TextCard2 from "@/components/Tools/TextCard2";
+import Frame2 from "@/components/Tools/Frame2";
 import Arrow from "@/components/Tools/Arrow";
 import { getAnchorPosition } from "@/utils/anchorUtils";
 
@@ -160,10 +160,12 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     );
   };
 
-  const handleFrameResize = (id, newWidth, newHeight) => {
+  const handleFrameResize = (id, newSize, newPosition) => {
     setRectangles((prev) =>
       prev.map((rect) =>
-        rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect
+        rect.id === id
+          ? { ...rect, width: newSize.width, height: newSize.height, x: newPosition.x, y: newPosition.y }
+          : rect
       )
     );
   };
@@ -176,10 +178,12 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     );
   };
 
-  const handleTextcardResize = (id, newWidth, newHeight) => {
+  const handleTextcardResize = (id, newSize, newPosition) => {
     setTextCards((prev) =>
       prev.map((rect) =>
-        rect.id === id ? { ...rect, width: newWidth, height: newHeight } : rect
+        rect.id === id
+          ? { ...rect, width: newSize.width, height: newSize.height, x: newPosition.x, y: newPosition.y }
+          : rect
       )
     );
   };
@@ -252,32 +256,30 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
       {/* Rendern der gespeicherten Rechtecke */}
       {rectangles.map((rect, index) => (
-        <Frame
+        <Frame2
           key={index}
           rect={rect}
           scaleRef={scaleRef}
           offsetRef={offsetRef}
-          isSelected={selectedFrame === rect.id}
+          //isSelected={selectedFrame === rect.id}
           onUpdate={handleFrameUpdate}
           onResize={handleFrameResize}
-          canvasWrapperRef={canvasWrapperRef}
           onStartArrowFromFrame={handleStartArrowFromFrame}
         />
       ))}
 
       {/* Rendern der gespeicherten Textkarten */}
       {textcards.map((textcard, index) => (
-        <TextCard
+        <TextCard2
           key={index}
           rect={textcard}
           text={textcard.text}
           onTextChange={() => {}}
           scaleRef={scaleRef}
           offsetRef={offsetRef}
-          isSelected={selectedFrame === textcard.id}
+          //isSelected={selectedFrame === textcard.id}
           onUpdate={handleTextcardUpdate}
           onResize={handleTextcardResize}
-          canvasWrapperRef={canvasWrapperRef}
           onStartArrowFromFrame={handleStartArrowFromFrame}
         />
       ))}
