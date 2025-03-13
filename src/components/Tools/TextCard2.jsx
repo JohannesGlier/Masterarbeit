@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useCanvas } from "@/components/CanvasContext/CanvasContext";
 import ResizeHandle from "@/components/Helper/ResizeHandle";
 import TextCardActionBar from "@/components/Tools/ActionBars/TextCardActionBar";
@@ -22,7 +22,7 @@ const TextCard2 = ({
     fontStyles: { bold: false, italic: false, underline: false },
     textSize: 20,
     textColor: "#000000",
-    textAlignment: "left",
+    textAlign: "left",
   };
   const textcardProperties = { ...defaultTextcardProperties, ...rect };
   const [properties, setProperties] = useState(textcardProperties);
@@ -77,11 +77,16 @@ const TextCard2 = ({
     }
   );
 
+
+
   useEffect(() => {
     setIsSelected(selectedElements.some((el) => el.id === rect.id));
   }, [selectedElements, rect.id]);
 
-  const handleMouseDown = (e) => {
+
+
+  const handleDrag = (e) => {
+    if(isEditing) return;
     if (selectedTool === "Pointer") {
       const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
       toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
@@ -89,7 +94,20 @@ const TextCard2 = ({
     startDragging(e);
   };
 
-  const shortcutArrowCreation = (e, handle) => {
+  const handleResize = (e, handle) => {
+    e.stopPropagation();
+    if (selectedTool === "Pointer") {
+      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+      toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
+    }
+    startResizing(e, handle);
+  };
+
+  const handleEditing = () => {
+    setIsEditing(true);
+  }
+
+  const handleArrowCreation = (e, handle) => {
     e.stopPropagation();
     onStartArrowFromFrame({
       elementId: rect.id,
@@ -99,14 +117,7 @@ const TextCard2 = ({
     });
   };
 
-  const handleResizeMouseDown = (e, handle) => {
-    e.stopPropagation();
-    if (selectedTool === "Pointer") {
-      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-      toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
-    }
-    startResizing(e, handle);
-  };
+  
 
   const pointerEvents =
     selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
@@ -143,7 +154,8 @@ const TextCard2 = ({
           zIndex: 6,
           pointerEvents,
         }}
-        onMouseDown={handleMouseDown}
+        onMouseDown={handleDrag}
+        onDoubleClick={handleEditing}
       >
         {isEditing ? (
           <textarea
@@ -157,7 +169,7 @@ const TextCard2 = ({
               outline: "none",
               resize: "none",
               backgroundColor: "transparent",
-              textAlign: properties.textAlignment,
+              textAlign: properties.textAlign,
               color: properties.textColor,
               fontFamily: properties.font,
               fontSize: properties.textSize,
@@ -175,7 +187,7 @@ const TextCard2 = ({
             style={{
               whiteSpace: "pre-wrap",
               wordWrap: "break-word",
-              textAlign: properties.textAlignment,
+              textAlign: properties.textAlign,
               color: properties.textColor,
               fontFamily: properties.font,
               fontSize: properties.textSize,
@@ -189,58 +201,43 @@ const TextCard2 = ({
             {text}
           </div>
         )}
-        {isSelected && !isDragging && selectedElements.length === 1 && (
+        {isSelected && !isDragging && !isEditing && selectedElements.length === 1 && (
           <>
             <ResizeHandle
               position="top-left"
               cursor="nwse-resize"
-              onMouseDown={(e) => handleResizeMouseDown(e, "top-left")}
+              onMouseDown={(e) => handleResize(e, "top-left")}
               color="rgb(252, 252, 252)"
             />
             <ResizeHandle
               position="top-right"
               cursor="nesw-resize"
-              onMouseDown={(e) => handleResizeMouseDown(e, "top-right")}
+              onMouseDown={(e) => handleResize(e, "top-right")}
               color="rgb(252, 252, 252)"
             />
             <ResizeHandle
               position="bottom-left"
               cursor="nesw-resize"
-              onMouseDown={(e) => handleResizeMouseDown(e, "bottom-left")}
+              onMouseDown={(e) => handleResize(e, "bottom-left")}
               color="rgb(252, 252, 252)"
             />
             <ResizeHandle
               position="bottom-right"
               cursor="nwse-resize"
-              onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}
+              onMouseDown={(e) => handleResize(e, "bottom-right")}
               color="rgb(252, 252, 252)"
             />
 
-            {/* New middle handles */}
-            <ResizeHandle
-              position="top"
-              cursor="grab"
-              onMouseDown={(e) => shortcutArrowCreation(e, "top")}
-              color="rgb(23, 104, 255)"
-            />
-            <ResizeHandle
-              position="bottom"
-              cursor="grab"
-              onMouseDown={(e) => shortcutArrowCreation(e, "bottom")}
-              color="rgb(23, 104, 255)"
-            />
-            <ResizeHandle
-              position="left"
-              cursor="grab"
-              onMouseDown={(e) => shortcutArrowCreation(e, "left")}
-              color="rgb(23, 104, 255)"
-            />
-            <ResizeHandle
-              position="right"
-              cursor="grab"
-              onMouseDown={(e) => shortcutArrowCreation(e, "right")}
-              color="rgb(23, 104, 255)"
-            />
+            {/* Arrow Handles */}
+            {["top", "bottom", "left", "right"].map((pos) => (
+              <ResizeHandle
+                key={pos}
+                position={pos}
+                cursor="grab"
+                onMouseDown={(e) => handleArrowCreation(e, pos)}
+                color="rgb(23, 104, 255)"
+              />
+            ))}
           </>
         )}
       </div>
@@ -263,7 +260,7 @@ const TextCard2 = ({
             fontStyles: properties.fontStyles,
             textSize: properties.textSize,
             textColor: properties.textColor,
-            textAlignment: properties.textAlignment,
+            textAlign: properties.textAlign,
           }}
           updateTextcardStyle={updateTextcardStyle}
         />

@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useCanvas } from "@/components/CanvasContext/CanvasContext";
-import ResizeHandle from "@/components/Helper/ResizeHandle";
-import TextInput from "@/components/Helper/TextInput";
 import FrameActionBar from "@/components/Tools/ActionBars/FrameActionBar";
 import useDrag from "@/hooks/useDrag";
 import useResize from "@/hooks/useResize";
+import Handles from "@/components/Helper/Handles";
+import FrameHeader from "@/components/Helper/FrameHeader";
+import { FRAME_DEFAULTS } from "@/utils/frameDefaultProperties";
+import { getFrameStyles } from "@/utils/frameStyles";
+import { getPointerEvents } from "@/utils/pointerEventUtils";
 
 const Frame2 = ({
   rect,
@@ -14,27 +17,14 @@ const Frame2 = ({
   onResize,
   onStartArrowFromFrame,
 }) => {
-  const defaultFrameProperties = {
-    frameColor: "rgb(205, 205, 205)",
-    frameBorderColor: "#000000",
-    borderWidth: 2,
-    font: "Arial",
-    fontStyles: { bold: false, italic: false, underline: false },
-    textSize: 18,
-    textColor: "#000000",
-    textAlignment: "left",
-    layer: 5,
-  };
-
-  const frameProperties = { ...defaultFrameProperties, ...rect };
-  const [properties, setProperties] = useState(frameProperties);
-
-  const updateFrameStyle = (newProperties) => {
-    setProperties((prevProperties) => ({
-      ...prevProperties,
-      ...newProperties,
-    }));
-  };
+  const [properties, setProperties] = useState(() => ({
+    ...FRAME_DEFAULTS,
+    ...rect,
+  }));
+  const [heading, setHeading] = useState("");
+  const [position, setPosition] = useState({ x: rect.x, y: rect.y });
+  const [size, setSize] = useState({ width: rect.width, height: rect.height });
+  const [isDragging, setIsDragging] = useState(false);
 
   const {
     selectedTool,
@@ -46,16 +36,42 @@ const Frame2 = ({
     isArrowDragging,
   } = useCanvas();
 
-  const [heading, setHeading] = useState("");
-  const [isSelected, setIsSelected] = useState(false);
-  const [position, setPosition] = useState({ x: rect.x, y: rect.y });
-  const [size, setSize] = useState({ width: rect.width, height: rect.height });
-  const [isDragging, setIsDragging] = useState(false);
+  const isSelected = useMemo(
+    () => selectedElements.some((el) => el.id === rect.id),
+    [selectedElements, rect.id]
+  );
 
-  const isMouseDownElement = mouseDownElement?.id === rect.id;
-  const isHoveredElement = hoveredElement?.id === rect.id;
+  const showActionBar = useMemo(
+    () => isSelected && !isDragging && selectedElements.length === 1,
+    [isSelected, isDragging, selectedElements.length]
+  );
 
-  // Drag & Resize Hooks
+  const updateFrameStyle = useCallback((newProps) => {
+    setProperties((prev) => ({ ...prev, ...newProps }));
+  }, []);
+
+  const frameActionBarProps = useMemo(
+    () => ({
+      rect: {
+        ...properties,
+        id: rect.id,
+        top: position.y * scaleRef.current + offsetRef.current.y,
+        left: position.x * scaleRef.current + offsetRef.current.x,
+        width: size.width * scaleRef.current,
+      },
+      updateFrameStyle,
+    }),
+    [properties, position, size, scaleRef.current, offsetRef.current, rect.id]
+  );
+
+  const handleSelection = useCallback(
+    (e) => {
+      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+      toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
+    },
+    [toggleSelectedElement, rect, isResizing, isDragging]
+  );
+
   const { startDragging } = useDrag(
     position,
     scaleRef,
@@ -78,29 +94,18 @@ const Frame2 = ({
     }
   );
 
-
-  useEffect(() => {
-    setIsSelected(selectedElements.some((el) => el.id === rect.id));
-  }, [selectedElements, rect.id]);
-
-  const handleMouseDown = (e) => {
-    if (selectedTool === "Pointer") {
-      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-      toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
-    }
+  const handleDrag = (e) => {
+    handleSelection(e);
     startDragging(e);
   };
 
-  const handleResizeMouseDown = (e, handle) => {
+  const handleResize = (e, handle) => {
     e.stopPropagation();
-    if (selectedTool === "Pointer") {
-      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-      toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
-    }
+    handleSelection(e);
     startResizing(e, handle);
   };
 
-  const shortcutArrowCreation = (e, handle) => {
+  const handleArrowCreation = (e, handle) => {
     e.stopPropagation();
     onStartArrowFromFrame({
       elementId: rect.id,
@@ -110,129 +115,66 @@ const Frame2 = ({
     });
   };
 
-  // Pointer Events Logik bleibt gleich
-  const pointerEvents =
-    selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
-      ? "none" // Deaktiviere pointer-events für alle Elemente
-      : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
-      ? "none" // Deaktiviere pointer-events für alle Elemente
-      : selectedElements.some((el) => el.isResizing || el.isDragging) ||
-        isArrowDragging
-      ? selectedElements.find((el) => el.id === rect.id)?.isResizing ||
-        selectedElements.find((el) => el.id === rect.id)?.isDragging
-        ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
-        : "none" // Deaktiviere pointer-events für alle anderen Elemente
-      : "auto";
+  const pointerEvents = useCallback(
+    () => getPointerEvents({
+      selectedTool,
+      isDrawing,
+      selectedElements,
+      isArrowDragging,
+      elementId: rect.id
+    }),
+    [selectedTool, isDrawing, selectedElements, isArrowDragging, rect.id]
+  );
+
+  const frameStyles = useMemo(
+    () =>
+      getFrameStyles(
+        position,
+        size,
+        scaleRef.current,
+        offsetRef.current,
+        properties,
+        isSelected,
+        hoveredElement?.id === rect.id,
+        mouseDownElement?.id === rect.id,
+        pointerEvents()
+      ),
+    [
+      position,
+      size,
+      scaleRef.current,
+      offsetRef.current,
+      properties,
+      isSelected,
+      rect.id,
+      hoveredElement,
+      mouseDownElement,
+      pointerEvents(),
+    ]
+  );
 
   return (
     <>
-      <div
-        style={{
-          position: "absolute",
-          top: position.y * scaleRef.current + offsetRef.current.y,
-          left: position.x * scaleRef.current + offsetRef.current.x,
-          width: `${size.width * scaleRef.current}px`,
-          height: `${size.height * scaleRef.current}px`,
-          backgroundColor: properties.frameColor,
-          border:
-            isSelected || isMouseDownElement || isHoveredElement
-              ? "3px solid rgb(23, 104, 255)"
-              : `${properties.borderWidth}px solid ${properties.frameBorderColor}`,
-          cursor: "grab",
-          zIndex: 5,
-          pointerEvents,
-        }}
-        onMouseDown={handleMouseDown}
-      >
-        {isSelected && !isDragging && selectedElements.length === 1 && (
-          <>
-            {/* Resize Handles */}
-            <ResizeHandle
-              position="top-left"
-              cursor="nwse-resize"
-              onMouseDown={(e) => handleResizeMouseDown(e, "top-left")}
-              color="rgb(252, 252, 252)"
-            />
-            <ResizeHandle
-              position="top-right"
-              cursor="nesw-resize"
-              onMouseDown={(e) => handleResizeMouseDown(e, "top-right")}
-              color="rgb(252, 252, 252)"
-            />
-            <ResizeHandle
-              position="bottom-left"
-              cursor="nesw-resize"
-              onMouseDown={(e) => handleResizeMouseDown(e, "bottom-left")}
-              color="rgb(252, 252, 252)"
-            />
-            <ResizeHandle
-              position="bottom-right"
-              cursor="nwse-resize"
-              onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}
-              color="rgb(252, 252, 252)"
-            />
-
-            {/* Arrow Handles */}
-            {["top", "bottom", "left", "right"].map((pos) => (
-              <ResizeHandle
-                key={pos}
-                position={pos}
-                cursor="grab"
-                onMouseDown={(e) => shortcutArrowCreation(e, pos)}
-                color="rgb(23, 104, 255)"
-              />
-            ))}
-          </>
+      <div style={frameStyles} onMouseDown={handleDrag}>
+        {showActionBar && (
+          <Handles
+            onResize={handleResize}
+            onCreateArrow={handleArrowCreation}
+          />
         )}
       </div>
 
-      {/* Eingabefeld für Text (Überschrift) */}
-      <div
-        style={{
-          position: "absolute",
-          top: position.y * scaleRef.current + offsetRef.current.y - 40,
-          left: position.x * scaleRef.current + offsetRef.current.x,
-          zIndex: 4,
-        }}
-      >
-        <TextInput
-          placeholder="Überschrift"
-          value={heading}
-          onChange={(e) => setHeading(e.target.value)}
-          minWidth={`${size.width * scaleRef.current}px`}
-          maxWidth={`${size.width * scaleRef.current}px`}
-          textAlign={properties.textAlignment}
-          fontSize={properties.textSize}
-          textColor={properties.textColor}
-          fontStyles={properties.fontStyles}
-          font={properties.font}
-        />
-      </div>
+      <FrameHeader
+        position={position}
+        size={size}
+        scale={scaleRef.current}
+        offset={offsetRef.current}
+        heading={heading}
+        textStyles={properties}
+        onHeadingChange={(e) => setHeading(e.target.value)}
+      />
 
-      {isSelected && !isDragging && selectedElements.length === 1 && (
-        <FrameActionBar
-          rect={{
-            id: rect.id,
-
-            top: position.y * scaleRef.current + offsetRef.current.y,
-            left: position.x * scaleRef.current + offsetRef.current.x,
-            width: size.width * scaleRef.current,
-
-            frameColor: properties.frameColor,
-            frameBorderColor: properties.frameBorderColor,
-            borderWidth: properties.borderWidth,
-
-            font: properties.font,
-            fontStyles: properties.fontStyles,
-            textSize: properties.textSize,
-            textColor: properties.textColor,
-            textAlignment: properties.textAlignment,
-
-            layer: properties.layer,
-          }}
-          updateFrameStyle={updateFrameStyle}
-        />
-      )}
+      {showActionBar && <FrameActionBar {...frameActionBarProps} />}
     </>
   );
 };

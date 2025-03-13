@@ -16,9 +16,9 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
   const [frameColor, setFrameColor] = useState(rect.frameColor || "#000000");
   const [frameBorderColor, setFrameBorderColor] = useState(rect.frameBorderColor || "#000000");
 
-  const [borderWidth, setBorderWidth] = useState(rect.borderWidth || 2);
-  const [textSize, setTextSize] = useState(rect.textSize || 14);
-  const [textAlignment, setTextAlignment] = useState(rect.textAlignment);
+  const [borderWidth, setBorderWidth] = useState(rect.borderWidth);
+  const [fontSize, setFontSize] = useState(rect.fontSize);
+  const [textAlign, setTextAlign] = useState(rect.textAlign);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFrameColorPicker, setShowFrameColorPicker] = useState(false);
   const [showFrameBorderColorPicker, setShowFrameBorderColorPicker] = useState(false);
@@ -42,8 +42,8 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
   };
 
   const handleTextSizeChange = (size) => {
-    setTextSize(size);
-    updateFrameStyle({ textSize: size });
+    setFontSize(size);
+    updateFrameStyle({ fontSize: size });
   };
 
   const handleLayerChange = (layer) => {
@@ -67,17 +67,17 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
   };
 
   const handleTextAlignmentChange = (alignment) => {
-    setTextAlignment(alignment);
-    updateFrameStyle({ textAlignment: alignment });
+    setTextAlign(alignment);
+    updateFrameStyle({ textAlign: alignment });
   };
 
   const increaseTextSize = () => {
-    const newSize = Math.min(textSize + 1, 30); // Maximal 30
+    const newSize = Math.min(fontSize + 1, 30); // Maximal 30
     handleTextSizeChange(newSize);
   };
 
   const decreaseTextSize = () => {
-    const newSize = Math.max(textSize - 1, 10); // Minimal 10
+    const newSize = Math.max(fontSize - 1, 10); // Minimal 10
     handleTextSizeChange(newSize);
   };
 
@@ -160,7 +160,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
           }}
           overlayStyle={{ paddingTop: "40px" }}
         >
-          <Button style={{ fontSize: "28px", padding: "8px 12px", bottom: "2px", border: "none" }}>{textSize}</Button>
+          <Button style={{ fontSize: "28px", padding: "8px 12px", bottom: "2px", border: "none" }}>{fontSize}</Button>
         </Dropdown>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <Button
@@ -261,7 +261,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
                   fontSize: "32px",
                   background: "transparent",
                   // Nur das Icon soll blau werden, wenn ausgewählt ist:
-                  color: textAlignment === alignment ? "#1890ff" : "inherit",
+                  color: textAlign === alignment ? "#1890ff" : "inherit",
                 }}
               />
             ))}
@@ -270,7 +270,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
       >
         {/* Eltern-Button zeigt immer das aktuell ausgewählte Icon */}
         <Button
-          icon={icons[textAlignment] || <FiAlignCenter />}
+          icon={icons[textAlign] || <FiAlignCenter />}
           style={{
             width: "40px",
             height: "40px",

@@ -16,7 +16,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
 
   const [borderWidth, setBorderWidth] = useState(rect.borderWidth);
   const [textSize, setTextSize] = useState(rect.textSize || 14);
-  const [textAlignment, setTextAlignment] = useState(rect.textAlignment);
+  const [textAlign, setTextAlign] = useState(rect.textAlign);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showTextcardColorPicker, setShowTextcardColorPicker] = useState(false);
   const [showTextcardBorderColorPicker, setShowTextcardBorderColorPicker] = useState(false);
@@ -60,8 +60,8 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
   };
 
   const handleTextAlignmentChange = (alignment) => {
-    setTextAlignment(alignment);
-    updateTextcardStyle({ textAlignment: alignment });
+    setTextAlign(alignment);
+    updateTextcardStyle({ textAlign: alignment });
   };
 
   const increaseTextSize = () => {
@@ -244,7 +244,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
                   fontSize: "32px",
                   background: "transparent",
                   // Nur das Icon soll blau werden, wenn ausgewählt ist:
-                  color: textAlignment === alignment ? "#1890ff" : "inherit",
+                  color: textAlign === alignment ? "#1890ff" : "inherit",
                 }}
               />
             ))}
@@ -253,7 +253,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
       >
         {/* Eltern-Button zeigt immer das aktuell ausgewählte Icon */}
         <Button
-          icon={icons[textAlignment] || <FiAlignCenter />}
+          icon={icons[textAlign] || <FiAlignCenter />}
           style={{
             width: "40px",
             height: "40px",

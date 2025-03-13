@@ -44,6 +44,7 @@ const Arrow = ({
     setHoveredElement,
     setIsArrowDragging,
   } = useCanvas();
+  
   const [isSelected, setIsSelected] = useState(false);
   const [draggingPoint, setDraggingPoint] = useState(null);
   const [text, setText] = useState("");
