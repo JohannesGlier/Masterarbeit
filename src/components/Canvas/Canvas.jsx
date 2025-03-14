@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { useCanvas } from '@/components/CanvasContext/CanvasContext';
-import CanvasToolbar from "@/components/CanvasToolbar/CanvasToolbar";
-import CanvasMenu from "@/components/CanvasMenu/CanvasMenu";
-import CanvasContent from "@/components/CanvasContent/CanvasContent";
+import { useCanvas } from '@/components/Canvas/CanvasContext';
+import CanvasToolbar from "@/components/Canvas/CanvasToolbar/CanvasToolbar";
+import CanvasMenu from "@/components/Canvas/CanvasMenu/CanvasMenu";
+import CanvasContent from "@/components/Canvas/CanvasContent";
 
 const InfiniteCanvas = ({ onBack }) => {
   const { scaleRef, offsetRef, selectedTool, selectedElements } = useCanvas();

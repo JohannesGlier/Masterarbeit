@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useCanvas } from '@/components/CanvasContext/CanvasContext';
+import React, { useState, useEffect } from 'react';
+import { useCanvas } from '@/components/Canvas/CanvasContext';
 
 const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
   const { offsetRef, scaleRef, setSelectedTool } = useCanvas();

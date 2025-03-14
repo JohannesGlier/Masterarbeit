@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCanvas } from '@/components/CanvasContext/CanvasContext';
+import { useCanvas } from '@/components/Canvas/CanvasContext';
 
 const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
   const { offsetRef, scaleRef, isDrawing, setIsDrawing, setSelectedElements } = useCanvas();

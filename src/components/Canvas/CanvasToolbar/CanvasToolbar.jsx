@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from "./CanvasToolbar.module.css";
-import { useCanvas } from '@/components/CanvasContext/CanvasContext';
+import { useCanvas } from '@/components/Canvas/CanvasContext';
 
 import { BiSolidPointer } from "react-icons/bi";
 import { CgArrowLongUp } from "react-icons/cg";

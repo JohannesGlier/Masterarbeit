@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useCanvas } from "@/components/CanvasContext/CanvasContext";
+import { useCanvas } from "@/components/Canvas/CanvasContext";
 import FrameTool from "@/components/Tools/PreviewTools/FrameTool";
 import ArrowTool from "@/components/Tools/PreviewTools/ArrowTool";
 import TextCardTool from "@/components/Tools/PreviewTools/TextCardTool";
 import PointerTool from "@/components/Tools/PreviewTools/PointerTool";
-import TextCard2 from "@/components/Tools/TextCard2";
-import Frame2 from "@/components/Tools/Frame2";
+import TextCard from "@/components/Tools/TextCard";
+import Frame from "@/components/Tools/Frame";
 import Arrow from "@/components/Tools/Arrow";
-import { getAnchorPosition } from "@/utils/anchorUtils";
+import { getAnchorPosition } from "@/utils/Arrow/anchorUtils";
 
 const generateUniqueId = () => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -256,7 +256,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
       {/* Rendern der gespeicherten Rechtecke */}
       {rectangles.map((rect, index) => (
-        <Frame2
+        <Frame
           key={index}
           rect={rect}
           scaleRef={scaleRef}
@@ -270,7 +270,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
       {/* Rendern der gespeicherten Textkarten */}
       {textcards.map((textcard, index) => (
-        <TextCard2
+        <TextCard
           key={index}
           rect={textcard}
           text={textcard.text}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useCanvas } from "@/components/CanvasContext/CanvasContext";
-import { getAnchorFromPosition, getClosestAnchor } from "@/utils/anchorUtils";
-import { getElementAtPosition } from "@/utils/elementUtils";
+import { useCanvas } from "@/components/Canvas/CanvasContext";
+import { getAnchorFromPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
+import { getElementAtPosition } from "@/utils/Arrow/elementUtils";
 
 const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialStart, onEndArrowFromFrame }) => {
   const {

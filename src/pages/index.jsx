@@ -2,7 +2,7 @@ import Head from "next/head";
 import InfiniteCanvas from "@/components/Canvas/Canvas";
 import { useState } from "react";
 import HomeScreen from "@/components/HomeScreen/HomeScreen";
-import { CanvasProvider } from "@/components/CanvasContext/CanvasContext";
+import { CanvasProvider } from "@/components/Canvas/CanvasContext";
 
 const Home = () => {
   const [showCanvas, setShowCanvas] = useState(false);

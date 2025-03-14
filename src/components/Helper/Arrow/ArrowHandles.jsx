@@ -1,4 +1,4 @@
-import ArrowHandle from "@/components/Helper/ArrowHandle";
+import ArrowHandle from "@/components/Helper/Arrow/ArrowHandle";
 
 const ArrowHandles = ({
   start,

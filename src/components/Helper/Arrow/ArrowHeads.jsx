@@ -1,4 +1,4 @@
-import ArrowHead from "@/components/Helper/ArrowHead";
+import ArrowHead from "@/components/Helper/Arrow/ArrowHead";
 
 const ArrowHeads = ({
   start,

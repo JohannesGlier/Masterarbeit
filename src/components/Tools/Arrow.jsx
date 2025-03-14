@@ -5,15 +5,15 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { useCanvas } from "@/components/CanvasContext/CanvasContext";
-import ArrowHandles from "@/components/Helper/ArrowHandles";
-import ArrowLabel from "@/components/Helper/ArrowLabel";
+import { useCanvas } from "@/components/Canvas/CanvasContext";
+import ArrowHandles from "@/components/Helper/Arrow/ArrowHandles";
+import ArrowLabel from "@/components/Helper/Arrow/ArrowLabel";
 import ArrowActionBar from "@/components/Tools/ActionBars/ArrowActionBar";
-import { getAnchorPosition, getClosestAnchor } from "@/utils/anchorUtils";
-import { getElementAtPosition } from "@/utils/elementUtils";
-import ArrowHeads from "@/components/Helper/ArrowHeads";
-import { ARROW_DEFAULTS } from "@/utils/arrowDefaultProperties";
-import { getArrowStyles } from "@/utils/arrowStyles";
+import { getAnchorPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
+import { getElementAtPosition } from "@/utils/Arrow/elementUtils";
+import ArrowHeads from "@/components/Helper/Arrow/ArrowHeads";
+import { ARROW_DEFAULTS } from "@/utils/Arrow/arrowDefaultProperties";
+import { getArrowStyles } from "@/utils/Arrow/arrowStyles";
 import { getPointerEvents } from "@/utils/pointerEventUtils";
 
 const Arrow = ({
