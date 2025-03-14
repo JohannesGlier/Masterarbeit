@@ -18,7 +18,7 @@ const TextInput = ({ placeholder, value, onChange, maxWidth, minWidth, textAlign
       type="text"
       placeholder={placeholder}
       value={value}
-      onChange={onChange}
+      onChange={(e) => onChange(e.target.value)}
       style={{
         width: width,
         minWidth: minWidth,

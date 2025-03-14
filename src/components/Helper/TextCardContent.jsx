@@ -21,7 +21,7 @@ const TextCardContent = ({
     wordWrap: "break-word",
   };
 
-  return isEditing ? (
+  return (
     <textarea
       value={text}
       onChange={onChange}
@@ -35,13 +35,9 @@ const TextCardContent = ({
         outline: "none",
         resize: "none",
         backgroundColor: "transparent",
-        cursor: "text",
+        cursor: isEditing ? "text" : "grab",
       }}
     />
-  ) : (
-    <div style={commonStyles}>
-      {text}
-    </div>
   );
 };
 

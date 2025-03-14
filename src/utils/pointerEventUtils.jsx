@@ -2,21 +2,21 @@ export const getPointerEvents = ({
   selectedTool,
   isDrawing,
   selectedElements,
-  isArrowDragging,
+  isArrowDragging = false,
   elementId,
 }) => {
-  if (selectedTool !== "Pointer") return "none";
-  if (isDrawing) return "none";
+  if (selectedTool !== "Pointer" || isDrawing) return "none";
 
   const hasActiveElements = selectedElements.some(
     (el) => el.isResizing || el.isDragging
   );
 
   if (hasActiveElements || isArrowDragging) {
-    const isOurElementActive = selectedElements.some(
+    return selectedElements.some(
       (el) => el.id === elementId && (el.isResizing || el.isDragging)
-    );
-    return isOurElementActive ? "auto" : "none";
+    )
+      ? isArrowDragging ? "auto" : "none"
+      : "none";
   }
 
   return "auto";

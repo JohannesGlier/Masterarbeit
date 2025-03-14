@@ -171,7 +171,7 @@ const Frame2 = ({
         offset={offsetRef.current}
         heading={heading}
         textStyles={properties}
-        onHeadingChange={(e) => setHeading(e.target.value)}
+        onHeadingChange={setHeading}
       />
 
       {showActionBar && <FrameActionBar {...frameActionBarProps} />}

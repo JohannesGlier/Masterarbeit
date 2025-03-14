@@ -1,11 +1,20 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useCanvas } from "@/components/CanvasContext/CanvasContext";
-import ArrowHandle from "@/components/Helper/ArrowHandle";
-import TextInput from "@/components/Helper/TextInput";
+import ArrowHandles from "@/components/Helper/ArrowHandles";
+import ArrowLabel from "@/components/Helper/ArrowLabel";
 import ArrowActionBar from "@/components/Tools/ActionBars/ArrowActionBar";
 import { getAnchorPosition, getClosestAnchor } from "@/utils/anchorUtils";
 import { getElementAtPosition } from "@/utils/elementUtils";
-import ArrowHead from "@/components/Tools/ArrowHead/ArrowHead";
+import ArrowHeads from "@/components/Helper/ArrowHeads";
+import { ARROW_DEFAULTS } from "@/utils/arrowDefaultProperties";
+import { getArrowStyles } from "@/utils/arrowStyles";
+import { getPointerEvents } from "@/utils/pointerEventUtils";
 
 const Arrow = ({
   arrow,
@@ -16,25 +25,16 @@ const Arrow = ({
   canvasWrapperRef,
   canvasRef,
 }) => {
-  const defaultArrowProperties = {
-    lineColor: "#000000",
-    lineStyle: "solid",
-    lineWidth: 2,
-    arrowHeadStart: false,
-    arrowHeadEnd: false,
-    textSize: 14,
-    textColor: "#000000",
-    textAlignment: "horizontal",
-  };
-  const arrowProperties = { ...defaultArrowProperties, ...arrow };
-  const [properties, setProperties] = useState(arrowProperties);
+  const [properties, setProperties] = useState(() => ({
+    ...ARROW_DEFAULTS,
+    ...arrow,
+  }));
 
-  const updateArrowStyle = (newProperties) => {
-    setProperties((prevProperties) => ({
-      ...prevProperties,
-      ...newProperties,
-    }));
-  };
+  const [isSelected, setIsSelected] = useState(false);
+  const [draggingPoint, setDraggingPoint] = useState(null);
+  const [text, setText] = useState("");
+  const frameRef = useRef(null);
+  const isDragging = useRef(false);
 
   const {
     selectedTool,
@@ -44,12 +44,6 @@ const Arrow = ({
     setHoveredElement,
     setIsArrowDragging,
   } = useCanvas();
-  
-  const [isSelected, setIsSelected] = useState(false);
-  const [draggingPoint, setDraggingPoint] = useState(null);
-  const [text, setText] = useState("");
-  const frameRef = useRef(null);
-  const isDragging = useRef(false);
 
   const start = arrow.start.elementId
     ? elements.find((element) => element.id === arrow.start.elementId)
@@ -77,6 +71,32 @@ const Arrow = ({
   const middleY = (startY + endY) / 2;
 
   const lineAngle = Math.atan2(endY - startY, endX - startX);
+
+  const updateArrowStyle = useCallback((newProps) => {
+    setProperties((prev) => ({ ...prev, ...newProps }));
+  }, []);
+
+  const arrowActionBarProps = useMemo(
+    () => ({
+      arrow: {
+        ...properties,
+        id: arrow.id,
+        endY: endY * scaleRef.current + offsetRef.current.y,
+        startY: startY * scaleRef.current + offsetRef.current.y,
+        middleX: middleX * scaleRef.current + offsetRef.current.x,
+      },
+      updateArrowStyle,
+    }),
+    [
+      properties,
+      startY,
+      endY,
+      middleX,
+      scaleRef.current,
+      offsetRef.current,
+      arrow.id,
+    ]
+  );
 
   useEffect(() => {
     setIsSelected(selectedElements.some((el) => el.id === arrow.id));
@@ -229,150 +249,84 @@ const Arrow = ({
     }
   };
 
-  const pointerEvents =
-    selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
-      ? "none" // Deaktiviere pointer-events für alle Elemente
-      : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
-      ? "none" // Deaktiviere pointer-events für alle Elemente
-      : selectedElements.some((el) => el.isResizing || el.isDragging)
-      ? selectedElements.find((el) => el.id === arrow.id)?.isResizing ||
-        selectedElements.find((el) => el.id === arrow.id)?.isDragging
-        ? "none" // Aktiviere pointer-events nur für das Element, das geresized wird
-        : "none" // Deaktiviere pointer-events für alle anderen Elemente
-      : "auto";
+  const pointerEvents = getPointerEvents({
+    selectedTool,
+    isDrawing,
+    selectedElements,
+    elementId: arrow.id,
+  });
+
+  const arrowStyles = useMemo(
+    () =>
+      getArrowStyles(
+        startX,
+        startY,
+        endX,
+        endY,
+        scaleRef.current,
+        offsetRef.current,
+        properties,
+        isSelected,
+        pointerEvents
+      ),
+    [
+      startX,
+      startY,
+      endX,
+      endY,
+      scaleRef.current,
+      offsetRef.current,
+      properties,
+      isSelected,
+      pointerEvents,
+    ]
+  );
 
   return (
     <>
-      <div
-        ref={frameRef}
-        style={{
-          position: "absolute",
-          top: startY * scaleRef.current + offsetRef.current.y,
-          left: startX * scaleRef.current + offsetRef.current.x,
-          width: `${
-            Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2)) *
-            scaleRef.current
-          }px`,
-          height: "2px",
-          color: isSelected ? "blue" : properties.lineColor,
-          borderStyle: properties.lineStyle,
-          borderWidth: properties.lineWidth,
-          transform: `rotate(${Math.atan2(endY - startY, endX - startX)}rad)`,
-          transformOrigin: "0 0",
-          pointerEvents,
-          zIndex: 4,
-          cursor: "pointer",
-        }}
-        onClick={(e) => SelectArrow(e)}
+      <div ref={frameRef} style={arrowStyles} onClick={SelectArrow} />
+
+      <ArrowHeads
+        start={properties.arrowHeadStart}
+        end={properties.arrowHeadEnd}
+        startX={startX}
+        startY={startY}
+        endX={endX}
+        endY={endY}
+        scale={scaleRef.current}
+        offset={offsetRef.current}
+        lineAngle={lineAngle}
+        color={properties.lineColor}
       />
-      {/* Pfeilspitze am Startpunkt */}
-      {properties.arrowHeadStart && (
-        <ArrowHead
-          x={startX * scaleRef.current + offsetRef.current.x}
-          y={startY * scaleRef.current + offsetRef.current.y}
-          angle={lineAngle + Math.PI} // Umgedrehte Richtung
-          size={10 * scaleRef.current}
-          color={properties.lineColor}
-        />
-      )}
 
-      {/* Pfeilspitze am Endpunkt */}
-      {properties.arrowHeadEnd && (
-        <ArrowHead
-          x={endX * scaleRef.current + offsetRef.current.x}
-          y={endY * scaleRef.current + offsetRef.current.y}
-          angle={lineAngle}
-          size={10 * scaleRef.current}
-          color={properties.lineColor}
-        />
-      )}
-
-      <div
-        style={{
-          position: "absolute",
-          top: middleY * scaleRef.current + offsetRef.current.y - 25,
-          left: middleX * scaleRef.current + offsetRef.current.x,
-          transform:
-            properties.textAlignment === "horizontal"
-              ? `translate(-50%, -50%) rotate(${Math.atan2(
-                  endY - startY,
-                  endX - startX
-                )}rad)`
-              : "translate(-50%, -50%)",
-          zIndex: 5,
-        }}
-      >
-        <TextInput
-          placeholder="Enter Prompt.."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          minWidth={150}
-          maxWidth={250}
-          textAlign={"center"}
-          fontSize={properties.textSize}
-          textColor={properties.textColor}
-          fontStyles={{ bold: false, italic: false, underline: false }}
-          font={"Arial"}
-        />
-      </div>
+      <ArrowLabel
+        middleX={middleX}
+        middleY={middleY}
+        scale={scaleRef.current}
+        offset={offsetRef.current}
+        textAlignment={properties.textAlignment}
+        text={text}
+        onChange={setText}
+        start={{ x: startX, y: startY }}
+        end={{ x: endX, y: endY }}
+        textSize={properties.textSize}
+        textColor={properties.textColor}
+      />
 
       {isSelected && (
         <>
-          {/* Startpunkt */}
-          <ArrowHandle
-            top={
-              startY * scaleRef.current +
-              offsetRef.current.y +
-              properties.lineWidth
-            }
-            left={startX * scaleRef.current + offsetRef.current.x}
-            size={20 + properties.lineWidth}
-            onMouseDown={(e) => StartDragging("start", e)}
-            onMouseUp={(e) => StopDragging(e)}
-          />
-          {/* Mittelpunkt */}
-          <ArrowHandle
-            top={
-              middleY * scaleRef.current +
-              offsetRef.current.y +
-              properties.lineWidth
-            }
-            left={middleX * scaleRef.current + offsetRef.current.x}
-            cursor="default"
-            size={15 + properties.lineWidth}
-          />
-          {/* Endpunkt */}
-          <ArrowHandle
-            top={
-              endY * scaleRef.current +
-              offsetRef.current.y +
-              properties.lineWidth
-            }
-            left={endX * scaleRef.current + offsetRef.current.x}
-            onMouseDown={(e) => StartDragging("end", e)}
-            onMouseUp={(e) => StopDragging(e)}
-            size={20 + properties.lineWidth}
+          <ArrowHandles
+            start={{ x: startX, y: startY }}
+            middle={{ x: middleX, y: middleY }}
+            end={{ x: endX, y: endY }}
+            scale={scaleRef.current}
+            offset={offsetRef.current}
+            lineWidth={properties.lineWidth}
+            onDragStart={StartDragging}
+            onDragEnd={StopDragging}
           />
 
-          {/* Aktionsbar */}
-          <ArrowActionBar
-            arrow={{
-              id: arrow.id,
-              endY: endY * scaleRef.current + offsetRef.current.y,
-              startY: startY * scaleRef.current + offsetRef.current.y,
-              middleX: middleX * scaleRef.current + offsetRef.current.x,
-              middleY: middleY * scaleRef.current + offsetRef.current.y,
-              lineStyle: properties.lineStyle,
-              arrowHeadStart: properties.arrowHeadStart,
-              arrowHeadEnd: properties.arrowHeadEnd,
-              lineColor: properties.lineColor,
-              lineWidth: properties.lineWidth,
-              textSize: properties.textSize,
-              textColor: properties.textColor,
-              textAlignment: properties.textAlignment,
-            }}
-            updateArrowStyle={updateArrowStyle}
-          />
+          <ArrowActionBar {...arrowActionBarProps} />
         </>
       )}
     </>
