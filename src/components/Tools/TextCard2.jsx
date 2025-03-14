@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useCanvas } from "@/components/CanvasContext/CanvasContext";
-import ResizeHandle from "@/components/Helper/ResizeHandle";
+import Handles from "@/components/Helper/Handles";
 import TextCardActionBar from "@/components/Tools/ActionBars/TextCardActionBar";
 import useDrag from "@/hooks/useDrag";
 import useResize from "@/hooks/useResize";
+import { TEXTCARD_DEFAULTS } from "@/utils/textcardDefaultProperties";
+import { getTextcardStyles } from "@/utils/textcardStyles";
+import { getPointerEvents } from "@/utils/pointerEventUtils";
+import TextCardContent from "@/components/Helper/TextCardContent";
 
 const TextCard2 = ({
   rect,
@@ -13,26 +17,15 @@ const TextCard2 = ({
   onResize,
   onStartArrowFromFrame,
 }) => {
-  const defaultTextcardProperties = {
-    textcardColor: " #E6E6E6",
-    textcardBorderColor: "#000000",
-    borderWidth: 0,
-
-    font: "Arial",
-    fontStyles: { bold: false, italic: false, underline: false },
-    textSize: 20,
-    textColor: "#000000",
-    textAlign: "left",
-  };
-  const textcardProperties = { ...defaultTextcardProperties, ...rect };
-  const [properties, setProperties] = useState(textcardProperties);
-
-  const updateTextcardStyle = (newProperties) => {
-    setProperties((prevProperties) => ({
-      ...prevProperties,
-      ...newProperties,
-    }));
-  };
+  const [properties, setProperties] = useState(() => ({
+    ...TEXTCARD_DEFAULTS,
+    ...rect,
+  }));
+  const [text, setText] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [position, setPosition] = useState({ x: rect.x, y: rect.y });
+  const [size, setSize] = useState({ width: rect.width, height: rect.height });
+  const [isDragging, setIsDragging] = useState(false);
 
   const {
     selectedTool,
@@ -44,17 +37,42 @@ const TextCard2 = ({
     isArrowDragging,
   } = useCanvas();
 
-  const [text, setText] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSelected, setIsSelected] = useState(false);
-  const [position, setPosition] = useState({ x: rect.x, y: rect.y });
-  const [size, setSize] = useState({ width: rect.width, height: rect.height });
-  const [isDragging, setIsDragging] = useState(false);
+  const isSelected = useMemo(
+    () => selectedElements.some((el) => el.id === rect.id),
+    [selectedElements, rect.id]
+  );
 
-  const isMouseDownElement = mouseDownElement?.id === rect.id;
-  const isHoveredElement = hoveredElement?.id === rect.id;
+  const showActionBar = useMemo(
+    () => isSelected && !isDragging && selectedElements.length === 1,
+    [isSelected, isDragging, selectedElements.length]
+  );
 
-  // Drag & Resize Hooks
+  const updateTextcardStyle = useCallback((newProps) => {
+    setProperties((prev) => ({ ...prev, ...newProps }));
+  }, []);
+
+  const textcardActionBarProps = useMemo(
+    () => ({
+      rect: {
+        ...properties,
+        id: rect.id,
+        top: position.y * scaleRef.current + offsetRef.current.y,
+        left: position.x * scaleRef.current + offsetRef.current.x,
+        width: size.width * scaleRef.current,
+      },
+      updateTextcardStyle,
+    }),
+    [properties, position, size, scaleRef.current, offsetRef.current, rect.id]
+  );
+
+  const handleSelection = useCallback(
+    (e) => {
+      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
+      toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
+    },
+    [toggleSelectedElement, rect, isResizing, isDragging]
+  );
+
   const { startDragging } = useDrag(
     position,
     scaleRef,
@@ -77,35 +95,21 @@ const TextCard2 = ({
     }
   );
 
-
-
-  useEffect(() => {
-    setIsSelected(selectedElements.some((el) => el.id === rect.id));
-  }, [selectedElements, rect.id]);
-
-
-
   const handleDrag = (e) => {
-    if(isEditing) return;
-    if (selectedTool === "Pointer") {
-      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-      toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
-    }
+    if (isEditing) return;
+    handleSelection(e);
     startDragging(e);
   };
 
   const handleResize = (e, handle) => {
     e.stopPropagation();
-    if (selectedTool === "Pointer") {
-      const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
-      toggleSelectedElement({ ...rect, isResizing, isDragging }, isMultiSelect);
-    }
+    handleSelection(e);
     startResizing(e, handle);
   };
 
   const handleEditing = () => {
     setIsEditing(true);
-  }
+  };
 
   const handleArrowCreation = (e, handle) => {
     e.stopPropagation();
@@ -117,154 +121,73 @@ const TextCard2 = ({
     });
   };
 
-  
+  const pointerEvents = useCallback(
+    () =>
+      getPointerEvents({
+        selectedTool,
+        isDrawing,
+        selectedElements,
+        isArrowDragging,
+        elementId: rect.id,
+      }),
+    [selectedTool, isDrawing, selectedElements, isArrowDragging, rect.id]
+  );
 
-  const pointerEvents =
-    selectedTool !== "Pointer" // Wenn nicht "Pointer" ausgewählt ist
-      ? "none" // Deaktiviere pointer-events für alle Elemente
-      : isDrawing && selectedTool === "Pointer" // Wenn isDrawing true ist UND der Tool "Pointer" ist
-      ? "none" // Deaktiviere pointer-events für alle Elemente
-      : selectedElements.some((el) => el.isResizing || el.isDragging) ||
-        isArrowDragging
-      ? selectedElements.find((el) => el.id === rect.id)?.isResizing ||
-        selectedElements.find((el) => el.id === rect.id)?.isDragging
-        ? "auto" // Aktiviere pointer-events nur für das Element, das geresized wird
-        : "none" // Deaktiviere pointer-events für alle anderen Elemente
-      : "auto";
+  const textcardStyles = useMemo(
+    () =>
+      getTextcardStyles(
+        position,
+        size,
+        scaleRef.current,
+        offsetRef.current,
+        properties,
+        isSelected,
+        hoveredElement?.id === rect.id,
+        mouseDownElement?.id === rect.id,
+        isEditing,
+        pointerEvents()
+      ),
+    [
+      position,
+      size,
+      scaleRef.current,
+      offsetRef.current,
+      properties,
+      isSelected,
+      rect.id,
+      hoveredElement,
+      mouseDownElement,
+      isEditing,
+      pointerEvents(),
+    ]
+  );
 
   return (
     <>
       <div
-        style={{
-          position: "absolute",
-          top: position.y * scaleRef.current + offsetRef.current.y,
-          left: position.x * scaleRef.current + offsetRef.current.x,
-          width: `${size.width * scaleRef.current}px`,
-          height: `${size.height * scaleRef.current}px`,
-          backgroundColor: properties.textcardColor,
-          border:
-            isSelected || isMouseDownElement || isHoveredElement
-              ? "3px solid rgb(23, 104, 255)"
-              : `${properties.borderWidth}px solid ${properties.textcardBorderColor}`,
-          borderRadius: "25px",
-          boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
-          padding: "12px",
-          boxSizing: "border-box",
-          cursor: isEditing ? "text" : "grab",
-          zIndex: 6,
-          pointerEvents,
-        }}
+        style={textcardStyles}
         onMouseDown={handleDrag}
         onDoubleClick={handleEditing}
       >
-        {isEditing ? (
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onBlur={() => setIsEditing(false)}
-            style={{
-              width: "100%",
-              height: "100%",
-              border: "none",
-              outline: "none",
-              resize: "none",
-              backgroundColor: "transparent",
-              textAlign: properties.textAlign,
-              color: properties.textColor,
-              fontFamily: properties.font,
-              fontSize: properties.textSize,
-              fontWeight: properties.fontStyles.bold ? "bold" : "normal",
-              fontStyle: properties.fontStyles.italic ? "italic" : "normal",
-              textDecoration: properties.fontStyles.underline
-                ? "underline"
-                : "none",
-              cursor: "text",
-              wordWrap: "break-word",
-            }}
+        <TextCardContent
+          isEditing={isEditing}
+          text={text}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={() => setIsEditing(false)}
+          textAlign={properties.textAlign}
+          textColor={properties.textColor}
+          font={properties.font}
+          textSize={properties.textSize}
+          fontStyles={properties.fontStyles}
+        />
+        {showActionBar && (
+          <Handles
+            onResize={handleResize}
+            onCreateArrow={handleArrowCreation}
           />
-        ) : (
-          <div
-            style={{
-              whiteSpace: "pre-wrap",
-              wordWrap: "break-word",
-              textAlign: properties.textAlign,
-              color: properties.textColor,
-              fontFamily: properties.font,
-              fontSize: properties.textSize,
-              fontWeight: properties.fontStyles.bold ? "bold" : "normal",
-              fontStyle: properties.fontStyles.italic ? "italic" : "normal",
-              textDecoration: properties.fontStyles.underline
-                ? "underline"
-                : "none",
-            }}
-          >
-            {text}
-          </div>
-        )}
-        {isSelected && !isDragging && !isEditing && selectedElements.length === 1 && (
-          <>
-            <ResizeHandle
-              position="top-left"
-              cursor="nwse-resize"
-              onMouseDown={(e) => handleResize(e, "top-left")}
-              color="rgb(252, 252, 252)"
-            />
-            <ResizeHandle
-              position="top-right"
-              cursor="nesw-resize"
-              onMouseDown={(e) => handleResize(e, "top-right")}
-              color="rgb(252, 252, 252)"
-            />
-            <ResizeHandle
-              position="bottom-left"
-              cursor="nesw-resize"
-              onMouseDown={(e) => handleResize(e, "bottom-left")}
-              color="rgb(252, 252, 252)"
-            />
-            <ResizeHandle
-              position="bottom-right"
-              cursor="nwse-resize"
-              onMouseDown={(e) => handleResize(e, "bottom-right")}
-              color="rgb(252, 252, 252)"
-            />
-
-            {/* Arrow Handles */}
-            {["top", "bottom", "left", "right"].map((pos) => (
-              <ResizeHandle
-                key={pos}
-                position={pos}
-                cursor="grab"
-                onMouseDown={(e) => handleArrowCreation(e, pos)}
-                color="rgb(23, 104, 255)"
-              />
-            ))}
-          </>
         )}
       </div>
-
-      {/* Aktionsbar */}
-      {isSelected && !isDragging && selectedElements.length === 1 && (
-        <TextCardActionBar
-          rect={{
-            id: rect.id,
-
-            top: position.y * scaleRef.current + offsetRef.current.y,
-            left: position.x * scaleRef.current + offsetRef.current.x,
-            width: size.width * scaleRef.current,
-
-            textcardColor: properties.textcardColor,
-            textcardBorderColor: properties.textcardBorderColor,
-            borderWidth: properties.borderWidth,
-
-            font: properties.font,
-            fontStyles: properties.fontStyles,
-            textSize: properties.textSize,
-            textColor: properties.textColor,
-            textAlign: properties.textAlign,
-          }}
-          updateTextcardStyle={updateTextcardStyle}
-        />
-      )}
+      {showActionBar && <TextCardActionBar {...textcardActionBarProps} />}
     </>
   );
 };
