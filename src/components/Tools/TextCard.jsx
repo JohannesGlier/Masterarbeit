@@ -145,7 +145,8 @@ const TextCard = ({
         hoveredElement?.id === rect.id,
         mouseDownElement?.id === rect.id,
         isEditing,
-        pointerEvents()
+        pointerEvents(),
+        rect.zIndex,
       ),
     [
       position,
@@ -159,6 +160,7 @@ const TextCard = ({
       mouseDownElement,
       isEditing,
       pointerEvents(),
+      rect.zIndex,
     ]
   );
 

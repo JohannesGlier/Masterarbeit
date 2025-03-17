@@ -85,7 +85,7 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
             border: "1px dashed blue",
             borderRadius: "8px",
             pointerEvents: "none",
-            zIndex: 4,
+            zIndex: 4000,
           }}
         />
       )}

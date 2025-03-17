@@ -93,7 +93,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
         padding: "16px",
         borderRadius: "8px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-        zIndex: 10,
+        zIndex: 4003,
       }}
     >
       {/* Font */}

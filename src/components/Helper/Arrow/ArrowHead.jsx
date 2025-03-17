@@ -1,15 +1,15 @@
 import React from "react";
 
-const ArrowHead = ({ x, y, angle, size = 10, color = "#000000" }) => {
+const ArrowHead = ({ x, y, angle, size = 10, color = "#000000", zIndex }) => {
   return (
     <svg
       style={{
         position: "absolute",
         left: x - size / 2,
-        top: y - size / 2 + 2,
+        top: y - size / 2,
         transform: `rotate(${angle}rad)`,
         pointerEvents: "none",
-        zIndex: 5,
+        zIndex,
       }}
       width={size}
       height={size}

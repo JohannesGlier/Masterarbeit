@@ -16,6 +16,7 @@
     flex-direction: column;
     justify-content: center;
     gap: 45px; 
+    z-index: 4001;
 }
   
 .button {
@@ -32,6 +33,7 @@
     border-radius: 5px;
     fill: black;
     color: black;
+    z-index: 4001;
 }
   
 .button:hover {

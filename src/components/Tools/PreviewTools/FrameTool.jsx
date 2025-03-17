@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/Canvas/CanvasContext';
 
 const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
-  const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
+  const { offsetRef, scaleRef, setSelectedTool, zIndexRectangles } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
 
@@ -87,7 +87,7 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
             backgroundColor: "rgba(0, 0, 255, 0.3)",
             border: "1px dashed blue",
             pointerEvents: "none",
-            zIndex: 10,
+            zIndex: 1999,
           }}
         />
       )}

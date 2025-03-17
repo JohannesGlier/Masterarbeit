@@ -47,6 +47,7 @@ const Frame = ({
   );
 
   const updateFrameStyle = useCallback((newProps) => {
+    console.log(newProps);
     setProperties((prev) => ({ ...prev, ...newProps }));
   }, []);
 
@@ -116,13 +117,14 @@ const Frame = ({
   };
 
   const pointerEvents = useCallback(
-    () => getPointerEvents({
-      selectedTool,
-      isDrawing,
-      selectedElements,
-      isArrowDragging,
-      elementId: rect.id
-    }),
+    () =>
+      getPointerEvents({
+        selectedTool,
+        isDrawing,
+        selectedElements,
+        isArrowDragging,
+        elementId: rect.id,
+      }),
     [selectedTool, isDrawing, selectedElements, isArrowDragging, rect.id]
   );
 
@@ -137,7 +139,8 @@ const Frame = ({
         isSelected,
         hoveredElement?.id === rect.id,
         mouseDownElement?.id === rect.id,
-        pointerEvents()
+        pointerEvents(),
+        properties.zIndex,
       ),
     [
       position,
@@ -150,20 +153,12 @@ const Frame = ({
       hoveredElement,
       mouseDownElement,
       pointerEvents(),
+      properties.zIndex,
     ]
   );
 
   return (
     <>
-      <div style={frameStyles} onMouseDown={handleDrag}>
-        {showActionBar && (
-          <Handles
-            onResize={handleResize}
-            onCreateArrow={handleArrowCreation}
-          />
-        )}
-      </div>
-
       <FrameHeader
         position={position}
         size={size}
@@ -172,8 +167,16 @@ const Frame = ({
         heading={heading}
         textStyles={properties}
         onHeadingChange={setHeading}
+        pointerEvents={frameStyles.pointerEvents}
       />
-
+      <div style={frameStyles} onMouseDown={handleDrag}>
+        {showActionBar && (
+          <Handles
+            onResize={handleResize}
+            onCreateArrow={handleArrowCreation}
+          />
+        )}
+      </div>
       {showActionBar && <FrameActionBar {...frameActionBarProps} />}
     </>
   );

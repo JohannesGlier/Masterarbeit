@@ -8,7 +8,8 @@ export const getTextcardStyles = (
   isHovered,
   isMouseDown,
   isEditing,
-  pointerEvents
+  pointerEvents,
+  zIndex,
 ) => ({
   position: "absolute",
   top: position.y * scale + offset.y,
@@ -25,6 +26,6 @@ export const getTextcardStyles = (
   padding: "12px",
   boxSizing: "border-box",
   cursor: isEditing ? "text" : "grab",
-  zIndex: 6,
+  zIndex,
   pointerEvents,
 });

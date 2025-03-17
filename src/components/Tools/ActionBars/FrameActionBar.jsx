@@ -10,7 +10,7 @@ import { ChromePicker } from "react-color";
 const FrameActionBar = ({ rect, updateFrameStyle }) => {
   const [selectedFont, setSelectedFont] = useState(rect.font);
   const [fontStyles, setFontStyles] = useState(rect.fontStyles);
-  const [layer, setLayer] = useState(rect.layer);
+  const [layer, setLayer] = useState(rect.zIndex);
 
   const [textColor, setTextColor] = useState(rect.textColor || "#000000");
   const [frameColor, setFrameColor] = useState(rect.frameColor || "#000000");
@@ -46,9 +46,9 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
     updateFrameStyle({ fontSize: size });
   };
 
-  const handleLayerChange = (layer) => {
-    setLayer(layer);
-    updateFrameStyle({ layer: layer });
+  const handleLayerChange = (newLayer) => {
+    setLayer(newLayer);
+    updateFrameStyle({ zIndex: newLayer }); // zIndex wird aktualisiert
   };
 
   const handleTextColorChange = (color) => {
@@ -82,13 +82,17 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
   };
 
   const layerUp = () => {
-    const newLayer = layer + 1;
-    handleLayerChange(newLayer);
+    const newLayer = Math.min(layer + 1, 2000);
+    if (newLayer !== layer) {
+      handleLayerChange(newLayer);
+    }
   };
 
   const layerDown = () => {
-    const newLayer = layer - 1;
-    handleLayerChange(newLayer);
+    const newLayer = Math.max(layer - 1, 1000); 
+    if (newLayer !== layer) {
+      handleLayerChange(newLayer);
+    }
   };
 
   const icons = {
@@ -110,7 +114,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         padding: "16px",
         borderRadius: "8px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-        zIndex: 10,
+        zIndex: 4003,
       }}
     >
       {/* Font */}

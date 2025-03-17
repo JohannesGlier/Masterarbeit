@@ -12,6 +12,7 @@ const ArrowLabel = ({
   end,
   textSize,
   textColor,
+  zIndex,
 }) => {
   const rotationAngle =
     textAlignment === "horizontal"
@@ -25,7 +26,7 @@ const ArrowLabel = ({
         top: middleY * scale + offset.y - 25,
         left: middleX * scale + offset.x,
         transform: `translate(-50%, -50%) rotate(${rotationAngle}rad)`,
-        zIndex: 5,
+        zIndex,
       }}
     >
       <TextInput

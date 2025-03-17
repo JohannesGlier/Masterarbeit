@@ -21,6 +21,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     selectedElements,
     setSelectedElements,
     setSelectedTool,
+    incrementZIndex,
   } = useCanvas();
   const [rectangles, setRectangles] = useState([]);
   const [textcards, setTextCards] = useState([]);
@@ -35,12 +36,14 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         position: { x: textcard.x, y: textcard.y },
         size: { width: textcard.width, height: textcard.height },
         type: "textcard",
+        zIndex: textcard.zIndex,
       })),
       ...rectangles.map((rect) => ({
         id: rect.id,
         position: { x: rect.x, y: rect.y },
         size: { width: rect.width, height: rect.height },
         type: "rectangle",
+        zIndex: rect.zIndex,
       })),
     ];
   }, [textcards, rectangles]);
@@ -88,6 +91,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   }, [elements]);
 
   const addRectangle = (rect) => {
+    const zIndex = incrementZIndex("rectangle");
     setRectangles((prevRectangles) => [
       ...prevRectangles,
       {
@@ -96,11 +100,13 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         y: rect.y,
         width: rect.width,
         height: rect.height,
+        zIndex,
       },
     ]);
   };
 
   const addTextcards = (textcard) => {
+    const zIndex = incrementZIndex("textcard");
     setTextCards((prevRectangles) => [
       ...prevRectangles,
       {
@@ -109,11 +115,13 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         y: textcard.y,
         width: textcard.width,
         height: textcard.height,
+        zIndex,
       },
     ]);
   };
 
   const addArrows = (arrow) => {
+    const zIndex = incrementZIndex("arrow");
     setArrows((prevArrows) => [
       ...prevArrows,
       {
@@ -131,6 +139,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           x: arrow.end.x,
           y: arrow.end.y,
         },
+        zIndex,
       },
     ]);
   };

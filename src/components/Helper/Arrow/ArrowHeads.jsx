@@ -11,6 +11,7 @@ const ArrowHeads = ({
   offset,
   lineAngle,
   color,
+  zIndex,
 }) => (
   <>
     {start && (
@@ -20,6 +21,7 @@ const ArrowHeads = ({
         angle={lineAngle + Math.PI}
         size={10 * scale}
         color={color}
+        zIndex={zIndex}
       />
     )}
     {end && (
@@ -29,6 +31,7 @@ const ArrowHeads = ({
         angle={lineAngle}
         size={10 * scale}
         color={color}
+        zIndex={zIndex}
       />
     )}
   </>

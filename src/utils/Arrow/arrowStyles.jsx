@@ -7,7 +7,8 @@ export const getArrowStyles = (
   offset,
   properties,
   isSelected,
-  pointerEvents
+  pointerEvents,
+  zIndex,
 ) => ({
   position: "absolute",
   top: startY * scale + offset.y,
@@ -22,6 +23,6 @@ export const getArrowStyles = (
   transform: `rotate(${Math.atan2(endY - startY, endX - startX)}rad)`,
   transformOrigin: "0 0",
   pointerEvents,
-  zIndex: 4,
+  zIndex,
   cursor: "pointer",
 });

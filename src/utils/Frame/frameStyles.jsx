@@ -7,7 +7,8 @@ export const getFrameStyles = (
   isSelected,
   isHovered,
   isMouseDown,
-  pointerEvents
+  pointerEvents,
+  zIndex,
 ) => ({
   position: "absolute",
   top: position.y * scale + offset.y,
@@ -20,6 +21,6 @@ export const getFrameStyles = (
       ? "3px solid rgb(23, 104, 255)"
       : `${properties.borderWidth}px solid ${properties.frameBorderColor}`,
   cursor: "grab",
-  zIndex: 5,
+  zIndex,
   pointerEvents,
 });

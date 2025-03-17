@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/Canvas/CanvasContext';
 
 const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
-  const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
+  const { offsetRef, scaleRef, setSelectedTool, zIndexTextCards } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
 
@@ -90,7 +90,7 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
             border: "1px dashed blue",
             borderRadius: "25px",
             pointerEvents: "none",
-            zIndex: 10,
+            zIndex: 3999,
           }}
         />
       )}

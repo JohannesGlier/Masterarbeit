@@ -3,6 +3,10 @@ import React, { createContext, useContext, useState, useRef } from 'react';
 const CanvasContext = createContext();
 
 export const CanvasProvider = ({ children }) => {
+  const zIndexRectangles = useRef(1000); // Baselayer für Rechtecke
+  const zIndexArrows = useRef(2000);     // Baselayer für Pfeile
+  const zIndexTextCards = useRef(3000);  // Baselayer für Textkarten
+
   const [selectedTool, setSelectedTool] = useState('Pointer');
   const [selectedElements, setSelectedElements] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -38,6 +42,28 @@ export const CanvasProvider = ({ children }) => {
     });
   };
 
+  const incrementZIndex = (type) => {
+    switch (type) {
+      case "rectangle":
+        if (zIndexRectangles.current < 2000) {
+          zIndexRectangles.current += 1;
+        }
+        return zIndexRectangles.current;
+      case "textcard":
+        if (zIndexTextCards.current < 3000) {
+          zIndexTextCards.current += 1;
+        }
+        return zIndexTextCards.current;
+      case "arrow":
+        if (zIndexArrows.current < 4000) {
+          zIndexArrows.current += 1;
+        }
+        return zIndexArrows.current;
+      default:
+        return 0;
+    }
+  };
+
   return (
     <CanvasContext.Provider
       value={{
@@ -56,6 +82,10 @@ export const CanvasProvider = ({ children }) => {
         setHoveredElement,
         isArrowDragging,
         setIsArrowDragging,
+        zIndexRectangles, 
+        zIndexTextCards, 
+        zIndexArrows, 
+        incrementZIndex
       }}
     >
       {children}

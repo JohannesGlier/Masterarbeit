@@ -10,6 +10,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
     setSelectedTool,
     setMouseDownElement,
     setHoveredElement,
+    zIndexArrows,
   } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
@@ -216,7 +217,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
             )}rad)`,
             transformOrigin: "0 0",
             pointerEvents: "none",
-            zIndex: 4,
+            zIndex: 2999,
           }}
         />
       )}

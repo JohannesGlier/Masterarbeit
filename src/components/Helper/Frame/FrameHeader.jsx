@@ -8,13 +8,15 @@ const FrameHeader = memo(({
   offset,
   heading,
   textStyles,
-  onHeadingChange 
+  onHeadingChange,
+  pointerEvents,
 }) => (
   <div style={{
     position: 'absolute',
     top: position.y * scale + offset.y - 40,
     left: position.x * scale + offset.x,
-    zIndex: 4
+    zIndex: textStyles.zIndex,
+    pointerEvents,
   }}>
     <TextInput
       placeholder="Überschrift"

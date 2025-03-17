@@ -267,7 +267,8 @@ const Arrow = ({
         offsetRef.current,
         properties,
         isSelected,
-        pointerEvents
+        pointerEvents,
+        arrow.zIndex,
       ),
     [
       startX,
@@ -279,6 +280,7 @@ const Arrow = ({
       properties,
       isSelected,
       pointerEvents,
+      arrow.zIndex,
     ]
   );
 
@@ -297,6 +299,7 @@ const Arrow = ({
         offset={offsetRef.current}
         lineAngle={lineAngle}
         color={properties.lineColor}
+        zIndex={arrowStyles.zIndex}
       />
 
       <ArrowLabel
@@ -311,6 +314,7 @@ const Arrow = ({
         end={{ x: endX, y: endY }}
         textSize={properties.textSize}
         textColor={properties.textColor}
+        zIndex={arrowStyles.zIndex}
       />
 
       {isSelected && (
