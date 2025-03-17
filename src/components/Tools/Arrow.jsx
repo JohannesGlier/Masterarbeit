@@ -10,7 +10,7 @@ import ArrowHandles from "@/components/Helper/Arrow/ArrowHandles";
 import ArrowLabel from "@/components/Helper/Arrow/ArrowLabel";
 import ArrowActionBar from "@/components/Tools/ActionBars/ArrowActionBar";
 import { getAnchorPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
-import { getElementAtPosition } from "@/utils/Arrow/elementUtils";
+import { getElementAtPosition } from "@/utils/elementUtils";
 import ArrowHeads from "@/components/Helper/Arrow/ArrowHeads";
 import { ARROW_DEFAULTS } from "@/utils/Arrow/arrowDefaultProperties";
 import { getArrowStyles } from "@/utils/Arrow/arrowStyles";

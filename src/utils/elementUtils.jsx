@@ -19,3 +19,23 @@ export const getElementAtPosition = (elements, x, y) => {
     current.zIndex > highest.zIndex ? current : highest
   );
 };
+
+export const isElementInRectangle = (element, rectangle) => {
+  const elementLeft = element.position.x;
+  const elementRight = element.position.x + element.size.width;
+  const elementTop = element.position.y;
+  const elementBottom = element.position.y + element.size.height;
+
+  const rectLeft = rectangle.x;
+  const rectRight = rectangle.x + rectangle.width;
+  const rectTop = rectangle.y;
+  const rectBottom = rectangle.y + rectangle.height;
+
+  // Überprüfe, ob das Element innerhalb des Rechtecks liegt
+  return (
+    elementRight > rectLeft &&
+    elementLeft < rectRight &&
+    elementBottom > rectTop &&
+    elementTop < rectBottom
+  );
+};

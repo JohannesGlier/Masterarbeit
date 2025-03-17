@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
+import { isElementInRectangle } from "@/utils/elementUtils";
 
 const PointerTool = ({ canvasRef, canvasWrapperRef, elements }) => {
   const {
@@ -11,26 +12,6 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements }) => {
     selectedElements,
   } = useCanvas();
   const [tempRectangle, setTempRectangle] = useState(null);
-
-  const isElementInRectangle = (element, rectangle) => {
-    const elementLeft = element.position.x;
-    const elementRight = element.position.x + element.size.width;
-    const elementTop = element.position.y;
-    const elementBottom = element.position.y + element.size.height;
-
-    const rectLeft = rectangle.x;
-    const rectRight = rectangle.x + rectangle.width;
-    const rectTop = rectangle.y;
-    const rectBottom = rectangle.y + rectangle.height;
-
-    // Überprüfe, ob das Element innerhalb des Rechtecks liegt
-    return (
-      elementRight > rectLeft &&
-      elementLeft < rectRight &&
-      elementBottom > rectTop &&
-      elementTop < rectBottom
-    );
-  };
 
   // Mouse event handling for drawing
   useEffect(() => {

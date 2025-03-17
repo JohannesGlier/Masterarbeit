@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/Canvas/CanvasContext';
 
 const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
-  const { offsetRef, scaleRef, setSelectedTool, zIndexRectangles } = useCanvas();
+  const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
 

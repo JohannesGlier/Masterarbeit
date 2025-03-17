@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import { getAnchorFromPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
-import { getElementAtPosition } from "@/utils/Arrow/elementUtils";
+import { getElementAtPosition } from "@/utils/elementUtils";
 
 const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialStart, onEndArrowFromFrame }) => {
   const {
@@ -10,7 +10,6 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
     setSelectedTool,
     setMouseDownElement,
     setHoveredElement,
-    zIndexArrows,
   } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
