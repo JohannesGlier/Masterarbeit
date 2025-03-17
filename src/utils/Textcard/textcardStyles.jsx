@@ -19,7 +19,7 @@ export const getTextcardStyles = (
   backgroundColor: properties.textcardColor,
   border:
     isSelected || isHovered || isMouseDown
-      ? "3px solid rgb(23, 104, 255)"
+      ? `${properties.borderWidth <= 2 ? 3 : properties.borderWidth}px solid rgb(23, 104, 255)`
       : `${properties.borderWidth}px solid ${properties.textcardBorderColor}`,
   borderRadius: "25px",
   boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",

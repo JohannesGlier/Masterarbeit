@@ -6,5 +6,5 @@ export const ARROW_DEFAULTS = {
   arrowHeadEnd: false,
   textSize: 14,
   textColor: "#000000",
-  textAlignment: "horizontal",
+  textAlignment: "aligned",
 };

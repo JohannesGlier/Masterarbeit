@@ -26,7 +26,6 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [rectangles, setRectangles] = useState([]);
   const [textcards, setTextCards] = useState([]);
   const [arrows, setArrows] = useState([]);
-  const [selectedFrame, setSelectedFrame] = useState(null);
   const [initialArrowStart, setInitialArrowStart] = useState(null);
 
   const elements = useMemo(() => {
@@ -236,6 +235,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         <PointerTool
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
+          elements={elements}
         />
       )}
       {selectedTool === "Frame" && (
@@ -270,7 +270,6 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           rect={rect}
           scaleRef={scaleRef}
           offsetRef={offsetRef}
-          //isSelected={selectedFrame === rect.id}
           onUpdate={handleFrameUpdate}
           onResize={handleFrameResize}
           onStartArrowFromFrame={handleStartArrowFromFrame}
@@ -286,7 +285,6 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           onTextChange={() => {}}
           scaleRef={scaleRef}
           offsetRef={offsetRef}
-          //isSelected={selectedFrame === textcard.id}
           onUpdate={handleTextcardUpdate}
           onResize={handleTextcardResize}
           onStartArrowFromFrame={handleStartArrowFromFrame}

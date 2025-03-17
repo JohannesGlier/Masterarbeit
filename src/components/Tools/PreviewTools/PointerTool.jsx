@@ -1,22 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { useCanvas } from '@/components/Canvas/CanvasContext';
+import React, { useState, useEffect } from "react";
+import { useCanvas } from "@/components/Canvas/CanvasContext";
 
-const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
-  const { offsetRef, scaleRef, isDrawing, setIsDrawing, setSelectedElements } = useCanvas();
+const PointerTool = ({ canvasRef, canvasWrapperRef, elements }) => {
+  const {
+    offsetRef,
+    scaleRef,
+    isDrawing,
+    setIsDrawing,
+    setSelectedElements,
+    selectedElements,
+  } = useCanvas();
   const [tempRectangle, setTempRectangle] = useState(null);
+
+  const isElementInRectangle = (element, rectangle) => {
+    const elementLeft = element.position.x;
+    const elementRight = element.position.x + element.size.width;
+    const elementTop = element.position.y;
+    const elementBottom = element.position.y + element.size.height;
+
+    const rectLeft = rectangle.x;
+    const rectRight = rectangle.x + rectangle.width;
+    const rectTop = rectangle.y;
+    const rectBottom = rectangle.y + rectangle.height;
+
+    // Überprüfe, ob das Element innerhalb des Rechtecks liegt
+    return (
+      elementRight > rectLeft &&
+      elementLeft < rectRight &&
+      elementBottom > rectTop &&
+      elementTop < rectBottom
+    );
+  };
 
   // Mouse event handling for drawing
   useEffect(() => {
     const handleMouseDown = (event) => {
-      if (event.button !== 0) return;  
+      if (event.button !== 0) return;
       document.body.style.cursor = "crosshair";
       setIsDrawing(true);
 
       setSelectedElements([]);
 
       const rect = canvasRef.current.getBoundingClientRect();
-      const startX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const startY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
+      const startX =
+        (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
+      const startY =
+        (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
 
       setTempRectangle({ x: startX, y: startY, width: 0, height: 0 });
     };
@@ -26,8 +55,10 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
       if (!isDrawing || !tempRectangle) return;
 
       const rect = canvasRef.current.getBoundingClientRect();
-      const endX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const endY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
+      const endX =
+        (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
+      const endY =
+        (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
 
       setTempRectangle({
         x: tempRectangle.x,
@@ -35,10 +66,33 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
         width: endX - tempRectangle.x,
         height: endY - tempRectangle.y,
       });
+
+      if (
+        tempRectangle &&
+        tempRectangle.width > 0 &&
+        tempRectangle.height > 0
+      ) {
+        const selected = elements.filter((element) =>
+          isElementInRectangle(element, tempRectangle)
+        );
+
+        setSelectedElements(selected);
+      }
     };
 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
+
+      if (
+        tempRectangle &&
+        tempRectangle.width > 0 &&
+        tempRectangle.height > 0
+      ) {
+        console.log(
+          "Aktion: Rechteck über Elemente ziehen\n",
+          selectedElements
+        );
+      }
 
       /**
       if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
@@ -65,11 +119,18 @@ const PointerTool = ({ canvasRef, canvasWrapperRef }) => {
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-        canvasWrapper.removeEventListener("mousedown", handleMouseDown);
-        canvasWrapper.removeEventListener("mousemove", handleMouseMove);
-        canvasWrapper.removeEventListener("mouseup", handleMouseUp);
+      canvasWrapper.removeEventListener("mousedown", handleMouseDown);
+      canvasWrapper.removeEventListener("mousemove", handleMouseMove);
+      canvasWrapper.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [canvasRef, canvasWrapperRef, isDrawing, tempRectangle, scaleRef, offsetRef]);
+  }, [
+    canvasRef,
+    canvasWrapperRef,
+    isDrawing,
+    tempRectangle,
+    scaleRef,
+    offsetRef,
+  ]);
 
   return (
     <div>
