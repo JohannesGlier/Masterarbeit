@@ -6,7 +6,12 @@ export const getElementAtPosition = (elements, x, y) => {
     const elemWidth = element.size.width;
     const elemHeight = element.size.height;
 
-    return x >= elemX && x <= elemX + elemWidth && y >= elemY && y <= elemY + elemHeight;
+    return (
+      x >= elemX &&
+      x <= elemX + elemWidth &&
+      y >= elemY &&
+      y <= elemY + elemHeight
+    );
   });
 
   // Falls kein Element gefunden wurde, null zurückgeben
@@ -38,4 +43,31 @@ export const isElementInRectangle = (element, rectangle) => {
     elementBottom > rectTop &&
     elementTop < rectBottom
   );
+};
+
+export const attachElementToArrow = (point, arrow, element) => {
+  const arrowPoint = point === "start" ? arrow.start : arrow.end;
+
+  const rectWidth = 100; // Breite des Rechtecks
+  const rectHeight = 100; // Höhe des Rechtecks
+
+  let rectX, rectY, anchor;
+
+  if (point === "start") {
+    rectX = arrowPoint.x - rectWidth;
+    rectY = arrowPoint.y - rectHeight / 2;
+    anchor = "right"; // Rechte Seite des Rechtecks anschließen
+  } else if (point === "end") {
+    rectX = arrowPoint.x;
+    rectY = arrowPoint.y - rectHeight / 2;
+    anchor = "left"; // Linke Seite des Rechtecks anschließen
+  }
+
+  return {
+    x: rectX,
+    y: rectY,
+    width: rectWidth,
+    height: rectHeight,
+    anchor: anchor,
+  };
 };

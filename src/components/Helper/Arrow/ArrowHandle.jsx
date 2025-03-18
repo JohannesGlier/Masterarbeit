@@ -7,6 +7,7 @@ const ArrowHandle = ({
   cursor = "pointer",
   onMouseDown,
   onMouseUp,
+  onDoubleClick,
 }) => {
   return (
     <div
@@ -24,6 +25,7 @@ const ArrowHandle = ({
       }}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
+      onDoubleClick={onDoubleClick}
     />
   );
 };

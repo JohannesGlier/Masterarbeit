@@ -91,32 +91,30 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
   const addRectangle = (rect) => {
     const zIndex = incrementZIndex("rectangle");
-    setRectangles((prevRectangles) => [
-      ...prevRectangles,
-      {
-        id: generateUniqueId(),
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-        zIndex,
-      },
-    ]);
+    const newRect = {
+      id: generateUniqueId(),
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      zIndex,
+    };
+    setRectangles((prevRectangles) => [...prevRectangles, newRect]);
+    return newRect.id;
   };
 
   const addTextcards = (textcard) => {
     const zIndex = incrementZIndex("textcard");
-    setTextCards((prevRectangles) => [
-      ...prevRectangles,
-      {
-        id: generateUniqueId(),
-        x: textcard.x,
-        y: textcard.y,
-        width: textcard.width,
-        height: textcard.height,
-        zIndex,
-      },
-    ]);
+    const newTextcard = {
+      id: generateUniqueId(),
+      x: textcard.x,
+      y: textcard.y,
+      width: textcard.width,
+      height: textcard.height,
+      zIndex,
+    };
+    setTextCards((prevTextcards) => [...prevTextcards, newTextcard]);
+    return newTextcard.id;
   };
 
   const addArrows = (arrow) => {
@@ -302,6 +300,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           updateArrowPosition={updateArrowPosition}
           canvasWrapperRef={canvasWrapperRef}
           canvasRef={canvasRef} 
+          addRectangle={addRectangle}
+          addTextcard={addTextcards}
         />
       ))}
     </div>

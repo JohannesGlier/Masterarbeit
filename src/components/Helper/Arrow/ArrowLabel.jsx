@@ -14,10 +14,14 @@ const ArrowLabel = ({
   textColor,
   zIndex,
 }) => {
-  const rotationAngle =
+  let rotationAngle =
     textAlignment === "horizontal"
       ? Math.atan2(end.y - start.y, end.x - start.x)
       : 0;
+
+  if (start.x > end.x && textAlignment === "horizontal") {
+    rotationAngle += Math.PI;
+  }
 
   return (
     <div
@@ -38,7 +42,7 @@ const ArrowLabel = ({
         textAlign="center"
         fontSize={textSize}
         textColor={textColor}
-        fontStyles={{bold: false, italic: false, underline: false}}
+        fontStyles={{ bold: false, italic: false, underline: false }}
       />
     </div>
   );

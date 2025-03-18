@@ -9,6 +9,7 @@ const ArrowHandles = ({
   lineWidth,
   onDragStart,
   onDragEnd,
+  onDoubleClick,
   children,
 }) => (
   <>
@@ -25,6 +26,7 @@ const ArrowHandles = ({
           cursor={isMiddle ? "default" : "pointer"}
           onMouseDown={!isMiddle ? (e) => onDragStart(type, e) : undefined}
           onMouseUp={!isMiddle ? onDragEnd : undefined}
+          onDoubleClick={!isMiddle ? (e) => onDoubleClick(type, e) : undefined}
         />
       );
     })}

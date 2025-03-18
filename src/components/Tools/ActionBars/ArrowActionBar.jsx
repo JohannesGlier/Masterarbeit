@@ -125,7 +125,7 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
             ],
             onClick: (e) => handleLineStyleChange(e.key),
           }}
-          overlayStyle={{ minWidth: "250px", paddingTop: "25px" }}
+          overlayStyle={{ minWidth: "250px", paddingTop: "25px", zIndex: 4003 }}
         >
           <Button icon={lineStyleIcons[lineStyle]} style={{ width: "60px", height: "60px", fontSize: "50px", border: "none" }} />
         </Dropdown>
@@ -211,7 +211,7 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
               style: { fontSize: "24px", marginBottom: "5px" }
             })),
           }}
-          overlayStyle={{ paddingTop: "40px" }}
+          overlayStyle={{ paddingTop: "40px", zIndex: 4003 }}
         >
           <Button style={{ fontSize: "28px", padding: "8px 12px", bottom: "2px", border: "none" }}>{textSize}</Button>
         </Dropdown>

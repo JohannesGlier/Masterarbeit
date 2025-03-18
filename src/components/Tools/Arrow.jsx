@@ -10,11 +10,14 @@ import ArrowHandles from "@/components/Helper/Arrow/ArrowHandles";
 import ArrowLabel from "@/components/Helper/Arrow/ArrowLabel";
 import ArrowActionBar from "@/components/Tools/ActionBars/ArrowActionBar";
 import { getAnchorPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
-import { getElementAtPosition } from "@/utils/elementUtils";
+import { getElementAtPosition, attachElementToArrow } from "@/utils/elementUtils";
 import ArrowHeads from "@/components/Helper/Arrow/ArrowHeads";
 import { ARROW_DEFAULTS } from "@/utils/Arrow/arrowDefaultProperties";
 import { getArrowStyles } from "@/utils/Arrow/arrowStyles";
 import { getPointerEvents } from "@/utils/pointerEventUtils";
+import ArrowContextMenu from "@/components/Helper/Arrow/ArrowContextMenu";
+import { MdOutlineRectangle } from "react-icons/md";
+import { RiTextBlock } from "react-icons/ri";
 
 const Arrow = ({
   arrow,
@@ -24,6 +27,8 @@ const Arrow = ({
   updateArrowPosition,
   canvasWrapperRef,
   canvasRef,
+  addRectangle,
+  addTextcard,
 }) => {
   const [properties, setProperties] = useState(() => ({
     ...ARROW_DEFAULTS,
@@ -31,6 +36,8 @@ const Arrow = ({
   }));
 
   const [isSelected, setIsSelected] = useState(false);
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const [contextData, setContextData] = useState(null);
   const [draggingPoint, setDraggingPoint] = useState(null);
   const [text, setText] = useState("");
   const frameRef = useRef(null);
@@ -110,9 +117,14 @@ const Arrow = ({
     };
 
     const canvasWrapper = canvasWrapperRef.current;
+    canvasRef?.current.addEventListener("mousedown", setShowContextMenu(false));
     canvasWrapper.addEventListener("mousemove", HandleDragging);
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
     return () => {
+      canvasRef?.current.removeEventListener(
+        "mousedown",
+        setShowContextMenu(false)
+      );
       canvasWrapper.removeEventListener("mousemove", HandleDragging);
       canvasWrapper.removeEventListener("mouseup", handleMouseUp);
     };
@@ -121,8 +133,6 @@ const Arrow = ({
   const StartDragging = (point, e) => {
     e.preventDefault();
     if (e.buttons === 1) {
-      console.log("Start Dragging Arrow");
-
       if (selectedTool === "Pointer") {
         const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey;
         toggleSelectedElement(
@@ -190,7 +200,6 @@ const Arrow = ({
 
   const StopDragging = (e) => {
     if (draggingPoint) {
-      console.log("Stop Dragging Arrow");
       const rect = canvasRef.current.getBoundingClientRect();
       const offsetX =
         (e.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
@@ -221,10 +230,8 @@ const Arrow = ({
         };
       }
 
-      // Entkoppeln wenn nicht über Element
       updateArrowPosition(arrow.id, newPosition, draggingPoint);
 
-      console.log("Stop Dragging Arrow");
       setDraggingPoint(null);
       setHoveredElement(null);
       isDragging.current = false;
@@ -249,6 +256,51 @@ const Arrow = ({
     }
   };
 
+  const InsertAtPosition = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const clickX =
+      (e.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
+    const clickY =
+      (e.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
+
+    // Pfeillänge berechnen
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    const t =
+      ((clickX - startX) * dx + (clickY - startY) * dy) / (length * length);
+    console.log("Action: Double Click on Arrow Line at position:\n", t);
+  };
+
+  const SelectOutput = (point, e) => {
+    e.stopPropagation();
+
+    console.log("Select Output");
+    const hasElementAttached = (point === "start" && arrow.start.elementId) || (point === "end" && arrow.end.elementId);
+
+    if (hasElementAttached) {
+      console.log("Element angeschlossen");
+      return;
+    }
+
+    const position =
+      point === "start"
+        ? {
+            x: startX * scaleRef.current + offsetRef.current.x,
+            y: startY * scaleRef.current + offsetRef.current.y,
+            point,
+          }
+        : {
+            x: endX * scaleRef.current + offsetRef.current.x,
+            y: endY * scaleRef.current + offsetRef.current.y,
+            point,
+          };
+
+    setContextData(position);
+    setShowContextMenu(true);
+  };
+
   const pointerEvents = getPointerEvents({
     selectedTool,
     isDrawing,
@@ -268,7 +320,7 @@ const Arrow = ({
         properties,
         isSelected,
         pointerEvents,
-        arrow.zIndex,
+        arrow.zIndex
       ),
     [
       startX,
@@ -284,9 +336,49 @@ const Arrow = ({
     ]
   );
 
+  const contextMenuButtons = [
+    {
+      icon: <MdOutlineRectangle size={32} />,
+      onClick: () => {
+        console.log("Add Frame");
+        const newRect = attachElementToArrow(contextData.point, arrow, "Frame");
+        const newFrameId = addRectangle({
+          x: newRect.x,
+          y: newRect.y,
+          width: newRect.width,
+          height: newRect.height,
+        });
+
+        updateArrowPosition(arrow.id, { elementId: newFrameId, anchor: newRect.anchor }, contextData.point);
+        setShowContextMenu(false);
+      },
+    },
+    {
+      icon: <RiTextBlock size={32} />,
+      onClick: () => {
+        console.log("Add Textcard");
+        const newTextcard = attachElementToArrow(contextData.point, arrow, "Frame");
+        const newTextcardId = addTextcard({
+          x: newTextcard.x,
+          y: newTextcard.y,
+          width: newTextcard.width,
+          height: newTextcard.height,
+        });
+
+        updateArrowPosition(arrow.id, { elementId: newTextcardId, anchor: newTextcard.anchor }, contextData.point);
+        setShowContextMenu(false);
+      },
+    },
+  ];
+
   return (
     <>
-      <div ref={frameRef} style={arrowStyles} onClick={SelectArrow} />
+      <div
+        ref={frameRef}
+        style={arrowStyles}
+        onClick={SelectArrow}
+        onDoubleClick={InsertAtPosition}
+      />
 
       <ArrowHeads
         start={properties.arrowHeadStart}
@@ -328,10 +420,19 @@ const Arrow = ({
             lineWidth={properties.lineWidth}
             onDragStart={StartDragging}
             onDragEnd={StopDragging}
+            onDoubleClick={SelectOutput}
           />
 
           <ArrowActionBar {...arrowActionBarProps} />
         </>
+      )}
+
+      {showContextMenu && (
+        <ArrowContextMenu
+          top={contextData.y}
+          left={contextData.x}
+          buttons={contextMenuButtons}
+        />
       )}
     </>
   );

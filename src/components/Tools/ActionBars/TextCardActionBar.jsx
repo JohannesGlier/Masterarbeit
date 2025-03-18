@@ -113,6 +113,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
                 maxHeight: "400px",
                 overflowY: "auto",
                 paddingTop: "40px",
+                zIndex: 4003,
             }}
         >
             <Button 
@@ -141,7 +142,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
               style: { fontSize: "24px", marginBottom: "5px" }
             })),
           }}
-          overlayStyle={{ paddingTop: "40px" }}
+          overlayStyle={{ paddingTop: "40px", zIndex: 4003 }}
         >
           <Button style={{ fontSize: "28px", padding: "8px 12px", bottom: "2px", border: "none" }}>{textSize}</Button>
         </Dropdown>
@@ -165,6 +166,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
             trigger={["hover"]}
             placement="bottom"
             align={{ offset: [0, 36] }}
+            overlayStyle={{ zIndex: 4003 }}
             dropdownRender={() => (
             <div
                 style={{
@@ -192,7 +194,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
                         border: "none", 
                         fontSize: "24px",
                         background: "transparent", 
-                        color: fontStyles[style] ? "#1890ff" : "inherit" // Nur Icon färben
+                        color: fontStyles[style] ? "#1890ff" : "inherit", // Nur Icon färben
                     }}
                 />
                 ))}
@@ -208,7 +210,8 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
             border: "none",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
+            justifyContent: "center",
+            zIndex: 4003,
           }}
         />
       </Dropdown>
@@ -220,6 +223,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
         trigger={["hover"]}
         placement="bottom"
         align={{ offset: [0, 36] }} // Dropdown weiter nach unten verschoben
+        overlayStyle={{ zIndex: 4003 }}
         dropdownRender={() => (
           <div
             style={{

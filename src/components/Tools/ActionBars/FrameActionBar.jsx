@@ -134,6 +134,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
                 maxHeight: "400px",
                 overflowY: "auto",
                 paddingTop: "40px",
+                zIndex: 4003,
             }}
         >
             <Button 
@@ -162,7 +163,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
               style: { fontSize: "24px", marginBottom: "5px" }
             })),
           }}
-          overlayStyle={{ paddingTop: "40px" }}
+          overlayStyle={{ paddingTop: "40px", zIndex: 4003 }}
         >
           <Button style={{ fontSize: "28px", padding: "8px 12px", bottom: "2px", border: "none" }}>{fontSize}</Button>
         </Dropdown>
@@ -195,6 +196,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
                   background: "#fff",
                   boxShadow: "0 3px 6px -4px rgba(0,0,0,0.12)",
                   borderRadius: "4px",
+                  zIndex: 4003,
                 }}
             >
                 {["bold", "italic", "underline"].map((style) => (
@@ -250,6 +252,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
               background: "#fff",
               boxShadow: "0 3px 6px -4px rgba(0,0,0,0.12)",
               borderRadius: "4px",
+              zIndex: 4003,
             }}
           >
             {["left", "center", "right"].map((alignment) => (
