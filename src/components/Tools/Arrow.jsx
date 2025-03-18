@@ -36,8 +36,6 @@ const Arrow = ({
   }));
 
   const [isSelected, setIsSelected] = useState(false);
-  const [showContextMenu, setShowContextMenu] = useState(false);
-  const [contextData, setContextData] = useState(null);
   const [draggingPoint, setDraggingPoint] = useState(null);
   const [text, setText] = useState("");
   const frameRef = useRef(null);
@@ -50,6 +48,9 @@ const Arrow = ({
     isDrawing,
     setHoveredElement,
     setIsArrowDragging,
+    contextMenu,
+    closeContextMenu,
+    showContextMenu,
   } = useCanvas();
 
   const start = arrow.start.elementId
@@ -107,6 +108,7 @@ const Arrow = ({
 
   useEffect(() => {
     setIsSelected(selectedElements.some((el) => el.id === arrow.id));
+    closeContextMenu();
   }, [selectedElements, arrow.id]);
 
   useEffect(() => {
@@ -117,14 +119,9 @@ const Arrow = ({
     };
 
     const canvasWrapper = canvasWrapperRef.current;
-    canvasRef?.current.addEventListener("mousedown", setShowContextMenu(false));
     canvasWrapper.addEventListener("mousemove", HandleDragging);
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
     return () => {
-      canvasRef?.current.removeEventListener(
-        "mousedown",
-        setShowContextMenu(false)
-      );
       canvasWrapper.removeEventListener("mousemove", HandleDragging);
       canvasWrapper.removeEventListener("mouseup", handleMouseUp);
     };
@@ -284,21 +281,10 @@ const Arrow = ({
       return;
     }
 
-    const position =
-      point === "start"
-        ? {
-            x: startX * scaleRef.current + offsetRef.current.x,
-            y: startY * scaleRef.current + offsetRef.current.y,
-            point,
-          }
-        : {
-            x: endX * scaleRef.current + offsetRef.current.x,
-            y: endY * scaleRef.current + offsetRef.current.y,
-            point,
-          };
+    const posX = point === "start" ? startX : endX;
+    const posY = point === "start" ? startY : endY;
 
-    setContextData(position);
-    setShowContextMenu(true);
+    showContextMenu({x: posX, y: posY}, point);
   };
 
   const pointerEvents = getPointerEvents({
@@ -341,7 +327,7 @@ const Arrow = ({
       icon: <MdOutlineRectangle size={32} />,
       onClick: () => {
         console.log("Add Frame");
-        const newRect = attachElementToArrow(contextData.point, arrow, "Frame");
+        const newRect = attachElementToArrow(contextMenu.point, arrow, "Frame");
         const newFrameId = addRectangle({
           x: newRect.x,
           y: newRect.y,
@@ -349,15 +335,15 @@ const Arrow = ({
           height: newRect.height,
         });
 
-        updateArrowPosition(arrow.id, { elementId: newFrameId, anchor: newRect.anchor }, contextData.point);
-        setShowContextMenu(false);
+        updateArrowPosition(arrow.id, { elementId: newFrameId, anchor: newRect.anchor }, contextMenu.point);
+        closeContextMenu();
       },
     },
     {
       icon: <RiTextBlock size={32} />,
       onClick: () => {
         console.log("Add Textcard");
-        const newTextcard = attachElementToArrow(contextData.point, arrow, "Frame");
+        const newTextcard = attachElementToArrow(contextMenu.point, arrow, "Frame");
         const newTextcardId = addTextcard({
           x: newTextcard.x,
           y: newTextcard.y,
@@ -365,8 +351,8 @@ const Arrow = ({
           height: newTextcard.height,
         });
 
-        updateArrowPosition(arrow.id, { elementId: newTextcardId, anchor: newTextcard.anchor }, contextData.point);
-        setShowContextMenu(false);
+        updateArrowPosition(arrow.id, { elementId: newTextcardId, anchor: newTextcard.anchor }, contextMenu.point);
+        closeContextMenu();
       },
     },
   ];
@@ -427,11 +413,11 @@ const Arrow = ({
         </>
       )}
 
-      {showContextMenu && (
+      {contextMenu.isVisible && (
         <ArrowContextMenu
-          top={contextData.y}
-          left={contextData.x}
-          buttons={contextMenuButtons}
+          top={contextMenu.position.y * scaleRef.current + offsetRef.current.y}
+          left={contextMenu.position.x * scaleRef.current + offsetRef.current.x}
+          buttons={contextMenuButtons}       
         />
       )}
     </>

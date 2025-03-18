@@ -10,6 +10,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
     setSelectedTool,
     setMouseDownElement,
     setHoveredElement,
+    showContextMenu,
   } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
@@ -156,6 +157,9 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
       }
 
       if (startPoint) {
+        if (!endElement) {
+          showContextMenu({ x: mouseX, y: mouseY }, "end");
+        }
         addArrow({
           start: start,
           end: finalEnd,

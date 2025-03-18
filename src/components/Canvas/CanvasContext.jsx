@@ -15,6 +15,27 @@ export const CanvasProvider = ({ children }) => {
   const [mouseDownElement, setMouseDownElement] = useState(null);
   const [hoveredElement, setHoveredElement] = useState(null);
   const [isArrowDragging, setIsArrowDragging] = useState(false);
+  const [contextMenu, setContextMenu] = useState({
+    isVisible: false,
+    position: { x: 0, y: 0 },
+    point: null,
+  });
+
+  const showContextMenu = (position, point) => {
+    setContextMenu({
+      isVisible: true,
+      position,
+      point,
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu({
+      isVisible: false,
+      position: { x: 0, y: 0 },
+      point: null,
+    });
+  };
 
   const changeTool = (tool) => {
     if (tool !== selectedTool) {
@@ -85,7 +106,10 @@ export const CanvasProvider = ({ children }) => {
         zIndexRectangles, 
         zIndexTextCards, 
         zIndexArrows, 
-        incrementZIndex
+        incrementZIndex,
+        contextMenu,
+        showContextMenu,
+        closeContextMenu,
       }}
     >
       {children}
