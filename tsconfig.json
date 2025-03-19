@@ -17,6 +17,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/HomeScreen/HomeScreen.jsx", "src/components/HomeScreen/HomeScreenButton.jsx", "src/components/canvas.jsx", "src/components/Canvas/CanvasToolbar/CanvasToolbar.jsx", "src/components/Canvas/CanvasMenu/CanvasMenu.jsx", "src/components/Canvas/CanvasContent.jsx", "src/comsrc/components/Canvas/CanvasContext.jsx/pages/_app.jsx", "src/pages/index.jsx", "src/pages/_document.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/HomeScreen/HomeScreen.jsx", "src/components/HomeScreen/HomeScreenButton.jsx", "src/components/canvas.jsx", "src/components/Canvas/CanvasToolbar/CanvasToolbar.jsx", "src/components/Canvas/CanvasMenu/CanvasMenu.jsx", "src/components/Canvas/CanvasContent.jsx", "src/comsrc/components/Canvas/CanvasContext.jsx/pages/_app.jsx", "src/pages/index.jsx", "src/pages/_document.jsx", "src/pages/api/chat.js", "src/pages/api/hello.js"],
   "exclude": ["node_modules"]
 }
