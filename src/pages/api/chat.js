@@ -1,4 +1,5 @@
 import { OpenAI } from 'openai';
+import { SYSTEM_PROMPTS } from '@/config/systemPrompts';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -10,11 +11,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message } = req.body;
+    const { message, promptType = 'DEFAULT' } = req.body;
 
     const messages = [
-      { role: 'system', content: 'You are a helpful assistant.' },
-      { role: 'user', content: message }, // Verwende die übergebene Nachricht
+      { role: 'system', content: SYSTEM_PROMPTS[promptType] || SYSTEM_PROMPTS.DEFAULT },
+      { role: 'user', content: message },
     ];
     
     const completion = await openai.chat.completions.create({

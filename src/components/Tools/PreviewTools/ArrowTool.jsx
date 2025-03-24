@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
-import { getAnchorFromPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
+import {
+  getAnchorFromPosition,
+  getClosestAnchor,
+} from "@/utils/Arrow/anchorUtils";
 import { getElementAtPosition } from "@/utils/elementUtils";
 
-const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialStart, onEndArrowFromFrame }) => {
+const ArrowTool = ({
+  canvasRef,
+  canvasWrapperRef,
+  addArrow,
+  elements,
+  initialStart,
+  onEndArrowFromFrame,
+}) => {
   const {
     offsetRef,
     scaleRef,
@@ -15,18 +25,19 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
   const [endPoint, setEndPoint] = useState(null);
+  const MAX_LENGTH = 500;
 
   useEffect(() => {
     if (initialStart) {
       // Setze den Startpunkt automatisch
-      const element = elements.find(el => el.id === initialStart.elementId);
+      const element = elements.find((el) => el.id === initialStart.elementId);
       if (element) {
         const pos = getAnchorFromPosition(initialStart.anchor, element);
         setStartPoint({
           elementId: element.id,
           anchor: initialStart.anchor,
           x: pos.x,
-          y: pos.y
+          y: pos.y,
         });
         setIsDrawing(true);
       }
@@ -81,23 +92,53 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
       if (isDrawing) {
         let newStart = startPoint;
         let newEnd = { x: mouseX, y: mouseY };
-    
+
+        // Berechne die aktuelle Pfeillänge
+        const dx = mouseX - startPoint.x;
+        const dy = mouseY - startPoint.y;
+        const currentLength = Math.sqrt(dx * dx + dy * dy) * scaleRef.current;
+
+        if (initialStart && currentLength > MAX_LENGTH) {
+          // Berechne den Punkt auf maxLength Entfernung
+          const angle = Math.atan2(dy, dx);
+          const limitedLength = MAX_LENGTH / scaleRef.current;
+          newEnd = {
+            x: startPoint.x + limitedLength * Math.cos(angle),
+            y: startPoint.y + limitedLength * Math.sin(angle),
+          };
+
+          // Wenn über einem Element, aber außerhalb der maxLength
+          if (element) {
+            const elementDistance =
+              Math.sqrt(
+                Math.pow(element.position.x - startPoint.x, 2) +
+                  Math.pow(element.position.y - startPoint.y, 2)
+              ) * scaleRef.current;
+
+            if (elementDistance > MAX_LENGTH) {
+              element = null; // Element wird ignoriert, da zu weit entfernt
+            }
+          }
+        }
+
         // Update Start-Anchor wenn Startpunkt an einem Element ist
         if (startPoint.elementId) {
-          const startElement = elements.find(el => el.id === startPoint.elementId);
+          const startElement = elements.find(
+            (el) => el.id === startPoint.elementId
+          );
           if (startElement) {
             // Bestimme den nächstgelegenen Anchor zur aktuellen Mausposition
             const anchorData = getClosestAnchor(startElement, mouseX, mouseY);
-            
+
             newStart = {
               ...startPoint,
               x: anchorData.x,
               y: anchorData.y,
-              anchor: anchorData.anchor
+              anchor: anchorData.anchor,
             };
           }
         }
-    
+
         // Update End-Anchor relativ zum (potentiell aktualisierten) Startpunkt
         if (element) {
           const anchorData = getClosestAnchor(
@@ -105,15 +146,15 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
             newStart.x, // Verwende den aktualisierten Startpunkt
             newStart.y
           );
-    
+
           newEnd = {
             x: anchorData.x,
             y: anchorData.y,
             elementId: element.id,
-            anchor: anchorData.anchor
+            anchor: anchorData.anchor,
           };
         }
-    
+
         setStartPoint(newStart);
         setEndPoint(newEnd);
       }
@@ -157,13 +198,40 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
       }
 
       if (startPoint) {
+        const dx = finalEnd.x - start.x;
+        const dy = finalEnd.y - start.y;
+        const length = Math.sqrt(dx * dx + dy * dy) * scaleRef.current;
+
         if (!endElement) {
           showContextMenu({ x: mouseX, y: mouseY }, "end");
         }
-        addArrow({
-          start: start,
-          end: finalEnd,
-        });
+
+        if (initialStart && length > MAX_LENGTH) {
+          const angle = Math.atan2(dy, dx);
+          const limitedLength = MAX_LENGTH / scaleRef.current;
+
+          finalEnd = {
+            x: start.x + limitedLength * Math.cos(angle),
+            y: start.y + limitedLength * Math.sin(angle),
+            // Behalte die Element-Referenz bei, falls vorhanden
+            ...(endElement
+              ? {
+                  elementId: endElement.id,
+                  anchor: finalEnd.anchor,
+                }
+              : {}),
+          };
+          addArrow({
+            start: start,
+            end: finalEnd,
+          });
+        } else {
+          addArrow({
+            start: start,
+            end: finalEnd,
+          });
+        }
+
         setSelectedTool("Pointer");
       }
 
@@ -198,6 +266,37 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
     elements,
   ]);
 
+  const renderLengthIndicator = () => {
+    if (!isDrawing || !initialStart || !startPoint || !endPoint) return null;
+    
+    const endElement = getElementAtPosition(elements, endPoint.x, endPoint.y);
+    if (endElement) return null;
+  
+    return (
+      <div style={{
+        position: 'absolute',
+        top: ((startPoint.y + endPoint.y) / 2 * scaleRef.current + offsetRef.current.y) - 10,
+        left: ((startPoint.x + endPoint.x) / 2 * scaleRef.current + offsetRef.current.x) - 20,
+        color: 'black',
+        fontSize: '12px',
+        pointerEvents: 'none',
+        zIndex: 3000,
+        backgroundColor: 'white',
+        padding: '2px 4px',
+        borderRadius: '3px',
+        transform: `rotate(${Math.atan2(
+          endPoint.y - startPoint.y,
+          endPoint.x - startPoint.x
+        )}rad)`
+      }}>
+        {((Math.sqrt(
+          Math.pow(endPoint.x - startPoint.x, 2) + 
+          Math.pow(endPoint.y - startPoint.y, 2)
+        ) * scaleRef.current / MAX_LENGTH).toFixed(2))}
+      </div>
+    );
+  };
+
   return (
     <div>
       {isDrawing && startPoint && endPoint && (
@@ -224,6 +323,7 @@ const ArrowTool = ({ canvasRef, canvasWrapperRef, addArrow, elements, initialSta
           }}
         />
       )}
+      {renderLengthIndicator()}
     </div>
   );
 };

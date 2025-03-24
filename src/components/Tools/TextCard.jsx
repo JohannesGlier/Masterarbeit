@@ -16,6 +16,7 @@ const TextCard = ({
   onUpdate,
   onResize,
   onStartArrowFromFrame,
+  onTextChange,
 }) => {
   const [properties, setProperties] = useState(() => ({
     ...TEXTCARD_DEFAULTS,
@@ -72,6 +73,12 @@ const TextCard = ({
     },
     [toggleSelectedElement, rect, isResizing, isDragging]
   );
+
+  const handleTextChange = (e) => {
+    const newText = e.target.value;
+    setText(newText);
+    onTextChange(newText);
+  };
 
   const { startDragging } = useDrag(
     position,
@@ -174,7 +181,7 @@ const TextCard = ({
         <TextCardContent
           isEditing={isEditing}
           text={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleTextChange}
           onBlur={() => setIsEditing(false)}
           textAlign={properties.textAlign}
           textColor={properties.textColor}

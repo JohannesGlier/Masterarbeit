@@ -10,7 +10,10 @@ import ArrowHandles from "@/components/Helper/Arrow/ArrowHandles";
 import ArrowLabel from "@/components/Helper/Arrow/ArrowLabel";
 import ArrowActionBar from "@/components/Tools/ActionBars/ArrowActionBar";
 import { getAnchorPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
-import { getElementAtPosition, attachElementToArrow } from "@/utils/elementUtils";
+import {
+  getElementAtPosition,
+  attachElementToArrow,
+} from "@/utils/elementUtils";
 import ArrowHeads from "@/components/Helper/Arrow/ArrowHeads";
 import { ARROW_DEFAULTS } from "@/utils/Arrow/arrowDefaultProperties";
 import { getArrowStyles } from "@/utils/Arrow/arrowStyles";
@@ -18,6 +21,7 @@ import { getPointerEvents } from "@/utils/pointerEventUtils";
 import ArrowContextMenu from "@/components/Helper/Arrow/ArrowContextMenu";
 import { MdOutlineRectangle } from "react-icons/md";
 import { RiTextBlock } from "react-icons/ri";
+import { ChatGPTService } from '@/services/ChatGPTService';
 
 const Arrow = ({
   arrow,
@@ -40,6 +44,7 @@ const Arrow = ({
   const [text, setText] = useState("");
   const frameRef = useRef(null);
   const isDragging = useRef(false);
+  const chatGPTService = new ChatGPTService();
 
   const {
     selectedTool,
@@ -253,28 +258,62 @@ const Arrow = ({
     }
   };
 
-  const InsertAtPosition = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const clickX =
-      (e.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-    const clickY =
-      (e.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
+  const InsertAtPosition = async (e) => {
+    const hasElementAttached = arrow.start.elementId && arrow.end.elementId;
 
-    // Pfeillänge berechnen
-    const dx = endX - startX;
-    const dy = endY - startY;
-    const length = Math.sqrt(dx * dx + dy * dy);
+    if (hasElementAttached) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const clickX =
+        (e.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
+      const clickY =
+        (e.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
 
-    const t =
-      ((clickX - startX) * dx + (clickY - startY) * dy) / (length * length);
-    console.log("Action: Double Click on Arrow Line at position:\n", t);
+      // Pfeillänge berechnen
+      const dx = endX - startX;
+      const dy = endY - startY;
+      const length = Math.sqrt(dx * dx + dy * dy);
+
+      const t =
+        ((clickX - startX) * dx + (clickY - startY) * dy) / (length * length);
+      console.log("Action: Double Click on Arrow Line at position:\n", t);
+
+      const startElement = elements.find((e) => e.id === arrow.start.elementId);
+      const endElement = elements.find((e) => e.id === arrow.end.elementId);
+
+      // Texte extrahieren
+      const startText =
+        startElement?.type === "textcard"
+          ? startElement.text
+          : startElement?.type === "rectangle"
+          ? startElement.heading
+          : null;
+
+      const endText =
+        endElement?.type === "textcard"
+          ? endElement.text
+          : endElement?.type === "rectangle"
+          ? endElement.heading
+          : null;
+
+      // ChatGPT-Aufruf nur wenn beide Texte vorhanden
+      if (startText && endText) {
+        try {
+          const response = await chatGPTService.analyzeArrow(startText, endText, t);
+          console.log("ChatGPT Response:", response.content);
+        } catch (error) {
+          console.error("Fehler bei ChatGPT-Anfrage:", error);
+        }
+      }
+    }
   };
 
   const SelectOutput = (point, e) => {
     e.stopPropagation();
 
     console.log("Select Output");
-    const hasElementAttached = (point === "start" && arrow.start.elementId) || (point === "end" && arrow.end.elementId);
+    const hasElementAttached =
+      (point === "start" && arrow.start.elementId) ||
+      (point === "end" && arrow.end.elementId);
 
     if (hasElementAttached) {
       console.log("Element angeschlossen");
@@ -284,7 +323,7 @@ const Arrow = ({
     const posX = point === "start" ? startX : endX;
     const posY = point === "start" ? startY : endY;
 
-    showContextMenu({x: posX, y: posY}, point);
+    showContextMenu({ x: posX, y: posY }, point);
   };
 
   const pointerEvents = getPointerEvents({
@@ -335,7 +374,11 @@ const Arrow = ({
           height: newRect.height,
         });
 
-        updateArrowPosition(arrow.id, { elementId: newFrameId, anchor: newRect.anchor }, contextMenu.point);
+        updateArrowPosition(
+          arrow.id,
+          { elementId: newFrameId, anchor: newRect.anchor },
+          contextMenu.point
+        );
         closeContextMenu();
       },
     },
@@ -343,7 +386,11 @@ const Arrow = ({
       icon: <RiTextBlock size={32} />,
       onClick: () => {
         console.log("Add Textcard");
-        const newTextcard = attachElementToArrow(contextMenu.point, arrow, "Frame");
+        const newTextcard = attachElementToArrow(
+          contextMenu.point,
+          arrow,
+          "Frame"
+        );
         const newTextcardId = addTextcard({
           x: newTextcard.x,
           y: newTextcard.y,
@@ -351,7 +398,11 @@ const Arrow = ({
           height: newTextcard.height,
         });
 
-        updateArrowPosition(arrow.id, { elementId: newTextcardId, anchor: newTextcard.anchor }, contextMenu.point);
+        updateArrowPosition(
+          arrow.id,
+          { elementId: newTextcardId, anchor: newTextcard.anchor },
+          contextMenu.point
+        );
         closeContextMenu();
       },
     },
@@ -417,7 +468,7 @@ const Arrow = ({
         <ArrowContextMenu
           top={contextMenu.position.y * scaleRef.current + offsetRef.current.y}
           left={contextMenu.position.x * scaleRef.current + offsetRef.current.x}
-          buttons={contextMenuButtons}       
+          buttons={contextMenuButtons}
         />
       )}
     </>

@@ -36,6 +36,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         size: { width: textcard.width, height: textcard.height },
         type: "textcard",
         zIndex: textcard.zIndex,
+        text: textcard.text,
       })),
       ...rectangles.map((rect) => ({
         id: rect.id,
@@ -43,6 +44,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         size: { width: rect.width, height: rect.height },
         type: "rectangle",
         zIndex: rect.zIndex,
+        heading: rect.heading,
       })),
     ];
   }, [textcards, rectangles]);
@@ -97,6 +99,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       y: rect.y,
       width: rect.width,
       height: rect.height,
+      heading: rect.heading || "",
       zIndex,
     };
     setRectangles((prevRectangles) => [...prevRectangles, newRect]);
@@ -111,6 +114,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       y: textcard.y,
       width: textcard.width,
       height: textcard.height,
+      text: textcard.text || "",
       zIndex,
     };
     setTextCards((prevTextcards) => [...prevTextcards, newTextcard]);
@@ -176,6 +180,14 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     );
   };
 
+  const updateFrameHeading = (id, newHeading) => {
+    setRectangles((prevRectangles) =>
+      prevRectangles.map((rect) =>
+        rect.id === id ? { ...rect, heading: newHeading } : rect
+      )
+    );
+  };
+
   const handleTextcardUpdate = (id, newX, newY) => {
     setTextCards((prev) =>
       prev.map((rect) =>
@@ -190,6 +202,14 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         rect.id === id
           ? { ...rect, width: newSize.width, height: newSize.height, x: newPosition.x, y: newPosition.y }
           : rect
+      )
+    );
+  };
+
+  const updateTextCardText = (id, newText) => {
+    setTextCards((prevTextCards) =>
+      prevTextCards.map((textcard) =>
+        textcard.id === id ? { ...textcard, text: newText } : textcard
       )
     );
   };
@@ -271,6 +291,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           onUpdate={handleFrameUpdate}
           onResize={handleFrameResize}
           onStartArrowFromFrame={handleStartArrowFromFrame}
+          onHeadingChange={(newHeading) => updateFrameHeading(rect.id, newHeading)}
         />
       ))}
 
@@ -280,7 +301,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           key={index}
           rect={textcard}
           text={textcard.text}
-          onTextChange={() => {}}
+          onTextChange={(newText) => updateTextCardText(textcard.id, newText)}
           scaleRef={scaleRef}
           offsetRef={offsetRef}
           onUpdate={handleTextcardUpdate}

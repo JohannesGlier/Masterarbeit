@@ -16,6 +16,7 @@ const Frame = ({
   onUpdate,
   onResize,
   onStartArrowFromFrame,
+  onHeadingChange,
 }) => {
   const [properties, setProperties] = useState(() => ({
     ...FRAME_DEFAULTS,
@@ -47,7 +48,6 @@ const Frame = ({
   );
 
   const updateFrameStyle = useCallback((newProps) => {
-    console.log(newProps);
     setProperties((prev) => ({ ...prev, ...newProps }));
   }, []);
 
@@ -72,6 +72,12 @@ const Frame = ({
     },
     [toggleSelectedElement, rect, isResizing, isDragging]
   );
+
+  const handleHeadingChange = (e) => {
+    const newText = e;
+    setHeading(newText);
+    onHeadingChange(newText);
+  };
 
   const { startDragging } = useDrag(
     position,
@@ -166,7 +172,7 @@ const Frame = ({
         offset={offsetRef.current}
         heading={heading}
         textStyles={properties}
-        onHeadingChange={setHeading}
+        onHeadingChange={handleHeadingChange}
         pointerEvents={frameStyles.pointerEvents}
       />
       <div style={frameStyles} onMouseDown={handleDrag}>
