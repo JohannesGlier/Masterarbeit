@@ -8,8 +8,20 @@ export const DEFAULT_PROMPT_TEMPLATES = {
       ber noch in Verbindung mit dem Wort oder Text ${endText || "No context"} steht.
       Gib mir genau ein passendes Wort oder einen passenden Text zurück für die Zahl ${position.toFixed(2)}`,
   
-    TEXT_SUMMARY: (text) => 
-      `Summarize this text in 3 bullet points:\n"${text}"`,
+    RELATIONSHIP_ARROW: ({ textFromTextcard, mappedArrowLength }) => 
+      `Eingabetext: "${textFromTextcard}"  
+       Verwandtschaftswert: ${mappedArrowLength} (0 = sehr nah verwandt, 1 = weit entfernt verwandt)  
+       
+       Erstelle ausschließlich einen neuen Text auf Deutsch, der den Eingabetext fortführt und weiterdenkt.  
+       Je niedriger der Verwandtschaftswert, desto enger soll der neue Text thematisch mit dem Eingabetext verknüpft sein.  
+       Je höher der Verwandtschaftswert, desto weiter darf der neue Text thematisch vom Eingabetext abweichen.  
+       
+       Die Antwort darf ausschließlich den generierten Text enthalten – keine Einleitungen, Überschriften oder Erklärungen.  
+       
+       Die Länge der Antwort soll sich an der Länge des Eingabetexts orientieren:  
+       - Ist der Eingabetext ein einzelnes Wort, soll die Antwort ebenfalls nur ein Wort sein.  
+       - Ist der Eingabetext ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
+       - Ist der Eingabetext ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.`, 
     
     DEFAULT: (message) => message
 };

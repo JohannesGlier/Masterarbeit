@@ -389,7 +389,7 @@ const Arrow = ({
         const newTextcard = attachElementToArrow(
           contextMenu.point,
           arrow,
-          "Frame"
+          "Textcard"
         );
         const newTextcardId = addTextcard({
           x: newTextcard.x,

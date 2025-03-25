@@ -31,12 +31,11 @@ export class ChatGPTService {
       endText,
       position
     });
-    
     return this._sendRequest(prompt);
   }
 
-  async summarizeText(text) {
-    const prompt = this.promptTemplates.TEXT_SUMMARY(text);
+  async relationshipArrow(textFromTextcard, mappedArrowLength) {
+    const prompt = this.promptTemplates.RELATIONSHIP_ARROW({ textFromTextcard, mappedArrowLength });
     return this._sendRequest(prompt);
   }
 

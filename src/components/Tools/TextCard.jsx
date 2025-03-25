@@ -11,6 +11,7 @@ import TextCardContent from "@/components/Helper/Textcard/TextCardContent";
 
 const TextCard = ({
   rect,
+  textcardText,
   scaleRef,
   offsetRef,
   onUpdate,
@@ -22,7 +23,6 @@ const TextCard = ({
     ...TEXTCARD_DEFAULTS,
     ...rect,
   }));
-  const [text, setText] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
@@ -76,7 +76,7 @@ const TextCard = ({
 
   const handleTextChange = (e) => {
     const newText = e.target.value;
-    setText(newText);
+    //setText(newText);
     onTextChange(newText);
   };
 
@@ -180,7 +180,7 @@ const TextCard = ({
       >
         <TextCardContent
           isEditing={isEditing}
-          text={text}
+          text={textcardText}
           onChange={handleTextChange}
           onBlur={() => setIsEditing(false)}
           textAlign={properties.textAlign}

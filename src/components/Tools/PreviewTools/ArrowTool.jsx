@@ -2,9 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import {
   getAnchorFromPosition,
-  getClosestAnchor,
+  getAnchorData,
 } from "@/utils/Arrow/anchorUtils";
-import { getElementAtPosition } from "@/utils/elementUtils";
+import {
+  getElementAtPosition,
+  attachElementToArrow,
+} from "@/utils/elementUtils";
+import { getCanvasMousePosition } from "@/utils/canvasUtils";
+import { ChatGPTService } from "@/services/ChatGPTService";
 
 const ArrowTool = ({
   canvasRef,
@@ -13,6 +18,9 @@ const ArrowTool = ({
   elements,
   initialStart,
   onEndArrowFromFrame,
+  addTextcard,
+  updateArrowPosition,
+  updateTextcardText,
 }) => {
   const {
     offsetRef,
@@ -26,6 +34,7 @@ const ArrowTool = ({
   const [startPoint, setStartPoint] = useState(null);
   const [endPoint, setEndPoint] = useState(null);
   const MAX_LENGTH = 500;
+  const chatGPTService = new ChatGPTService();
 
   useEffect(() => {
     if (initialStart) {
@@ -50,192 +59,92 @@ const ArrowTool = ({
     const handleMouseDown = (event) => {
       if (event.button !== 0 || initialStart) return;
       event.stopPropagation();
-
+      
       setIsDrawing(true);
-
-      const rect = canvasRef.current.getBoundingClientRect();
-      const mouseX =
-        (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const mouseY =
-        (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
+      const { x: mouseX, y: mouseY } = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
       const element = getElementAtPosition(elements, mouseX, mouseY);
-
+    
       if (element) {
-        const { anchor, x, y } = getClosestAnchor(element, mouseX, mouseY);
-        setStartPoint({
-          elementId: element.id,
-          anchor,
-          x,
-          y,
-        });
-        setEndPoint({ x, y });
+        const { anchor, x, y } = getAnchorData(element, mouseX, mouseY);
+        setStartPoint({ elementId: element.id, anchor, x, y });
         setMouseDownElement(element);
       } else {
         setStartPoint({ x: mouseX, y: mouseY });
-        setEndPoint({ x: mouseX, y: mouseY });
         setMouseDownElement(null);
       }
+      setEndPoint({ x: mouseX, y: mouseY });
     };
 
     const handleMouseMove = (event) => {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const mouseX =
-        (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const mouseY =
-        (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
-      // Überprüfen, ob die Maus über einem Element ist
+      const { x: mouseX, y: mouseY } = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
       const element = getElementAtPosition(elements, mouseX, mouseY);
       setHoveredElement(element);
 
-      if (isDrawing) {
-        let newStart = startPoint;
-        let newEnd = { x: mouseX, y: mouseY };
+      if (!isDrawing) return;
 
-        // Berechne die aktuelle Pfeillänge
-        const dx = mouseX - startPoint.x;
-        const dy = mouseY - startPoint.y;
-        const currentLength = Math.sqrt(dx * dx + dy * dy) * scaleRef.current;
+      let newEnd = { x: mouseX, y: mouseY };
+      let newStart = startPoint;
 
-        if (initialStart && currentLength > MAX_LENGTH) {
-          // Berechne den Punkt auf maxLength Entfernung
-          const angle = Math.atan2(dy, dx);
-          const limitedLength = MAX_LENGTH / scaleRef.current;
-          newEnd = {
-            x: startPoint.x + limitedLength * Math.cos(angle),
-            y: startPoint.y + limitedLength * Math.sin(angle),
-          };
-
-          // Wenn über einem Element, aber außerhalb der maxLength
-          if (element) {
-            const elementDistance =
-              Math.sqrt(
-                Math.pow(element.position.x - startPoint.x, 2) +
-                  Math.pow(element.position.y - startPoint.y, 2)
-              ) * scaleRef.current;
-
-            if (elementDistance > MAX_LENGTH) {
-              element = null; // Element wird ignoriert, da zu weit entfernt
-            }
-          }
+      // Start Anchor aktualisieren
+      if (startPoint.elementId) {
+        const startElement = elements.find(el => el.id === startPoint.elementId);
+        if (startElement) {
+          const anchorData = getAnchorData(startElement, mouseX, mouseY);
+          newStart = { ...startPoint, ...anchorData };
         }
-
-        // Update Start-Anchor wenn Startpunkt an einem Element ist
-        if (startPoint.elementId) {
-          const startElement = elements.find(
-            (el) => el.id === startPoint.elementId
-          );
-          if (startElement) {
-            // Bestimme den nächstgelegenen Anchor zur aktuellen Mausposition
-            const anchorData = getClosestAnchor(startElement, mouseX, mouseY);
-
-            newStart = {
-              ...startPoint,
-              x: anchorData.x,
-              y: anchorData.y,
-              anchor: anchorData.anchor,
-            };
-          }
-        }
-
-        // Update End-Anchor relativ zum (potentiell aktualisierten) Startpunkt
-        if (element) {
-          const anchorData = getClosestAnchor(
-            element,
-            newStart.x, // Verwende den aktualisierten Startpunkt
-            newStart.y
-          );
-
-          newEnd = {
-            x: anchorData.x,
-            y: anchorData.y,
-            elementId: element.id,
-            anchor: anchorData.anchor,
-          };
-        }
-
-        setStartPoint(newStart);
-        setEndPoint(newEnd);
       }
+
+      // Längenbegrenzung
+      if (initialStart) {
+        newEnd = calculateLimitedPosition(startPoint, newEnd, MAX_LENGTH);
+      }
+
+      // End Anchor setzen
+      if (element) {
+        const anchorData = getAnchorData(element, newStart.x, newStart.y);
+        newEnd = { ...anchorData, elementId: element.id };
+      }
+
+      setStartPoint(newStart);
+      setEndPoint(newEnd);
     };
 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
 
-      const rect = canvasRef.current.getBoundingClientRect();
-      const mouseX =
-        (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const mouseY =
-        (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
-      // Überprüfen, ob die Maus über einem Element ist
+      const { x: mouseX, y: mouseY } = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
       const endElement = getElementAtPosition(elements, mouseX, mouseY);
-      let finalEnd = { x: mouseX, y: mouseY };
 
-      // Startpunkt-Daten aufbereiten
+      // Startpunkt vorbereiten
       const start = startPoint.elementId
-        ? {
-            elementId: startPoint.elementId,
-            anchor: startPoint.anchor,
-            x: startPoint.x,
-            y: startPoint.y,
-          }
-        : { x: startPoint.x, y: startPoint.y };
+      ? { 
+          elementId: startPoint.elementId, 
+          anchor: startPoint.anchor, 
+          x: startPoint.x, 
+          y: startPoint.y 
+        }
+      : { x: startPoint.x, y: startPoint.y };
 
-      // Endpunkt anpassen wenn über Element
+      // Endpunkt vorbereiten
+      let end = { x: mouseX, y: mouseY };
       if (endElement) {
         const referenceX = startPoint.elementId ? startPoint.x : startPoint.x;
         const referenceY = startPoint.elementId ? startPoint.y : startPoint.y;
-
-        const anchorData = getClosestAnchor(endElement, referenceX, referenceY);
-        finalEnd = {
-          elementId: endElement.id,
-          anchor: anchorData.anchor,
-          x: anchorData.x,
-          y: anchorData.y,
-        };
+        const anchorData = getAnchorData(endElement, referenceX, referenceY);
+        end = { ...anchorData, elementId: endElement.id };
       }
 
-      if (startPoint) {
-        const dx = finalEnd.x - start.x;
-        const dy = finalEnd.y - start.y;
-        const length = Math.sqrt(dx * dx + dy * dy) * scaleRef.current;
-
-        if (!endElement) {
-          showContextMenu({ x: mouseX, y: mouseY }, "end");
-        }
-
-        if (initialStart && length > MAX_LENGTH) {
-          const angle = Math.atan2(dy, dx);
-          const limitedLength = MAX_LENGTH / scaleRef.current;
-
-          finalEnd = {
-            x: start.x + limitedLength * Math.cos(angle),
-            y: start.y + limitedLength * Math.sin(angle),
-            // Behalte die Element-Referenz bei, falls vorhanden
-            ...(endElement
-              ? {
-                  elementId: endElement.id,
-                  anchor: finalEnd.anchor,
-                }
-              : {}),
-          };
-          addArrow({
-            start: start,
-            end: finalEnd,
-          });
-        } else {
-          addArrow({
-            start: start,
-            end: finalEnd,
-          });
-        }
-
-        setSelectedTool("Pointer");
+      // Shortcut-Pfeil
+      if (initialStart) {
+        end = calculateLimitedPosition(start, end, MAX_LENGTH);
+        addTextcardToShortcutArrow(start, end);
+      } else {
+        // Normaler Pfeil
+        addArrow({ start, end });
       }
 
       // States zurücksetzen
+      setSelectedTool("Pointer");
       setStartPoint(null);
       setEndPoint(null);
       setIsDrawing(false);
@@ -266,33 +175,99 @@ const ArrowTool = ({
     elements,
   ]);
 
+  const addTextcardToShortcutArrow = async (start, end) => {
+    const arrow = addArrow({ start, end });
+    const newTextcard = attachElementToArrow("end", arrow, "Textcard");
+
+    // 2. Füge die Textkarte mit einem Platzhaltertext hinzu
+    const newTextcardId = addTextcard({
+      x: newTextcard.x,
+      y: newTextcard.y,
+      width: newTextcard.width,
+      height: newTextcard.height,
+      text: "Inhalt wird generiert..."
+    });
+
+    // 3. Aktualisiere die Pfeilposition
+    updateArrowPosition( arrow.id, { elementId: newTextcardId, anchor: newTextcard.anchor }, "end" );
+
+    // 4. Hole die ChatGPT-Antwort im Hintergrund
+    try {
+        const length = (Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)) * scaleRef.current) / MAX_LENGTH;
+        const startElement = elements.find((e) => e.id === start.elementId);
+        const startText = startElement?.type === "textcard" 
+            ? startElement.text 
+            : startElement?.type === "rectangle" 
+            ? startElement.heading 
+            : null;
+
+        // 5. Warte auf die Antwort und aktualisiere dann die Textkarte
+        const response = await chatGPTService.relationshipArrow(startText, length);
+        updateTextcardText(newTextcardId, response.content);     
+    } catch (error) {
+        console.error("Fehler bei ChatGPT-Anfrage:", error);
+        updateTextcardText(newTextcardId, "Fehler beim Laden");     
+    }
+  }
+
+  const calculateLimitedPosition = (start, end, maxLength) => {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const currentLength = Math.sqrt(dx * dx + dy * dy) * scaleRef.current;
+    
+    if (currentLength <= maxLength) return end;
+    
+    const angle = Math.atan2(dy, dx);
+    const limitedLength = maxLength / scaleRef.current;
+    return {
+      x: start.x + limitedLength * Math.cos(angle),
+      y: start.y + limitedLength * Math.sin(angle),
+      ...(end.elementId ? {
+        elementId: end.elementId,
+        anchor: end.anchor
+      } : {})
+    };
+  };
+
   const renderLengthIndicator = () => {
     if (!isDrawing || !initialStart || !startPoint || !endPoint) return null;
-    
+
     const endElement = getElementAtPosition(elements, endPoint.x, endPoint.y);
     if (endElement) return null;
-  
+
     return (
-      <div style={{
-        position: 'absolute',
-        top: ((startPoint.y + endPoint.y) / 2 * scaleRef.current + offsetRef.current.y) - 10,
-        left: ((startPoint.x + endPoint.x) / 2 * scaleRef.current + offsetRef.current.x) - 20,
-        color: 'black',
-        fontSize: '12px',
-        pointerEvents: 'none',
-        zIndex: 3000,
-        backgroundColor: 'white',
-        padding: '2px 4px',
-        borderRadius: '3px',
-        transform: `rotate(${Math.atan2(
-          endPoint.y - startPoint.y,
-          endPoint.x - startPoint.x
-        )}rad)`
-      }}>
-        {((Math.sqrt(
-          Math.pow(endPoint.x - startPoint.x, 2) + 
-          Math.pow(endPoint.y - startPoint.y, 2)
-        ) * scaleRef.current / MAX_LENGTH).toFixed(2))}
+      <div
+        style={{
+          position: "absolute",
+          top:
+            ((startPoint.y + endPoint.y) / 2) * scaleRef.current +
+            offsetRef.current.y -
+            10,
+          left:
+            ((startPoint.x + endPoint.x) / 2) * scaleRef.current +
+            offsetRef.current.x -
+            20,
+          color: "black",
+          fontSize: "12px",
+          pointerEvents: "none",
+          zIndex: 3000,
+          backgroundColor: "white",
+          padding: "2px 4px",
+          borderRadius: "3px",
+          transform: `rotate(${Math.atan2(
+            endPoint.y - startPoint.y,
+            endPoint.x - startPoint.x
+          )}rad)`,
+        }}
+      >
+        {(
+          (Math.sqrt(
+            Math.pow(endPoint.x - startPoint.x, 2) +
+              Math.pow(endPoint.y - startPoint.y, 2)
+          ) *
+            scaleRef.current) /
+          MAX_LENGTH
+        ).toFixed(2)}
       </div>
     );
   };

@@ -67,3 +67,7 @@ export const getAnchorFromPosition = (position, element) => {
 
   return anchors[position] || { x, y };
 };
+
+export const getAnchorData = (element, x, y) => {
+  return element ? getClosestAnchor(element, x, y) : null;
+};

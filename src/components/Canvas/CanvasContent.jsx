@@ -114,7 +114,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       y: textcard.y,
       width: textcard.width,
       height: textcard.height,
-      text: textcard.text || "",
+      text: textcard.text,
       zIndex,
     };
     setTextCards((prevTextcards) => [...prevTextcards, newTextcard]);
@@ -123,26 +123,25 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
   const addArrows = (arrow) => {
     const zIndex = incrementZIndex("arrow");
-    setArrows((prevArrows) => [
-      ...prevArrows,
-      {
-        ...arrow,
-        id: generateUniqueId(),
-        start: {
-          elementId: arrow.start.elementId,
-          anchor: arrow.start.anchor,
-          x: arrow.start.x,
-          y: arrow.start.y,
-        },
-        end: {
-          elementId: arrow.end.elementId,
-          anchor: arrow.end.anchor,
-          x: arrow.end.x,
-          y: arrow.end.y,
-        },
-        zIndex,
+    const newArrow = {
+      ...arrow,
+      id: generateUniqueId(),
+      start: {
+        elementId: arrow.start.elementId,
+        anchor: arrow.start.anchor,
+        x: arrow.start.x,
+        y: arrow.start.y,
       },
-    ]);
+      end: {
+        elementId: arrow.end.elementId,
+        anchor: arrow.end.anchor,
+        x: arrow.end.x,
+        y: arrow.end.y,
+      },
+      zIndex,
+    };
+    setArrows((prevArrows) => [...prevArrows, newArrow]);
+    return newArrow;
   };
 
   const deleteSelectedElements = () => {
@@ -174,7 +173,13 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     setRectangles((prev) =>
       prev.map((rect) =>
         rect.id === id
-          ? { ...rect, width: newSize.width, height: newSize.height, x: newPosition.x, y: newPosition.y }
+          ? {
+              ...rect,
+              width: newSize.width,
+              height: newSize.height,
+              x: newPosition.x,
+              y: newPosition.y,
+            }
           : rect
       )
     );
@@ -200,7 +205,13 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     setTextCards((prev) =>
       prev.map((rect) =>
         rect.id === id
-          ? { ...rect, width: newSize.width, height: newSize.height, x: newPosition.x, y: newPosition.y }
+          ? {
+              ...rect,
+              width: newSize.width,
+              height: newSize.height,
+              x: newPosition.x,
+              y: newPosition.y,
+            }
           : rect
       )
     );
@@ -278,6 +289,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           elements={elements}
           initialStart={initialArrowStart}
           onEndArrowFromFrame={handleEndArrowFromFrame}
+          addTextcard={addTextcards}
+          updateArrowPosition={updateArrowPosition}
+          updateTextcardText={updateTextCardText}
         />
       )}
 
@@ -291,7 +305,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           onUpdate={handleFrameUpdate}
           onResize={handleFrameResize}
           onStartArrowFromFrame={handleStartArrowFromFrame}
-          onHeadingChange={(newHeading) => updateFrameHeading(rect.id, newHeading)}
+          onHeadingChange={(newHeading) =>
+            updateFrameHeading(rect.id, newHeading)
+          }
         />
       ))}
 
@@ -300,7 +316,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         <TextCard
           key={index}
           rect={textcard}
-          text={textcard.text}
+          textcardText={textcard.text}
           onTextChange={(newText) => updateTextCardText(textcard.id, newText)}
           scaleRef={scaleRef}
           offsetRef={offsetRef}
@@ -320,7 +336,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           elements={elements}
           updateArrowPosition={updateArrowPosition}
           canvasWrapperRef={canvasWrapperRef}
-          canvasRef={canvasRef} 
+          canvasRef={canvasRef}
           addRectangle={addRectangle}
           addTextcard={addTextcards}
         />
