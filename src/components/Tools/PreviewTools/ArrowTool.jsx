@@ -140,7 +140,8 @@ const ArrowTool = ({
         addTextcardToShortcutArrow(start, end);
       } else {
         // Normaler Pfeil
-        addArrow({ start, end });
+        const newArrow = addArrow({ start, end });
+        showContextMenu({ x: end.x, y: end.y }, "end", newArrow.id);
       }
 
       // States zurücksetzen

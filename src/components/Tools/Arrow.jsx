@@ -8,11 +8,13 @@ import React, {
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import ArrowHandles from "@/components/Helper/Arrow/ArrowHandles";
 import ArrowLabel from "@/components/Helper/Arrow/ArrowLabel";
+import RunPromptButton from "@/components/Helper/Arrow/RunPromptButton";
 import ArrowActionBar from "@/components/Tools/ActionBars/ArrowActionBar";
 import { getAnchorPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
 import {
   getElementAtPosition,
   attachElementToArrow,
+  getElementsInRectangle
 } from "@/utils/elementUtils";
 import ArrowHeads from "@/components/Helper/Arrow/ArrowHeads";
 import { ARROW_DEFAULTS } from "@/utils/Arrow/arrowDefaultProperties";
@@ -21,7 +23,7 @@ import { getPointerEvents } from "@/utils/pointerEventUtils";
 import ArrowContextMenu from "@/components/Helper/Arrow/ArrowContextMenu";
 import { MdOutlineRectangle } from "react-icons/md";
 import { RiTextBlock } from "react-icons/ri";
-import { ChatGPTService } from '@/services/ChatGPTService';
+import { ChatGPTService } from "@/services/ChatGPTService";
 
 const Arrow = ({
   arrow,
@@ -113,7 +115,7 @@ const Arrow = ({
 
   useEffect(() => {
     setIsSelected(selectedElements.some((el) => el.id === arrow.id));
-    closeContextMenu();
+    closeContextMenu(arrow.id);
   }, [selectedElements, arrow.id]);
 
   useEffect(() => {
@@ -298,7 +300,11 @@ const Arrow = ({
       // ChatGPT-Aufruf nur wenn beide Texte vorhanden
       if (startText && endText) {
         try {
-          const response = await chatGPTService.analyzeArrow(startText, endText, t);
+          const response = await chatGPTService.analyzeArrow(
+            startText,
+            endText,
+            t
+          );
           console.log("ChatGPT Response:", response.content);
         } catch (error) {
           console.error("Fehler bei ChatGPT-Anfrage:", error);
@@ -323,7 +329,7 @@ const Arrow = ({
     const posX = point === "start" ? startX : endX;
     const posY = point === "start" ? startY : endY;
 
-    showContextMenu({ x: posX, y: posY }, point);
+    showContextMenu({ x: posX, y: posY }, point, arrow.id);
   };
 
   const pointerEvents = getPointerEvents({
@@ -379,7 +385,7 @@ const Arrow = ({
           { elementId: newFrameId, anchor: newRect.anchor },
           contextMenu.point
         );
-        closeContextMenu();
+        closeContextMenu(arrow.id);
       },
     },
     {
@@ -403,10 +409,124 @@ const Arrow = ({
           { elementId: newTextcardId, anchor: newTextcard.anchor },
           contextMenu.point
         );
-        closeContextMenu();
+        closeContextMenu(arrow.id);
       },
     },
   ];
+
+  const runPromptButton = () => {
+    if(!properties.arrowHeadStart && !properties.arrowHeadEnd) {
+      console.log("Pfeil hat keine Richtung! Prompt wird nicht ausgeführt");
+      return;
+    }
+    if(properties.arrowHeadStart && properties.arrowHeadEnd){
+      console.log("Pfeil zeigt in beide Richtungen! Prompt wird nicht ausgeführt");
+      return;
+    }
+
+    let inputText = "";
+    if(properties.arrowHeadStart && !properties.arrowHeadEnd) {
+      if(end){
+        const endElement = elements.find((e) => e.id === arrow.end.elementId);
+        // Fall: Textkarte als Eingabe
+        if (endElement?.type === "textcard") {
+          inputText = endElement.text;
+          console.log("Prompt hat eine Eingabe:\n", inputText);
+        }
+        // Fall: Rectangle als Eingabe
+        if (endElement?.type === "rectangle") {
+          const elementsInRect = getElementsInRectangle(elements, {
+            x: endElement.position.x,
+            y: endElement.position.y,
+            width: endElement.size.width,
+            height: endElement.size.height
+          });
+    
+          // Transformiere die Elemente in das gewünschte Format
+          const simplifiedElements = elementsInRect.map(element => {
+            const base = {
+              type: element.type,
+              position: { ...element.position },
+              size: { ...element.size }
+            };
+    
+            if (element.type === "textcard") {
+              return { ...base, text: element.text };
+            } else if (element.type === "rectangle") {
+              return { ...base, heading: element.heading };
+            } else {
+              return base;
+            }
+          });
+          console.log("Elemente im Frame:", simplifiedElements);
+          inputText = JSON.stringify(simplifiedElements, null, 2);
+          console.log("Prompt hat eine Eingabe:\n", inputText);
+        }
+      }
+      else{
+        inputText = "undefined";
+        console.log("Prompt hat keine Eingabe:\n", inputText);
+      }
+      if(start){
+        console.log("Prompt hat ein Ausgabefeld");
+      }
+      else{
+        console.log("Prompt hat kein Ausgabefeld");
+      }
+      return;
+    }
+
+    if(!properties.arrowHeadStart && properties.arrowHeadEnd) {
+      if(start){
+        const startElement = elements.find((e) => e.id === arrow.start.elementId);
+        // Fall: Textkarte als Eingabe
+        if (startElement?.type === "textcard") {
+          inputText = startElement.text;
+          console.log("Prompt hat eine Eingabe:\n", inputText);
+        }
+        // Fall: Rectangle als Eingabe
+        if (startElement?.type === "rectangle") {
+          const elementsInRect = getElementsInRectangle(elements, {
+            x: startElement.position.x,
+            y: startElement.position.y,
+            width: startElement.size.width,
+            height: startElement.size.height
+          });
+    
+          // Transformiere die Elemente in das gewünschte Format
+          const simplifiedElements = elementsInRect.map(element => {
+            const base = {
+              type: element.type,
+              position: { ...element.position },
+              size: { ...element.size }
+            };
+    
+            if (element.type === "textcard") {
+              return { ...base, text: element.text };
+            } else if (element.type === "rectangle") {
+              return { ...base, heading: element.heading };
+            } else {
+              return base;
+            }
+          });
+          console.log("Elemente im Frame:", simplifiedElements);
+          inputText = JSON.stringify(simplifiedElements, null, 2);
+          console.log("Eingabe für Prompt:\n", inputText);
+        }
+      }
+      else{
+        inputText = "undefined";
+        console.log("Prompt hat keine Eingabe:\n", inputText);
+      }
+      if(end){
+        console.log("Prompt hat ein Ausgabefeld");
+      }
+      else{
+        console.log("Prompt hat kein Ausgabefeld");
+      }
+      return;
+    }
+  };
 
   return (
     <>
@@ -446,11 +566,18 @@ const Arrow = ({
         zIndex={arrowStyles.zIndex}
       />
 
+      <RunPromptButton
+        position={{ x: middleX, y: middleY }}
+        scale={scaleRef.current}
+        offset={offsetRef.current}
+        lineWidth={properties.lineWidth}
+        handleClick={runPromptButton}
+      />
+
       {isSelected && (
         <>
           <ArrowHandles
             start={{ x: startX, y: startY }}
-            middle={{ x: middleX, y: middleY }}
             end={{ x: endX, y: endY }}
             scale={scaleRef.current}
             offset={offsetRef.current}
@@ -464,7 +591,7 @@ const Arrow = ({
         </>
       )}
 
-      {contextMenu.isVisible && (
+      {contextMenu.isVisible && contextMenu.arrowID === arrow.id && (
         <ArrowContextMenu
           top={contextMenu.position.y * scaleRef.current + offsetRef.current.y}
           left={contextMenu.position.x * scaleRef.current + offsetRef.current.x}

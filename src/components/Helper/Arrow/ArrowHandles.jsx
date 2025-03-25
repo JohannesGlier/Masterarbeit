@@ -2,7 +2,6 @@ import ArrowHandle from "@/components/Helper/Arrow/ArrowHandle";
 
 const ArrowHandles = ({
   start,
-  middle,
   end,
   scale,
   offset,
@@ -13,20 +12,19 @@ const ArrowHandles = ({
   children,
 }) => (
   <>
-    {["start", "middle", "end"].map((type) => {
-      const point = { start, middle, end }[type];
-      const isMiddle = type === "middle";
+    {["start", "end"].map((type) => {
+      const point = { start, end }[type];
 
       return (
         <ArrowHandle
           key={type}
           top={point.y * scale + offset.y + lineWidth}
           left={point.x * scale + offset.x}
-          size={(isMiddle ? 15 : 20) + lineWidth}
-          cursor={isMiddle ? "default" : "pointer"}
-          onMouseDown={!isMiddle ? (e) => onDragStart(type, e) : undefined}
-          onMouseUp={!isMiddle ? onDragEnd : undefined}
-          onDoubleClick={!isMiddle ? (e) => onDoubleClick(type, e) : undefined}
+          size={(20) + lineWidth}
+          cursor={"pointer"}
+          onMouseDown={(e) => onDragStart(type, e)}
+          onMouseUp={onDragEnd}
+          onDoubleClick={(e) => onDoubleClick(type, e)}
         />
       );
     })}

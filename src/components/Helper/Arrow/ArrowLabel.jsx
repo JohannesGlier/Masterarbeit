@@ -24,27 +24,29 @@ const ArrowLabel = ({
   }
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: middleY * scale + offset.y - 25,
-        left: middleX * scale + offset.x,
-        transform: `translate(-50%, -50%) rotate(${rotationAngle}rad)`,
-        zIndex,
-      }}
-    >
-      <TextInput
-        placeholder="Enter Prompt.."
-        value={text}
-        onChange={onChange}
-        minWidth={150}
-        maxWidth={250}
-        textAlign="center"
-        fontSize={textSize}
-        textColor={textColor}
-        fontStyles={{ bold: false, italic: false, underline: false }}
-      />
-    </div>
+    <>
+      <div
+        style={{
+          position: "absolute",
+          top: middleY * scale + offset.y - 25,
+          left: middleX * scale + offset.x,
+          transform: `translate(-50%, -50%) rotate(${rotationAngle}rad)`,
+          zIndex,
+        }}
+      >
+        <TextInput
+          placeholder="Enter Prompt.."
+          value={text}
+          onChange={onChange}
+          minWidth={150}
+          maxWidth={250}
+          textAlign="center"
+          fontSize={textSize}
+          textColor={textColor}
+          fontStyles={{ bold: false, italic: false, underline: false }}
+        />
+      </div>
+    </>
   );
 };
 

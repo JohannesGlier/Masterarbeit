@@ -45,6 +45,28 @@ export const isElementInRectangle = (element, rectangle) => {
   );
 };
 
+export const getElementsInRectangle = (elements, rectangle) => {
+  const rectLeft = rectangle.x;
+  const rectRight = rectangle.x + rectangle.width;
+  const rectTop = rectangle.y;
+  const rectBottom = rectangle.y + rectangle.height;
+
+  return elements.filter(element => {
+    const elementLeft = element.position.x;
+    const elementRight = element.position.x + element.size.width;
+    const elementTop = element.position.y;
+    const elementBottom = element.position.y + element.size.height;
+
+    // Überprüfe, ob das Element innerhalb des Rechtecks liegt
+    return (
+      elementRight > rectLeft &&
+      elementLeft < rectRight &&
+      elementBottom > rectTop &&
+      elementTop < rectBottom
+    );
+  });
+};
+
 export const attachElementToArrow = (point, arrow, element) => {
   const arrowPoint = point === "start" ? arrow.start : arrow.end;
 

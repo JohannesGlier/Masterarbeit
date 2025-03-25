@@ -19,21 +19,24 @@ export const CanvasProvider = ({ children }) => {
     isVisible: false,
     position: { x: 0, y: 0 },
     point: null,
+    arrowID: null,
   });
 
-  const showContextMenu = (position, point) => {
+  const showContextMenu = (position, point, id) => {
     setContextMenu({
       isVisible: true,
       position,
       point,
+      arrowID: id,
     });
   };
 
-  const closeContextMenu = () => {
+  const closeContextMenu = (id) => {
     setContextMenu({
       isVisible: false,
       position: { x: 0, y: 0 },
       point: null,
+      arrowID: id,
     });
   };
 
