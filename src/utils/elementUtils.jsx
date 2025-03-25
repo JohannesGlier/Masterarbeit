@@ -71,3 +71,20 @@ export const attachElementToArrow = (point, arrow, element) => {
     anchor: anchor,
   };
 };
+
+export const attachTextcardToArrow = (arrow, startPointAnchor) => {
+  const arrowPoint = arrow.end;
+  const rectWidth = 100;
+  const rectHeight = 100;
+
+  const anchorMap = {
+    top: { anchor: "bottom", x: arrowPoint.x - rectWidth / 2, y: arrowPoint.y - rectHeight },
+    bottom: { anchor: "top", x: arrowPoint.x - rectWidth / 2, y: arrowPoint.y },
+    left: { anchor: "right", x: arrowPoint.x - rectWidth, y: arrowPoint.y - rectHeight / 2 },
+    right: { anchor: "left", x: arrowPoint.x, y: arrowPoint.y - rectHeight / 2 },
+  };
+
+  const { anchor, x: rectX, y: rectY } = anchorMap[startPointAnchor] || anchorMap.right;
+
+  return { x: rectX, y: rectY, width: rectWidth, height: rectHeight, anchor };
+};

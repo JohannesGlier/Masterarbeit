@@ -6,7 +6,7 @@ import {
 } from "@/utils/Arrow/anchorUtils";
 import {
   getElementAtPosition,
-  attachElementToArrow,
+  attachTextcardToArrow,
 } from "@/utils/elementUtils";
 import { getCanvasMousePosition } from "@/utils/canvasUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
@@ -189,7 +189,7 @@ const ArrowTool = ({
 
   const addTextcardToShortcutArrow = async (start, end) => {
     const arrow = addArrow({ start, end });
-    const newTextcard = attachElementToArrow("end", arrow, "Textcard");
+    const newTextcard = attachTextcardToArrow(arrow, start.anchor);
 
     // 2. Füge die Textkarte mit einem Platzhaltertext hinzu
     const newTextcardId = addTextcard({

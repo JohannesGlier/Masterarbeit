@@ -3,7 +3,7 @@ export const ARROW_DEFAULTS = {
   lineStyle: "solid",
   lineWidth: 2,
   arrowHeadStart: false,
-  arrowHeadEnd: false,
+  arrowHeadEnd: true,
   textSize: 14,
   textColor: "#000000",
   textAlignment: "aligned",
