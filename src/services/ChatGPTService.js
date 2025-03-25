@@ -39,6 +39,26 @@ export class ChatGPTService {
     return this._sendRequest(prompt);
   }
 
+  async promptArrow_Input_Output(inputText, promptText, output) {
+    const prompt = this.promptTemplates.PROMPT_ARROW_INPUT_OUTPUT({ inputText, promptText, output });
+    return this._sendRequest(prompt);
+  }
+
+  async promptArrow_Input(inputText, promptText) {
+    const prompt = this.promptTemplates.PROMPT_ARROW_INPUT({ inputText, promptText });
+    return this._sendRequest(prompt);
+  }
+
+  async promptArrow_Output(promptText, output) {
+    const prompt = this.promptTemplates.PROMPT_ARROW_OUTPUT({ promptText, output });
+    return this._sendRequest(prompt);
+  }
+
+  async promptArrow(promptText) {
+    const prompt = this.promptTemplates.PROMPT_ARROW({ promptText });
+    return this._sendRequest(prompt);
+  }
+
   async customRequest(message) {
     const prompt = this.promptTemplates.DEFAULT(message);
     return this._sendRequest(prompt);

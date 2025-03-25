@@ -35,6 +35,18 @@ export const DEFAULT_PROMPT_TEMPLATES = {
        - Ist der Eingabetext ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
        - Ist der Eingabetext ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.`, 
     
+    PROMPT_ARROW_INPUT_OUTPUT: ({ inputText, promptText, output }) => 
+      ``,
+
+    PROMPT_ARROW_INPUT: ({ inputText, promptText }) => 
+      ``,
+
+    PROMPT_ARROW_OUTPUT: ({ promptText, output }) => 
+      ``,
+
+    PROMPT_ARROW: ({ promptText }) => 
+      ``,
+
     DEFAULT: (message) => message
 };
   
