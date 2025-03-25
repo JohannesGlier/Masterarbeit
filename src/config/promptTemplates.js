@@ -1,12 +1,24 @@
 export const DEFAULT_PROMPT_TEMPLATES = {
     ARROW_ANALYSIS: ({ startText, endText, position }) => 
-      `Das Wort oder der Text soll sich auf einer Skala zwischen ${startText || "No context"} und ${endText || "No context"} befinden. 
-      Eine Zahl von 0 bedeutet genau ${startText || "No context"}, eine Zahl von 1 bedeutet genau ${endText || "No context"}. 
-      Eine Zahl von "0.7" bedeutet, dass das Wort oder der Text eher in Richtung ${endText || "No context"} tendiert, 
-      aber noch in Verbindung mit dem Wort oder Text ${startText || "No context"} steht.
-      Eine Zahl von "0.2" bedeutet, dass das Wort oder der Text eher in Richtung ${startText || "No context"} tendiert, 
-      ber noch in Verbindung mit dem Wort oder Text ${endText || "No context"} steht.
-      Gib mir genau ein passendes Wort oder einen passenden Text zurück für die Zahl ${position.toFixed(2)}`,
+      `Gegeben sind:
+       Startkonzept (S): "${startText || "No context"}"
+       Endkonzept (E): "${endText || "No context"}"
+       Positionswert (P): ${position.toFixed(2)} auf einer Skala von 0 (starke Nähe zu S) bis 1 (starke Nähe zu E).
+
+       Erzeuge ein einzelnes Wort oder eine kurze Phrase auf deutsch, die thematisch zwischen S und E vermittelt.
+       Wenn P nahe bei 0 liegt, soll der Begriff stärker mit S verbunden sein, aber noch eine Beziehung zu E haben.
+       Wenn P nahe bei 1 liegt, soll der Begriff stärker mit E verbunden sein, aber noch eine Beziehung zu S haben.
+       Werte dazwischen repräsentieren fließende Übergänge zwischen S und E.
+
+       Beispiel:
+       S = "Ernährung", E = "Fußball", P = 0.5 → Ergebnis: "Leistungssteigerung"
+       S = "Ernährung", E = "Fußball", P = 0.25 → Ergebnis: "Gewichtsmanagement"
+       S = "Ernährung", E = "Fußball", P = 0.75 → Ergebnis: "Spielvorbereitung"
+
+       Die Länge der Antwort soll sich an der Länge von S und E orientieren:  
+       - Sind S und E nur ein einzelnes Wort, soll die Antwort ebenfalls nur ein Wort sein.  
+       - Sind S und E ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
+       - Sind S und E ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.`,
   
     RELATIONSHIP_ARROW: ({ textFromTextcard, mappedArrowLength }) => 
       `Eingabetext: "${textFromTextcard}"  
