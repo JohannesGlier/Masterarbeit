@@ -144,6 +144,16 @@ const ArrowTool = ({
       }
 
       // States zurücksetzen
+      resetDrawingState();
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        resetDrawingState();
+      }
+    };
+
+    const resetDrawingState = () => {
       setSelectedTool("Pointer");
       setStartPoint(null);
       setEndPoint(null);
@@ -158,11 +168,13 @@ const ArrowTool = ({
     canvasWrapper.addEventListener("mousedown", handleMouseDown);
     canvasWrapper.addEventListener("mousemove", handleMouseMove);
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       canvasWrapper.removeEventListener("mousedown", handleMouseDown);
       canvasWrapper.removeEventListener("mousemove", handleMouseMove);
       canvasWrapper.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [
     canvasRef,
@@ -200,6 +212,11 @@ const ArrowTool = ({
             : startElement?.type === "rectangle" 
             ? startElement.heading 
             : null;
+
+        if (!startText) {
+          updateTextcardText(newTextcardId, "Fehler: Kein Eingabetext");  
+          return;
+        }
 
         // 5. Warte auf die Antwort und aktualisiere dann die Textkarte
         const response = await chatGPTService.relationshipArrow(startText, length);
@@ -254,10 +271,6 @@ const ArrowTool = ({
           backgroundColor: "white",
           padding: "2px 4px",
           borderRadius: "3px",
-          transform: `rotate(${Math.atan2(
-            endPoint.y - startPoint.y,
-            endPoint.x - startPoint.x
-          )}rad)`,
         }}
       >
         {(
