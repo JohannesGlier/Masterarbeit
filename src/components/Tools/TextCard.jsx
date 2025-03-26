@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import Handles from "@/components/Helper/Handles";
 import TextCardActionBar from "@/components/Tools/ActionBars/TextCardActionBar";
@@ -37,6 +37,19 @@ const TextCard = ({
     hoveredElement,
     isArrowDragging,
   } = useCanvas();
+
+  useEffect(() => {
+    setPosition({ x: rect.x, y: rect.y });
+    setSize({ width: rect.width, height: rect.height });
+    // Nur notwendige Properties aus rect übernehmen
+    setProperties(prev => ({ 
+      ...prev, 
+      width: rect.width,
+      height: rect.height,
+      x: rect.x,
+      y: rect.y
+    }));
+  }, [rect.x, rect.y, rect.width, rect.height]);
 
   const isSelected = useMemo(
     () => selectedElements.some((el) => el.id === rect.id),

@@ -219,6 +219,7 @@ const ArrowTool = ({
           return;
         }
 
+        console.log("Eingabe für Prompt:\n", startText);
         // 5. Warte auf die Antwort und aktualisiere dann die Textkarte
         const response = await chatGPTService.relationshipArrow(startText, length);
         updateTextcardText(newTextcardId, response.content);     

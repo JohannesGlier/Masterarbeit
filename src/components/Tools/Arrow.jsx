@@ -16,6 +16,12 @@ import {
   attachElementToArrow,
   getElementsInRectangle
 } from "@/utils/elementUtils";
+import { 
+  parseChatGPTResponse,
+  calculateGridLayout,
+  combineCards,
+  positionCardsInGrid
+} from '@/utils/Arrow/arrowHelpers';
 import ArrowHeads from "@/components/Helper/Arrow/ArrowHeads";
 import { ARROW_DEFAULTS } from "@/utils/Arrow/arrowDefaultProperties";
 import { getArrowStyles } from "@/utils/Arrow/arrowStyles";
@@ -35,6 +41,9 @@ const Arrow = ({
   canvasRef,
   addRectangle,
   addTextcard,
+  updateTextcardText,
+  handleFrameResize,
+  handleTextcardUpdate
 }) => {
   const [properties, setProperties] = useState(() => ({
     ...ARROW_DEFAULTS,
@@ -300,6 +309,7 @@ const Arrow = ({
       // ChatGPT-Aufruf nur wenn beide Texte vorhanden
       if (startText && endText) {
         try {
+          console.log("Eingabe für Prompt:\n", startText, " | ", endText);
           const response = await chatGPTService.analyzeArrow(
             startText,
             endText,
@@ -443,7 +453,8 @@ const Arrow = ({
           width: element.size.width,
           height: element.size.height
         });
-  
+        
+        /*
         const simplifiedElements = elementsInRect.map(el => ({
           type: el.type,
           position: { ...el.position },
@@ -451,38 +462,52 @@ const Arrow = ({
           ...(el.type === "textcard" && { text: el.text }),
           ...(el.type === "rectangle" && { heading: el.heading })
         }));
+        */
+
+        const simplifiedElements = elementsInRect.map(el => {
+          if (el.type === "textcard") {
+            return el.text;
+          }
+          else if (el.type === "rectangle") {
+            return el.heading;
+          }
+          return null;
+        }).filter(item => item !== null);
   
         return JSON.stringify(simplifiedElements, null, 2);
       }
       return "undefined";
     };
-  
+
     const handleOutput = async (outputElement, inputText, promptText) => {
       if (!outputElement) {
-        console.log("Prompt hat kein Ausgabefeld");
         try {
-          const response = inputText !== "undefined"
-            ? await chatGPTService.promptArrow_Input(inputText, promptText)
-            : await chatGPTService.promptArrow(promptText);
-          
+          console.log("Eingabe Prompt:", promptText);
+          console.log("Eingabe Text:", inputText);
+          const response = await getChatGPTResponse(inputText, promptText);
           console.log("ChatGPT Response:", response.content);
-          // Parse response und erstelle Frames/Textkarten
+          return;
         } catch (error) {
-          console.error("Fehler bei ChatGPT-Anfrage:", error);
+          console.error("Fehler bei der Ausgabeverarbeitung:", error);
         }
-        return;
       }
-  
-      console.log("Prompt hat ein Ausgabefeld");
+    
       try {
-        const response = inputText !== "undefined"
-          ? await chatGPTService.promptArrow_Input_Output(inputText, promptText, outputElement.type)
-          : await chatGPTService.promptArrow_Output(promptText, outputElement.type);
-        
+        console.log("Eingabe Prompt:", promptText);
+        console.log("Eingabe Text:", inputText);
+        const response = await getChatGPTResponse_Output(inputText, promptText, outputElement.type);
         console.log("ChatGPT Response:", response.content);
-        // Handle output based on outputElement.type
+
+        if (outputElement.type === "textcard") {
+          updateTextcardText(outputElement.id, response.content);
+          return;
+        }
+    
+        if (outputElement.type === "rectangle") {
+          await handleRectangleOutput(outputElement, response);
+        }
       } catch (error) {
-        console.error("Fehler bei ChatGPT-Anfrage:", error);
+        console.error("Fehler bei der Ausgabeverarbeitung:", error);
       }
     };
   
@@ -497,101 +522,64 @@ const Arrow = ({
       : elements.find(e => e.id === arrow.end?.elementId);
   
     const inputText = getInputFromElement(inputElement);
-    console.log("Prompt hat eine Eingabe:\n", inputText);
-  
+    //console.log("Prompt hat eine Eingabe:\n", inputText);
     await handleOutput(outputElement, inputText, text);
   };
 
-  /*
-  const runPromptButton = async () => {
-    // Validierungen
-    if (!text) {
-      console.log("Prompt is empty! Prompt kann nicht ausgeführt werden");
-      return;
-    }
-  
-    if (!properties.arrowHeadStart && !properties.arrowHeadEnd) {
-      console.log("Pfeil hat keine Richtung! Prompt wird nicht ausgeführt");
-      return;
-    }
-  
-    if (properties.arrowHeadStart && properties.arrowHeadEnd) {
-      console.log("Pfeil zeigt in beide Richtungen! Prompt wird nicht ausgeführt");
-      return;
-    }
-  
-    // Hilfsfunktionen
-    const getInputFromElement = (element) => {
-      if (!element) return "undefined";
-      
-      if (element.type === "textcard") {
-        return element.text;
-      } else if (element.type === "rectangle") {
-        const elementsInRect = getElementsInRectangle(elements, {
-          x: element.position.x,
-          y: element.position.y,
-          width: element.size.width,
-          height: element.size.height
-        });
-  
-        const simplifiedElements = elementsInRect.map(el => ({
-          type: el.type,
-          position: { ...el.position },
-          size: { ...el.size },
-          ...(el.type === "textcard" && { text: el.text }),
-          ...(el.type === "rectangle" && { heading: el.heading })
-        }));
-  
-        return JSON.stringify(simplifiedElements, null, 2);
-      }
-      return "undefined";
-    };
-  
-    const handleOutput = async (outputElement, inputText, promptText) => {
-      if (!outputElement) {
-        console.log("Prompt hat kein Ausgabefeld");
-        try {
-          const response = inputText !== "undefined"
-            ? await chatGPTService.promptArrow_Input(inputText, promptText)
-            : await chatGPTService.promptArrow(promptText);
-          
-          console.log("ChatGPT Response:", response.content);
-          // Parse response und erstelle Frames/Textkarten
-        } catch (error) {
-          console.error("Fehler bei ChatGPT-Anfrage:", error);
-        }
-        return;
-      }
-  
-      console.log("Prompt hat ein Ausgabefeld");
-      try {
-        const response = inputText !== "undefined"
-          ? await chatGPTService.promptArrow_Input_Output(inputText, promptText, outputElement.type)
-          : await chatGPTService.promptArrow_Output(promptText, outputElement.type);
-        
-        console.log("ChatGPT Response:", response.content);
-        // Handle output based on outputElement.type
-      } catch (error) {
-        console.error("Fehler bei ChatGPT-Anfrage:", error);
-      }
-    };
-  
-    // Hauptlogik
-    const isInputFirst = properties.arrowHeadStart && !properties.arrowHeadEnd;
-    const inputElement = isInputFirst 
-      ? elements.find(e => e.id === arrow.end?.elementId)
-      : elements.find(e => e.id === arrow.start?.elementId);
-  
-    const outputElement = isInputFirst
-      ? elements.find(e => e.id === arrow.start?.elementId)
-      : elements.find(e => e.id === arrow.end?.elementId);
-  
-    const inputText = getInputFromElement(inputElement);
-    console.log("Prompt hat eine Eingabe:\n", inputText);
-  
-    await handleOutput(outputElement, inputText, text);
+  const getChatGPTResponse = async (inputText, promptText) => {
+    return inputText !== "undefined"
+        ? await chatGPTService.promptArrow_Input(inputText, promptText)
+        : await chatGPTService.promptArrow(promptText);
   };
-  */
+
+  const getChatGPTResponse_Output = async (inputText, promptText, outputType) => {
+    return inputText !== "undefined"
+      ? await chatGPTService.promptArrow_Input_Output(inputText, promptText, outputType)
+      : await chatGPTService.promptArrow_Output(promptText, outputType);
+  };
+
+  const handleRectangleOutput = async (outputElement, response) => {
+    try {
+      const cardsData = parseChatGPTResponse(response.content);
+      const cardSize = { width: 100, height: 100 };
+      const padding = 20;
+
+      const existingCards = getElementsInRectangle(elements, {
+        x: outputElement.position.x,
+        y: outputElement.position.y,
+        width: outputElement.size.width,
+        height: outputElement.size.height
+      }).filter(el => el.type === "textcard");
+
+      const allCards = combineCards(existingCards, cardsData);
+      const grid = calculateGridLayout(allCards.length, cardSize.width, cardSize.height, padding);
+
+      positionCardsInGrid(
+        allCards,
+        grid,
+        outputElement,
+        cardSize,
+        padding,
+        {
+          updatePosition: handleTextcardUpdate,
+          addCard: addTextcard
+        }
+      );
+
+      handleFrameResize(outputElement.id, { 
+        width: grid.requiredWidth, 
+        height: grid.requiredHeight 
+      }, { 
+        x: outputElement.position.x, 
+        y: outputElement.position.y 
+      });
+
+    } catch (error) {
+      console.error("Fehler bei der Rechteck-Verarbeitung:", error);
+      // Optional: Fallback-Logik hier einfügen
+    }
+  };
+
 
   return (
     <>

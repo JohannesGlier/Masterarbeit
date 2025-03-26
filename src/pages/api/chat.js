@@ -13,6 +13,8 @@ export default async function handler(req, res) {
   try {
     const { message, promptType = 'DEFAULT' } = req.body;
 
+    console.log('Received request:', { message, promptType });
+
     const messages = [
       { role: 'system', content: SYSTEM_PROMPTS[promptType] || SYSTEM_PROMPTS.DEFAULT },
       { role: 'user', content: message },
@@ -20,8 +22,8 @@ export default async function handler(req, res) {
     
     const completion = await openai.chat.completions.create({
       messages,
-      model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
-      max_tokens: 100,        // Maximale Anzahl von Tokens in der Antwort
+      model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',   // gpt-4o-mini-2024-07-18
+      max_tokens: 1000,       // Maximale Anzahl von Tokens in der Antwort
       temperature: 0.7,       // Kreativität der Antwort (0 = deterministisch, 1 = kreativ)
       top_p: 1,               // Sampling-Methode (Alternative zu temperature)
       n: 1,                   // Anzahl der generierten Antworten
@@ -30,10 +32,19 @@ export default async function handler(req, res) {
       frequency_penalty: 0,   // Bestraft Wiederholungen (positiver Wert = weniger Wiederholungen)
     });
 
+    console.log('OpenAI response:', completion);
+
     res.status(200).json(completion.choices[0].message);
     
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    res.status(500).json({ error: 'Error processing your request' });
+    console.error('Detailed OpenAI API error:', {
+      error: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    });
+    res.status(500).json({ 
+        error: 'Error processing your request',
+        details: error.message 
+    });
   }
 }

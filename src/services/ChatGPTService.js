@@ -6,14 +6,17 @@ export class ChatGPTService {
     this.apiEndpoint = '/api/chat';
   }
 
-  async _sendRequest(prompt) {
+  async _sendRequest({ message, promptType = 'DEFAULT' }) {
     try {
       const response = await fetch(this.apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: prompt }),
+        body: JSON.stringify({ 
+          message, 
+          promptType  // Sende den promptType mit
+        }),
       });
 
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -31,36 +34,75 @@ export class ChatGPTService {
       endText,
       position
     });
-    return this._sendRequest(prompt);
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'DEFAULT'
+    });
   }
 
   async relationshipArrow(textFromTextcard, mappedArrowLength) {
     const prompt = this.promptTemplates.RELATIONSHIP_ARROW({ textFromTextcard, mappedArrowLength });
-    return this._sendRequest(prompt);
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'DEFAULT'
+    });
   }
 
   async promptArrow_Input_Output(inputText, promptText, output) {
-    const prompt = this.promptTemplates.PROMPT_ARROW_INPUT_OUTPUT({ inputText, promptText, output });
-    return this._sendRequest(prompt);
+    if(output === "textcard"){
+      const prompt = this.promptTemplates.PROMPT_ARROW_TEXTCARD_INPUT({ inputText, promptText });
+      return this._sendRequest({
+        message: prompt,
+        promptType: 'PROMPT_ARROW_TEXTCARD_INPUT'
+      });
+    }
+    else{
+      const prompt = this.promptTemplates.PROMPT_ARROW_INPUT({ inputText, promptText });
+      return this._sendRequest({
+        message: prompt,
+        promptType: 'PROMPT_ARROW_INPUT'
+      });
+    }
+  }
+
+  async promptArrow_Output(promptText, output) {
+    if(output === "textcard"){
+      const prompt = this.promptTemplates.PROMPT_ARROW_TEXTCARD({ promptText });
+      return this._sendRequest({
+        message: prompt,
+        promptType: 'PROMPT_ARROW_TEXTCARD'
+      });
+    }
+    else{
+      const prompt = this.promptTemplates.PROMPT_ARROW({ promptText });
+      return this._sendRequest({
+        message: prompt,
+        promptType: 'PROMPT_ARROW'
+      });
+    }
   }
 
   async promptArrow_Input(inputText, promptText) {
     const prompt = this.promptTemplates.PROMPT_ARROW_INPUT({ inputText, promptText });
-    return this._sendRequest(prompt);
-  }
-
-  async promptArrow_Output(promptText, output) {
-    const prompt = this.promptTemplates.PROMPT_ARROW_OUTPUT({ promptText, output });
-    return this._sendRequest(prompt);
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'PROMPT_ARROW_INPUT'  // Füge den promptType hinzu (System Prompt)
+    });
   }
 
   async promptArrow(promptText) {
     const prompt = this.promptTemplates.PROMPT_ARROW({ promptText });
-    return this._sendRequest(prompt);
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'PROMPT_ARROW'  // Füge den promptType hinzu (System Prompt)
+    });
   }
 
   async customRequest(message) {
     const prompt = this.promptTemplates.DEFAULT(message);
-    return this._sendRequest(prompt);
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'DEFAULT'
+    });
   }
 }

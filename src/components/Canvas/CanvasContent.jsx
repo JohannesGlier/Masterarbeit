@@ -339,6 +339,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasRef={canvasRef}
           addRectangle={addRectangle}
           addTextcard={addTextcards}
+          updateTextcardText={updateTextCardText}
+          handleFrameResize={handleFrameResize}
+          handleTextcardUpdate={handleTextcardUpdate}
         />
       ))}
     </div>

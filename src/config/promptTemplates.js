@@ -35,17 +35,29 @@ export const DEFAULT_PROMPT_TEMPLATES = {
        - Ist der Eingabetext ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
        - Ist der Eingabetext ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.`, 
     
-    PROMPT_ARROW_INPUT_OUTPUT: ({ inputText, promptText, output }) => 
-      ``,
+    PROMPT_ARROW_TEXTCARD_INPUT: ({ inputText, promptText }) => 
+      `Kontext: "${inputText}".
+       User Prompt: "${promptText}". 
+       Wende den User Prompt auf den Kontext an.
+       Gib die Ergebnisse als reinen Text zurück und nicht in einem Json-Objekt!
+       Die Antwort darf ausschließlich den generierten Text enthalten.`,
+
+    PROMPT_ARROW_TEXTCARD: ({ promptText }) => 
+      `User Prompt: "${promptText}". 
+       Gib die Ergebnisse als reinen Text zurück.
+       Die Antwort darf ausschließlich den generierten Text enthalten.`,
 
     PROMPT_ARROW_INPUT: ({ inputText, promptText }) => 
-      ``,
-
-    PROMPT_ARROW_OUTPUT: ({ promptText, output }) => 
-      ``,
+      `Kontext: "${inputText}".
+       User Prompt: "${promptText}". 
+       Wende den User Prompt auf den Kontext an.
+       Gib die Ergebnisse als JSON zurück.
+       Die Antwort darf ausschließlich das JSON-Objekt enthalten.`,
 
     PROMPT_ARROW: ({ promptText }) => 
-      ``,
+      `User Prompt: "${promptText}". 
+       Gib die Ergebnisse als JSON zurück.
+       Die Antwort darf ausschließlich das JSON-Objekt enthalten.`,
 
     DEFAULT: (message) => message
 };
