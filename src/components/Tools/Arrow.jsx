@@ -479,13 +479,37 @@ const Arrow = ({
       return "undefined";
     };
 
-    const handleOutput = async (outputElement, inputText, promptText) => {
+    const handleOutput = async (outputElement, inputText, promptText, outputText) => {
       if (!outputElement) {
         try {
+          console.log("Kein Output Element");
           console.log("Eingabe Prompt:", promptText);
           console.log("Eingabe Text:", inputText);
           const response = await getChatGPTResponse(inputText, promptText);
+
+          const attachPosition = properties.arrowHeadStart ? "start" : "end";
+
+          const newRect = attachElementToArrow(attachPosition, arrow, "Frame");
+          const newFrameId = addRectangle({
+            x: newRect.x,
+            y: newRect.y,
+            width: newRect.width,
+            height: newRect.height,
+          });
+
+          updateArrowPosition(
+            arrow.id,
+            { elementId: newFrameId, anchor: newRect.anchor },
+            attachPosition
+          );
           console.log("ChatGPT Response:", response.content);
+          const myRect = {
+            id: newFrameId,
+            position: { x: newRect.x, y: newRect.y },
+            size: { width: newRect.width, height: newRect.height },
+            type: "rectangle"
+          };
+          await handleRectangleOutput(myRect, response);
           return;
         } catch (error) {
           console.error("Fehler bei der Ausgabeverarbeitung:", error);
@@ -495,7 +519,7 @@ const Arrow = ({
       try {
         console.log("Eingabe Prompt:", promptText);
         console.log("Eingabe Text:", inputText);
-        const response = await getChatGPTResponse_Output(inputText, promptText, outputElement.type);
+        const response = await getChatGPTResponse_Output(inputText, promptText, outputElement.type, outputText);
         console.log("ChatGPT Response:", response.content);
 
         if (outputElement.type === "textcard") {
@@ -522,20 +546,23 @@ const Arrow = ({
       : elements.find(e => e.id === arrow.end?.elementId);
   
     const inputText = getInputFromElement(inputElement);
-    //console.log("Prompt hat eine Eingabe:\n", inputText);
-    await handleOutput(outputElement, inputText, text);
+    const outputText = getInputFromElement(outputElement);
+
+    await handleOutput(outputElement, inputText, text, outputText);
   };
 
-  const getChatGPTResponse = async (inputText, promptText) => {
-    return inputText !== "undefined"
-        ? await chatGPTService.promptArrow_Input(inputText, promptText)
-        : await chatGPTService.promptArrow(promptText);
+  const getChatGPTResponse = async (inputText, promptText, outputText) => {
+    const input = inputText !== "undefined" ? inputText : outputText;
+    return input
+      ? chatGPTService.promptArrow_Input(input, promptText)
+      : chatGPTService.promptArrow(promptText);
   };
 
-  const getChatGPTResponse_Output = async (inputText, promptText, outputType) => {
-    return inputText !== "undefined"
-      ? await chatGPTService.promptArrow_Input_Output(inputText, promptText, outputType)
-      : await chatGPTService.promptArrow_Output(promptText, outputType);
+  const getChatGPTResponse_Output = async (inputText, promptText, outputType, outputText) => {
+    const input = inputText !== "undefined" ? inputText : outputText;
+    return input
+      ? chatGPTService.promptArrow_Input_Output(input, promptText, outputType)
+      : chatGPTService.promptArrow_Output(promptText, outputType);
   };
 
   const handleRectangleOutput = async (outputElement, response) => {
@@ -576,7 +603,7 @@ const Arrow = ({
 
     } catch (error) {
       console.error("Fehler bei der Rechteck-Verarbeitung:", error);
-      // Optional: Fallback-Logik hier einfügen
+      return;
     }
   };
 

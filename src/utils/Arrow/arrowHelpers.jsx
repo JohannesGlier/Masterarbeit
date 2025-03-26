@@ -1,13 +1,41 @@
 // Hilfsfunktion zum Parsen der ChatGPT-Antwort
 export const parseChatGPTResponse = (response) => {
   try {
-    const data = JSON.parse(response);
+    // Check if response is null or undefined
+    if (response == null) {
+      throw new Error("Antwort ist null oder undefined");
+    }
+
+    // Trim and check for empty string
+    const trimmedResponse = response.trim();
+    if (trimmedResponse === "") {
+      throw new Error("Antwort ist ein leerer String");
+    }
+
+    // Parse JSON
+    const data = JSON.parse(trimmedResponse);
+
+    // Check if parsed data is null
+    if (data === null) {
+      throw new Error("Antwort ist null");
+    }
+
+    // Check if it's an array
     if (!Array.isArray(data)) {
       throw new Error("Antwort ist kein Array");
     }
+
+    // Check for empty array
+    if (data.length === 0) {
+      throw new Error("Antwort ist ein leeres Array");
+    }
+
     return data;
   } catch (error) {
-    console.error("Fehler beim Parsen der Antwort:", error);
+    console.error("Fehler beim Parsen der Antwort:", {
+      error: error.message,
+      originalResponse: response
+    });
     throw error;
   }
 };

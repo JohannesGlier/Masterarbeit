@@ -69,20 +69,42 @@ export const getElementsInRectangle = (elements, rectangle) => {
 
 export const attachElementToArrow = (point, arrow, element) => {
   const arrowPoint = point === "start" ? arrow.start : arrow.end;
+  const otherPoint = point === "start" ? arrow.end : arrow.start;
 
   const rectWidth = 100; // Breite des Rechtecks
   const rectHeight = 100; // Höhe des Rechtecks
 
+  // Berechne die Richtung des Pfeils
+  const dx = otherPoint.x - arrowPoint.x;
+  const dy = otherPoint.y - arrowPoint.y;
+  const angle = Math.atan2(dy, dx); // Winkel in Radianten
+
   let rectX, rectY, anchor;
 
-  if (point === "start") {
+  // Bestimme die Hauptrichtung (rechts/links/oben/unten)
+  if (Math.abs(angle) < Math.PI/4) {
+    // Pfeil zeigt hauptsächlich nach rechts
     rectX = arrowPoint.x - rectWidth;
-    rectY = arrowPoint.y - rectHeight / 2;
-    anchor = "right"; // Rechte Seite des Rechtecks anschließen
-  } else if (point === "end") {
+    rectY = arrowPoint.y - rectHeight/2;
+    anchor = "right";
+  } 
+  else if (Math.abs(angle) > 3*Math.PI/4) {
+    // Pfeil zeigt hauptsächlich nach links
     rectX = arrowPoint.x;
-    rectY = arrowPoint.y - rectHeight / 2;
-    anchor = "left"; // Linke Seite des Rechtecks anschließen
+    rectY = arrowPoint.y - rectHeight/2;
+    anchor = "left";
+  } 
+  else if (angle > Math.PI/4 && angle < 3*Math.PI/4) {
+    // Pfeil zeigt hauptsächlich nach unten
+    rectX = arrowPoint.x - rectWidth/2;
+    rectY = arrowPoint.y - rectHeight;
+    anchor = "bottom";
+  } 
+  else {
+    // Pfeil zeigt hauptsächlich nach oben
+    rectX = arrowPoint.x - rectWidth/2;
+    rectY = arrowPoint.y;
+    anchor = "top";
   }
 
   return {
