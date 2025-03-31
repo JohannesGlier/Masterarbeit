@@ -6,6 +6,7 @@ import { BiSolidPointer } from "react-icons/bi";
 import { CgArrowLongUp } from "react-icons/cg";
 import { MdOutlineRectangle } from "react-icons/md";
 import { RiTextBlock } from "react-icons/ri";
+import { FiScissors } from "react-icons/fi";
 
 const CanvasToolbar = () => {
     const { selectedTool, setSelectedTool } = useCanvas();
@@ -35,6 +36,12 @@ const CanvasToolbar = () => {
           onClick={() => setSelectedTool('Arrow')}
         >
           <CgArrowLongUp style={{ transform: 'rotate(45deg)' }} />
+        </button>
+        <button
+          className={`${styles['button']} ${selectedTool === 'Scissor' ? styles.selectedButton : ''}`} 
+          onClick={() => setSelectedTool('Scissor')}
+        >
+          <FiScissors />
         </button>
       </div>
     );

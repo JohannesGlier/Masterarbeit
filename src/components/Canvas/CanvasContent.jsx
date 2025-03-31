@@ -4,6 +4,7 @@ import FrameTool from "@/components/Tools/PreviewTools/FrameTool";
 import ArrowTool from "@/components/Tools/PreviewTools/ArrowTool";
 import TextCardTool from "@/components/Tools/PreviewTools/TextCardTool";
 import PointerTool from "@/components/Tools/PreviewTools/PointerTool";
+import ScissorTool from "@/components/Tools/PreviewTools/ScissorTool";
 import TextCard from "@/components/Tools/TextCard";
 import Frame from "@/components/Tools/Frame";
 import Arrow from "@/components/Tools/Arrow";
@@ -293,6 +294,14 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           addTextcard={addTextcards}
           updateArrowPosition={updateArrowPosition}
           updateTextcardText={updateTextCardText}
+        />
+      )}
+      {selectedTool === "Scissor" && (
+        <ScissorTool
+          canvasRef={canvasRef}
+          canvasWrapperRef={canvasWrapperRef}
+          elements={elements}
+          addTextcard={addTextcards}
         />
       )}
 

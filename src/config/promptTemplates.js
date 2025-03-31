@@ -82,7 +82,10 @@ export const DEFAULT_PROMPT_TEMPLATES = {
       Die Antwort darf ausschließlich den generierten Text enthalten ohne Anführungszeichen.`,
 
     SUMMARIZE: ({ text }) => 
-      `Eingabe: "${text}"`,
+      `Eingabetext: "${text}"`,
+
+    SPLIT: ({ text }) => 
+      `Eingabetext: "${text}"`,
 
     DEFAULT: (message) => message
 };
