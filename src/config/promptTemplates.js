@@ -15,6 +15,8 @@ export const DEFAULT_PROMPT_TEMPLATES = {
        S = "Ernährung", E = "Fußball", P = 0.25 → Ergebnis: "Gewichtsmanagement"
        S = "Ernährung", E = "Fußball", P = 0.75 → Ergebnis: "Spielvorbereitung"
 
+       Wichtig: Gebe nur das Ergebnis zurück als reinen Text ohne Anführungszeichen und ohne "Ergebnis:".
+
        Die Länge der Antwort soll sich an der Länge von S und E orientieren:  
        - Sind S und E nur ein einzelnes Wort, soll die Antwort ebenfalls nur ein Wort sein.  
        - Sind S und E ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
@@ -58,6 +60,29 @@ export const DEFAULT_PROMPT_TEMPLATES = {
       `User Prompt: "${promptText}". 
        Gib die Ergebnisse als JSON zurück.
        Die Antwort darf ausschließlich das JSON-Objekt enthalten.`,
+
+    COMBINE_TEXTCARDS: ({ text1, text2 }) => 
+    `Gegeben sind:
+      Textkarte 1 (T1): "${text1 || "No context"}"
+      Textkarte 2 (T2): "${text2 || "No context"}"
+
+      Erstelle eine originelle Idee, ein Wortspiel, eine Metapher oder ein innovatives Konzept, das beide Begriffe, Phrasen oder Texte (T1 & T2) vereint.
+
+      Beispiel:
+      T1 = "Brettspiel"
+      T2 = "Fussball"
+      Ergebnis = "Kicker"
+
+      Die Länge der Antwort soll sich an der Länge von T1 und T2 orientieren:  
+      - Sind T1 und T2 nur einzelne Wörter, soll die Antwort ebenfalls nur ein Wort sein.  
+      - Sind T1 und T2 ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
+      - Sind T1 und T2 ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.
+      
+      Gib das Ergebnis als reinen Text zurück.
+      Die Antwort darf ausschließlich den generierten Text enthalten ohne Anführungszeichen.`,
+
+    SUMMARIZE: ({ text }) => 
+      `Eingabe: "${text}"`,
 
     DEFAULT: (message) => message
 };

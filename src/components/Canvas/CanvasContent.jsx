@@ -265,6 +265,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
           elements={elements}
+          addTextcard={addTextcards}
         />
       )}
       {selectedTool === "Frame" && (
@@ -323,6 +324,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           onUpdate={handleTextcardUpdate}
           onResize={handleTextcardResize}
           onStartArrowFromFrame={handleStartArrowFromFrame}
+          elements={elements}
+          addTextcard={addTextcards}
         />
       ))}
 

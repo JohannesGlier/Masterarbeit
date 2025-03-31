@@ -8,6 +8,8 @@ import { TEXTCARD_DEFAULTS } from "@/utils/Textcard/textcardDefaultProperties";
 import { getTextcardStyles } from "@/utils/Textcard/textcardStyles";
 import { getPointerEvents } from "@/utils/pointerEventUtils";
 import TextCardContent from "@/components/Helper/Textcard/TextCardContent";
+import { getElementsInRectangle } from "@/utils/elementUtils";
+import { ChatGPTService } from "@/services/ChatGPTService";
 
 const TextCard = ({
   rect,
@@ -18,6 +20,8 @@ const TextCard = ({
   onResize,
   onStartArrowFromFrame,
   onTextChange,
+  elements,
+  addTextcard,
 }) => {
   const [properties, setProperties] = useState(() => ({
     ...TEXTCARD_DEFAULTS,
@@ -27,6 +31,7 @@ const TextCard = ({
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
   const [isDragging, setIsDragging] = useState(false);
+  const chatGPTService = new ChatGPTService();
 
   const {
     selectedTool,
@@ -93,6 +98,53 @@ const TextCard = ({
     onTextChange(newText);
   };
 
+  const handleDragEnd = useCallback(() => {
+    const currentRect = {
+      x: position.x,
+      y: position.y,
+      width: size.width,
+      height: size.height
+    };
+  
+    const elementsInside = getElementsInRectangle(elements, currentRect);
+    const textCardsInside = elementsInside.filter(
+      element => element.type === 'textcard' && element.id !== rect.id // Aktuelle Karte ausschließen
+    );
+  
+    // 4. Textkarte mit höchstem zIndex finden
+    if (textCardsInside.length > 0) {
+      const topTextCard = textCardsInside.reduce((prev, current) => 
+        (prev.zIndex > current.zIndex) ? prev : current
+      );
+      if(topTextCard.text && textcardText){
+        CreateNewTextcard(topTextCard.text);
+      }
+    } else {
+      console.log('Keine andere Textkarte gefunden');
+    }
+  }, [position, size, elements, rect.id]);
+
+  const CreateNewTextcard = async (text) => {
+    try {
+      console.log("Eingabe für Prompt:\n", textcardText, " | ", text);
+      const response = await chatGPTService.combineTextcards(textcardText, text);
+      console.log("ChatGPT Response:", response.content);
+
+      const newTextcard = {
+        x: position.x + 30, // Gleiche X-Position
+        y: position.y + 30, // Gleiche Y-Position
+        width: size.width, // Gleiche Breite
+        height: size.height, // Gleiche Höhe
+        text: response.content // Text von ChatGPT
+      };
+
+      addTextcard(newTextcard);
+
+    } catch (error) {
+      console.error("Fehler bei ChatGPT-Anfrage:", error);
+    }
+  }
+
   const { startDragging } = useDrag(
     position,
     scaleRef,
@@ -100,7 +152,8 @@ const TextCard = ({
       setPosition(newPos);
       onUpdate(rect.id, newPos.x, newPos.y);
     },
-    setIsDragging
+    setIsDragging,
+    handleDragEnd
   );
 
   const { startResizing, isResizing } = useResize(

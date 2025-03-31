@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import { isElementInRectangle } from "@/utils/elementUtils";
+import { ChatGPTService } from "@/services/ChatGPTService";
 
-const PointerTool = ({ canvasRef, canvasWrapperRef, elements }) => {
+const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => {
   const {
     offsetRef,
     scaleRef,
@@ -12,6 +13,40 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements }) => {
     selectedElements,
   } = useCanvas();
   const [tempRectangle, setTempRectangle] = useState(null);
+  const chatGPTService = new ChatGPTService();
+
+  const CreateSummaryTextcard = async () => {
+    try {
+      if(selectedElements.length > 0){
+        const simplifiedElements = selectedElements.map(el => {
+          if (el.type === "textcard") {
+            return el.text;
+          }
+          else if (el.type === "rectangle") {
+            return el.heading;
+          }
+          return null;
+        }).filter(item => item !== null);
+
+        const text = JSON.stringify(simplifiedElements, null, 2);
+        console.log("Eingabe als Prompt:", text);
+        const response = await chatGPTService.getSummary(text);
+        console.log("ChatGPT Response:", response.content);
+
+        const newTextcard = {
+          x: tempRectangle.x + tempRectangle.width + 20,
+          y: tempRectangle.y + tempRectangle.height + 20,
+          width: 200,
+          height: 150,
+          text: response.content
+        };
+
+        addTextcard(newTextcard);
+      }
+    } catch (error) {
+      console.error("Fehler bei ChatGPT-Anfrage:", error);
+    }
+  }
 
   // Mouse event handling for drawing
   useEffect(() => {
@@ -73,6 +108,7 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements }) => {
           "Aktion: Rechteck über Elemente ziehen\n",
           selectedElements
         );
+        CreateSummaryTextcard();
       }
 
       /**

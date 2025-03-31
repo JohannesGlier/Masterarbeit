@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect } from "react";
 
-const useDrag = (initialPosition, scaleRef, onUpdate, setIsDraggingState) => {
+const useDrag = (initialPosition, scaleRef, onUpdate, setIsDraggingState, onDragEnd) => {
   const isDragging = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
   const lastUpdate = useRef(Date.now());
@@ -22,12 +22,16 @@ const useDrag = (initialPosition, scaleRef, onUpdate, setIsDraggingState) => {
   );
 
   const handleMouseUp = useCallback((e) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0|| !isDragging.current) return;
     setIsDraggingState(false);
     isDragging.current = false;
     document.body.style.userSelect = "";
     document.body.style.pointerEvents = "";
-  }, []);
+
+    if (onDragEnd) {
+      onDragEnd();
+    }
+  }, [onDragEnd]);
 
   const startDragging = useCallback((e) => {
       e.preventDefault();

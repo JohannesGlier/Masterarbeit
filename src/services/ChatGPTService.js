@@ -98,6 +98,22 @@ export class ChatGPTService {
     });
   }
 
+  async combineTextcards(text1, text2) {
+    const prompt = this.promptTemplates.COMBINE_TEXTCARDS({text1, text2});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'COMBINE_TEXTCARDS' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
+  async getSummary(text) {
+    const prompt = this.promptTemplates.SUMMARIZE({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'SUMMARIZE' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
   async customRequest(message) {
     const prompt = this.promptTemplates.DEFAULT(message);
     return this._sendRequest({

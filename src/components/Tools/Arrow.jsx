@@ -316,6 +316,15 @@ const Arrow = ({
             t
           );
           console.log("ChatGPT Response:", response.content);
+          const newTextcard = {
+            x: clickX - 50,
+            y: clickY + 30,
+            width: 100,
+            height: 50,
+            text: response.content
+          };
+    
+          addTextcard(newTextcard);
         } catch (error) {
           console.error("Fehler bei ChatGPT-Anfrage:", error);
         }
