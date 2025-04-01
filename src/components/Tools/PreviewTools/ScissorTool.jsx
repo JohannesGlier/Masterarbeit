@@ -17,7 +17,7 @@ const ScissorTool = ({
     default: 'crosshair',   
     scissor: 'url("/cursors/Scissor_64_64.png") 16 16, auto',
     cut: 'url("/cursors/Scissor_Cut_64_64.png") 16 16, auto',
-    not_allowed: 'url("/cursors/NotAllowed.png") 16 16, auto',
+    not_allowed: 'not-allowed',
   };
 
   const forceCursor = (style) => {

@@ -23,12 +23,14 @@ export const DEFAULT_PROMPT_TEMPLATES = {
        - Sind S und E ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.`,
   
     RELATIONSHIP_ARROW: ({ textFromTextcard, mappedArrowLength }) => 
-      `Eingabetext: "${textFromTextcard}"  
-       Verwandtschaftswert: ${mappedArrowLength} (0 = sehr nah verwandt, 1 = weit entfernt verwandt)  
-       
-       Erstelle ausschließlich einen neuen Text auf Deutsch, der den Eingabetext fortführt und weiterdenkt.  
-       Je niedriger der Verwandtschaftswert, desto enger soll der neue Text thematisch mit dem Eingabetext verknüpft sein.  
-       Je höher der Verwandtschaftswert, desto weiter darf der neue Text thematisch vom Eingabetext abweichen.  
+      `Erstelle ein Konzept, eine Idee, einen Fakt oder einen Gedanken basierend auf folgendem Eingabetext und Verwandtschaftswert:
+        Eingabetext: ${textFromTextcard}
+        Verwandtschaftswert: ${mappedArrowLength} (0 = sehr nah verwandt, 1 = weit entfernt verwandt)  
+
+        Denke dabei an folgende Regeln:
+        Wenn der Verwandtschaftswert nahe 0 ist, bleibe eng beim Thema.
+        Wenn der Wert sich 1 nähert, denke weiter entfernt.
+        Antworte prägnant und ohne lange Erklärungen, maximal in Stichpunkten oder kurzen Phrasen auf deutsch.
        
        Die Antwort darf ausschließlich den generierten Text enthalten – keine Einleitungen, Überschriften oder Erklärungen.  
        
@@ -86,6 +88,22 @@ export const DEFAULT_PROMPT_TEMPLATES = {
 
     SPLIT: ({ text }) => 
       `Eingabetext: "${text}"`,
+
+    NEIGHBOR_BASED_TEXTCARD: ({ text, mousePosX, mousePosY }) => 
+    `Gegeben sind:
+    Kontext (Textkarten mit Positionen): ${text || "No context"}
+    Position der neuen Textkarte (E): x: ${mousePosX}, y: ${mousePosY}
+
+    Generiere eine neue Textkarte an der Position (${mousePosX}, ${mousePosY}).
+    Der Textinhalt der neuen Karte soll thematisch zu den bestehenden Textkarten passen.
+    Die Position der neuen Karte beeinflusst den Inhalt:
+    - Nah an einer bestehenden Karte → direkte Ergänzung oder Vertiefung des Themas.
+    - Zwischen zwei Karten → eine Verbindung zwischen den Themen herstellen.
+    - Weit entfernt von anderen Karten → neuer Gedanke innerhalb des Kontexts.
+    - Falls eine benachbarte Karte keinen Text hat, kann die neue Karte eine Hypothese oder eine sinnvolle Fortsetzung sein.
+    
+    Gib die Ergebnisse als reinen Text zurück und nicht in einem Json-Objekt!
+    Die Antwort darf ausschließlich den generierten Text enthalten ohne Anführungszeichen.`,
 
     DEFAULT: (message) => message
 };

@@ -7,6 +7,7 @@ import { CgArrowLongUp } from "react-icons/cg";
 import { MdOutlineRectangle } from "react-icons/md";
 import { RiTextBlock } from "react-icons/ri";
 import { FiScissors } from "react-icons/fi";
+import { LuSquareMousePointer } from "react-icons/lu";
 
 const CanvasToolbar = () => {
     const { selectedTool, setSelectedTool } = useCanvas();
@@ -42,6 +43,12 @@ const CanvasToolbar = () => {
           onClick={() => setSelectedTool('Scissor')}
         >
           <FiScissors />
+        </button>
+        <button
+          className={`${styles['button']} ${selectedTool === 'AITextcard' ? styles.selectedButton : ''}`} 
+          onClick={() => setSelectedTool('AITextcard')}
+        >
+          <LuSquareMousePointer />
         </button>
       </div>
     );

@@ -36,7 +36,7 @@ export class ChatGPTService {
     });
     return this._sendRequest({
       message: prompt,
-      promptType: 'DEFAULT'
+      promptType: 'ARROW_ANALYSIS'
     });
   }
 
@@ -44,7 +44,7 @@ export class ChatGPTService {
     const prompt = this.promptTemplates.RELATIONSHIP_ARROW({ textFromTextcard, mappedArrowLength });
     return this._sendRequest({
       message: prompt,
-      promptType: 'DEFAULT'
+      promptType: 'RELATIONSHIP_ARROW'
     });
   }
 
@@ -119,6 +119,14 @@ export class ChatGPTService {
     return this._sendRequest({
       message: prompt,
       promptType: 'SPLIT' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
+  async neighborbasedTextcard(text, mousePosX, mousePosY) {
+    const prompt = this.promptTemplates.NEIGHBOR_BASED_TEXTCARD({text, mousePosX, mousePosY});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'NEIGHBOR_BASED_TEXTCARD' // Füge den promptType hinzu (System Prompt)
     });
   }
 
