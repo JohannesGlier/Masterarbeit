@@ -4,7 +4,7 @@ export const TEXTCARD_DEFAULTS = {
   borderWidth: 0,
   font: "Arial",
   fontStyles: { bold: false, italic: false, underline: false },
-  textSize: 20,
+  textSize: 30,
   textColor: "#000000",
-  textAlign: "left",
+  textAlign: "center",
 };

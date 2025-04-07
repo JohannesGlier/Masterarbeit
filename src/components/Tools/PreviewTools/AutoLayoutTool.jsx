@@ -46,7 +46,10 @@ const AutoLayoutTool = ({
         console.log("Content to parse (trimmed):", `'${contentString.trim()}'`);
 
         try {
-          const parsedResponse = JSON.parse(contentString.trim());
+          const cleanedString = contentString.replace(/\u00A0/g, ' ').trim(); // \u00A0 ist der Unicode für non-breaking space
+          console.log("Cleaned Content to parse:", `'${cleanedString}'`); 
+
+          const parsedResponse = JSON.parse(cleanedString);
           console.log("Parsed ChatGPT Response:", parsedResponse);
           if (parsedResponse && Array.isArray(parsedResponse)) {
             console.log("Calling applyAILayout...");

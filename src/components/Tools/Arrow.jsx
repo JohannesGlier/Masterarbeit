@@ -577,7 +577,7 @@ const Arrow = ({
   const handleRectangleOutput = async (outputElement, response) => {
     try {
       const cardsData = parseChatGPTResponse(response.content);
-      const cardSize = { width: 100, height: 100 };
+      const cardSize = { width: 200, height: 75 };
       const padding = 20;
 
       const existingCards = getElementsInRectangle(elements, {

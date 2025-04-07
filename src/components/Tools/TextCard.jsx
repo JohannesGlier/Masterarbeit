@@ -254,6 +254,8 @@ const TextCard = ({
           font={properties.font}
           textSize={properties.textSize}
           fontStyles={properties.fontStyles}
+          containerSize={size}
+          scale={scaleRef.current}
         />
         {showActionBar && (
           <Handles
