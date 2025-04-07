@@ -130,6 +130,14 @@ export class ChatGPTService {
     });
   }
 
+  async autoLayout(text) {
+    const prompt = this.promptTemplates.AUTO_LAYOUT({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'AUTO_LAYOUT' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
   async customRequest(message) {
     const prompt = this.promptTemplates.DEFAULT(message);
     return this._sendRequest({

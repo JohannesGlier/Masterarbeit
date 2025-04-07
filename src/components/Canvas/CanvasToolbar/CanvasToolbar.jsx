@@ -8,6 +8,7 @@ import { MdOutlineRectangle } from "react-icons/md";
 import { RiTextBlock } from "react-icons/ri";
 import { FiScissors } from "react-icons/fi";
 import { LuSquareMousePointer } from "react-icons/lu";
+import { LuLayoutDashboard } from "react-icons/lu";
 
 const CanvasToolbar = () => {
     const { selectedTool, setSelectedTool } = useCanvas();
@@ -49,6 +50,12 @@ const CanvasToolbar = () => {
           onClick={() => setSelectedTool('AITextcard')}
         >
           <LuSquareMousePointer />
+        </button>
+        <button
+          className={`${styles['button']} ${selectedTool === 'AutoLayout' ? styles.selectedButton : ''}`} 
+          onClick={() => setSelectedTool('AutoLayout')}
+        >
+          <LuLayoutDashboard />
         </button>
       </div>
     );

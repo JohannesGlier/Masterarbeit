@@ -11,6 +11,7 @@ import { getPointerEvents } from "@/utils/pointerEventUtils";
 
 const Frame = ({
   rect,
+  headingText,
   scaleRef,
   offsetRef,
   onUpdate,
@@ -22,7 +23,6 @@ const Frame = ({
     ...FRAME_DEFAULTS,
     ...rect,
   }));
-  const [heading, setHeading] = useState("");
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
   const [isDragging, setIsDragging] = useState(false);
@@ -88,7 +88,6 @@ const Frame = ({
 
   const handleHeadingChange = (e) => {
     const newText = e;
-    setHeading(newText);
     onHeadingChange(newText);
   };
 
@@ -183,7 +182,7 @@ const Frame = ({
         size={size}
         scale={scaleRef.current}
         offset={offsetRef.current}
-        heading={heading}
+        heading={headingText}
         textStyles={properties}
         onHeadingChange={handleHeadingChange}
         pointerEvents={frameStyles.pointerEvents}

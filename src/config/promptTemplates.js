@@ -105,6 +105,22 @@ export const DEFAULT_PROMPT_TEMPLATES = {
     Gib die Ergebnisse als reinen Text zurück und nicht in einem Json-Objekt!
     Die Antwort darf ausschließlich den generierten Text enthalten ohne Anführungszeichen.`,
 
+    AUTO_LAYOUT: ({ text }) => 
+    `Bitte analysiere die folgenden JSON-Daten, die Elemente (jeweils mit einer id) auf einem Canvas repräsentieren. Basierend auf dem Inhalt der 'Textkarte'-Elemente, ordne alle Elemente logisch und übersichtlich an.
+
+    **Aufgaben:**
+    1.  Gruppiere thematisch zusammengehörige Textkarten.
+    2.  Erstelle bei Bedarf **neue** 'Bereich'-Elemente mit passenden Überschriften ('heading'), um diese Gruppen visuell zu umschließen.
+    3.  Weise neu erstellten Bereichen fortlaufende ids zu, beginnend bei 1 (1, 2, ...).
+    4.  Aktualisiere die 'position' (und optional 'size') aller Elemente für eine klare räumliche Strukturierung.
+    5.  **WICHTIG:** Der 'text' von bestehenden 'Textkarte'-Elementen darf unter keinen Umständen verändert werden.
+    6.  **WICHTIG:** Die id von bestehenden Elementen muss exakt beibehalten werden.
+
+    Gib das Ergebnis als valides JSON-Array im exakt gleichen Format wie die Eingabe (inklusive id) zurück. 
+    Das Array soll alle ursprünglichen Elemente (mit unveränderter id und aktualisierten Werten) und alle neu erstellten Bereiche (mit neuen ids) enthalten.
+
+    Hier sind die aktuellen Elementdaten: "${text}"`,
+
     DEFAULT: (message) => message
 };
   

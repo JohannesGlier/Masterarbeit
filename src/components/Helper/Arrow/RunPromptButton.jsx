@@ -7,6 +7,7 @@ const RunPromptButton = ({
   offset,
   lineWidth,
   handleClick,
+  pointerEvents,
 }) => {
   return (
     <div
@@ -25,6 +26,7 @@ const RunPromptButton = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        pointerEvents: pointerEvents,
       }}
       onClick={handleClick}
       title="Run Prompt"

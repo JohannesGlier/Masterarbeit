@@ -653,6 +653,7 @@ const Arrow = ({
         textSize={properties.textSize}
         textColor={properties.textColor}
         zIndex={arrowStyles.zIndex}
+        pointerEvents={pointerEvents}
       />
 
       <RunPromptButton
@@ -661,6 +662,7 @@ const Arrow = ({
         offset={offsetRef.current}
         lineWidth={properties.lineWidth}
         handleClick={runPromptButton}
+        pointerEvents={pointerEvents}
       />
 
       {isSelected && (

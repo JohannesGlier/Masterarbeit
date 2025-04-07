@@ -6,6 +6,7 @@ import TextCardTool from "@/components/Tools/PreviewTools/TextCardTool";
 import PointerTool from "@/components/Tools/PreviewTools/PointerTool";
 import ScissorTool from "@/components/Tools/PreviewTools/ScissorTool";
 import AITextcardTool from "@/components/Tools/PreviewTools/AITextcardTool";
+import AutoLayoutTool from "@/components/Tools/PreviewTools/AutoLayoutTool";
 import TextCard from "@/components/Tools/TextCard";
 import Frame from "@/components/Tools/Frame";
 import Arrow from "@/components/Tools/Arrow";
@@ -29,6 +30,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [textcards, setTextCards] = useState([]);
   const [arrows, setArrows] = useState([]);
   const [initialArrowStart, setInitialArrowStart] = useState(null);
+  const [isAutoLayoutRunning, setIsAutoLayoutRunning] = useState(false);
 
   const elements = useMemo(() => {
     return [
@@ -260,6 +262,90 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     setInitialArrowStart(endData);
   };
 
+  const applyAILayout = (aiLayoutData) => {
+    if (!Array.isArray(aiLayoutData)) {
+      console.error("AI Layout data is not an array:", aiLayoutData);
+      alert("Fehler: Ungültiges Layout-Format vom Server.");
+      return;
+    }
+
+    // Aktuelle Elemente für einfachen Zugriff auf zIndex und Text speichern
+    // Wichtig: Arbeite mit dem State-Wert zum Zeitpunkt der Funktionsdefinition
+    // oder übergebe `rectangles` und `textcards` explizit an die Funktion,
+    // um den aktuellsten Stand zu haben, falls sich was währenddessen ändert (unwahrscheinlich hier).
+    const currentTextCardsMap = new Map(textcards.map(el => [el.id, el]));
+    const currentRectanglesMap = new Map(rectangles.map(el => [el.id, el]));
+
+    const nextTextCards = [];
+    const nextRectangles = [];
+    const processedNewElementAIIds = new Set(); // Um doppelte *neue* IDs von der AI abzufangen
+
+    aiLayoutData.forEach(item => {
+      if (!item || !item.id || !item.type || !item.position || !item.size) {
+          console.warn("Skipping invalid item from AI layout:", item);
+          return; // Überspringe ungültige Elemente
+      }
+
+      const existingElement = currentTextCardsMap.get(item.id) || currentRectanglesMap.get(item.id);
+
+      if (item.type === "Textkarte") {
+        const currentTextCard = currentTextCardsMap.get(item.id);
+        if (currentTextCard) { // Nur existierende Textkarten updaten
+          nextTextCards.push({
+            id: item.id, // Original-ID beibehalten
+            x: item.position.x,
+            y: item.position.y,
+            width: item.size.width,
+            height: item.size.height,
+            text: currentTextCard.text, // WICHTIG: Originaltext beibehalten!
+            zIndex: currentTextCard.zIndex, // Original-zIndex beibehalten
+          });
+        } else {
+            console.warn(`AI tried to modify non-existent textcard with ID: ${item.id}`);
+        }
+      } else if (item.type === "Bereich") {
+        const currentRectangle = currentRectanglesMap.get(item.id);
+        if (currentRectangle) {
+          // Bestehenden Bereich aktualisieren
+          nextRectangles.push({
+            id: item.id, // Original-ID beibehalten
+            x: item.position.x,
+            y: item.position.y,
+            width: item.size.width,
+            height: item.size.height,
+            heading: item.heading || currentRectangle.heading || "", // Update Heading, fallback auf alten oder leer
+            zIndex: currentRectangle.zIndex, // Original-zIndex beibehalten
+          });
+          console.log("Heading:", item.heading);
+        } else {
+          // Neuen Bereich hinzufügen, wenn AI-ID noch nicht verarbeitet wurde
+          if (!processedNewElementAIIds.has(item.id)) {
+            processedNewElementAIIds.add(item.id); // AI-ID als verarbeitet markieren
+            nextRectangles.push({
+              id: generateUniqueId(), // Neue, eindeutige ID generieren (sicherer)
+              x: item.position.x,
+              y: item.position.y,
+              width: item.size.width,
+              height: item.size.height,
+              heading: item.heading || "", // Heading von AI
+              zIndex: incrementZIndex("rectangle"), // Neuen zIndex holen
+            });
+            console.log("Heading:", item.heading);
+          } else {
+              console.warn(`AI provided duplicate new element ID "${item.id}". Skipping duplicate.`);
+          }
+        }
+      } else {
+          console.warn(`Unknown element type "${item.type}" from AI response for ID: ${item.id}`);
+      }
+    });
+    
+    console.log("Applying AI Layout: Setting next TextCards state.");
+    setTextCards(nextTextCards);
+    console.log("Applying AI Layout: Setting next Rectangles state.");
+    setRectangles(nextRectangles);
+  };
+
   return (
     <div>
       {selectedTool === "Pointer" && (
@@ -314,12 +400,21 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           updateTextCardText={updateTextCardText}
         />
       )}
+      {selectedTool === "AutoLayout" && (
+        <AutoLayoutTool 
+          elements={elements}
+          setIsAutoLayoutRunning={setIsAutoLayoutRunning}
+          isAutoLayoutRunning={isAutoLayoutRunning}
+          applyAILayout={applyAILayout}
+        />
+      )}
 
       {/* Rendern der gespeicherten Rechtecke */}
       {rectangles.map((rect, index) => (
         <Frame
           key={index}
           rect={rect}
+          headingText={rect.heading}
           scaleRef={scaleRef}
           offsetRef={offsetRef}
           onUpdate={handleFrameUpdate}
