@@ -84,7 +84,7 @@ const ArrowTool = ({
       setPreviewEntries([]);
 
       console.log("Rohe Antwort von ChatGPT:", chatGPTResponse.content);
-      const result = parseConceptualGradient(chatGPTResponse.content);
+      const result = parseUnknownKeyArray(chatGPTResponse.content);
 
       if (result.success) {
         setPreviewEntries(result.data);
@@ -109,22 +109,52 @@ const ArrowTool = ({
     setCurrentPreviewIndex(index);
   }, [endPoint, isDrawing, startPoint]);
 
-  const parseConceptualGradient = (jsonString) => {
+  const parseUnknownKeyArray = (jsonString) => {
+    let data;
+  
+    // 1. Versuch, den String als JSON zu parsen
     try {
-      const data = JSON.parse(jsonString);
-      if (data && Array.isArray(data.conceptual_gradient)) {
-        return { success: true, data: data.conceptual_gradient, error: null };
-      } else {
-        const errorMessage = "Antwort hat nicht das erwartete Format: 'conceptual_gradient' fehlt oder ist kein Array.";
-        console.warn(errorMessage, "Empfangenes Objekt:", data);
-        return { success: false, data: [], error: errorMessage };
-      }
+      data = JSON.parse(jsonString);
     } catch (error) {
       const errorMessage = "Fehler beim Parsen der JSON-Antwort.";
       console.error(errorMessage, error);
       console.error("Empfangener String:", jsonString);
       return { success: false, data: [], error: errorMessage };
     }
+  
+    // 2. Überprüfen, ob das Ergebnis ein Objekt ist (und nicht null, etc.)
+    if (typeof data !== 'object' || data === null) {
+      const errorMessage = "Geparste Daten sind kein gültiges Objekt.";
+      console.warn(errorMessage, "Geparste Daten:", data);
+      console.warn("Ursprünglicher String:", jsonString);
+      return { success: false, data: [], error: errorMessage };
+    }
+  
+    // 3. Finde den ersten Wert im Objekt, der ein Array ist
+    for (const key in data) {
+      // Stelle sicher, dass es sich um eine eigene Eigenschaft des Objekts handelt
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        const value = data[key];
+        if (Array.isArray(value)) {
+          // Optional: Prüfen, ob die Array-Elemente Strings sind (für zusätzliche Robustheit)
+          const allStrings = value.every(item => typeof item === 'string');
+          if (!allStrings) {
+               const warningMessage = `Warnung: Array unter Schlüssel '${key}' enthält nicht nur Strings. Gebe es trotzdem zurück.`;
+               console.warn(warningMessage, "Array-Inhalt:", value);
+               // Entscheide, ob du hier einen Fehler zurückgeben oder weitermachen möchtest.
+               // Hier geben wir es trotzdem zurück, aber mit einer Warnung.
+          }
+          // Erfolg! Gib das gefundene Array zurück.
+          return { success: true, data: value, error: null };
+        }
+      }
+    }
+  
+    // 4. Wenn die Schleife durchläuft, ohne ein Array zu finden
+    const errorMessage = "Kein Array als Wert im JSON-Objekt gefunden.";
+    console.warn(errorMessage, "Geparstes Objekt:", data);
+    console.warn("Ursprünglicher String:", jsonString);
+    return { success: false, data: [], error: errorMessage };
   };
 
   useEffect(() => {

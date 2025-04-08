@@ -258,19 +258,23 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
   const handleStartArrowFromFrame = async (startData) => {
     const startElement = elements.find((e) => e.id === startData.elementId);
-    const startText = startElement?.type === "textcard" 
-            ? startElement.text 
-            : startElement?.type === "rectangle" 
-            ? startElement.heading 
-            : null;
-    
-    setSelectedTool("Arrow");
-    setInitialArrowStart(startData);
-    setChatGPTResponse(null);
-    
+    const startText =
+      startElement?.type === "textcard"
+        ? startElement.text
+        : startElement?.type === "rectangle"
+        ? startElement.heading
+        : null;
+
     if (startText) {
+      setSelectedTool("Arrow");
+      setInitialArrowStart(startData);
+      setChatGPTResponse(null);
+
       try {
-        const response = await chatGPTService.relationshipArrow(startText, length);
+        const response = await chatGPTService.relationshipArrow(
+          startText,
+          length
+        );
         setChatGPTResponse(response);
       } catch (error) {
         console.error("Fehler bei ChatGPT-Anfrage:", error);
@@ -294,24 +298,26 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     // Wichtig: Arbeite mit dem State-Wert zum Zeitpunkt der Funktionsdefinition
     // oder übergebe `rectangles` und `textcards` explizit an die Funktion,
     // um den aktuellsten Stand zu haben, falls sich was währenddessen ändert (unwahrscheinlich hier).
-    const currentTextCardsMap = new Map(textcards.map(el => [el.id, el]));
-    const currentRectanglesMap = new Map(rectangles.map(el => [el.id, el]));
+    const currentTextCardsMap = new Map(textcards.map((el) => [el.id, el]));
+    const currentRectanglesMap = new Map(rectangles.map((el) => [el.id, el]));
 
     const nextTextCards = [];
     const nextRectangles = [];
     const processedNewElementAIIds = new Set(); // Um doppelte *neue* IDs von der AI abzufangen
 
-    aiLayoutData.forEach(item => {
+    aiLayoutData.forEach((item) => {
       if (!item || !item.id || !item.type || !item.position || !item.size) {
-          console.warn("Skipping invalid item from AI layout:", item);
-          return; // Überspringe ungültige Elemente
+        console.warn("Skipping invalid item from AI layout:", item);
+        return; // Überspringe ungültige Elemente
       }
 
-      const existingElement = currentTextCardsMap.get(item.id) || currentRectanglesMap.get(item.id);
+      const existingElement =
+        currentTextCardsMap.get(item.id) || currentRectanglesMap.get(item.id);
 
       if (item.type === "Textkarte") {
         const currentTextCard = currentTextCardsMap.get(item.id);
-        if (currentTextCard) { // Nur existierende Textkarten updaten
+        if (currentTextCard) {
+          // Nur existierende Textkarten updaten
           nextTextCards.push({
             id: item.id, // Original-ID beibehalten
             x: item.position.x,
@@ -322,7 +328,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
             zIndex: currentTextCard.zIndex, // Original-zIndex beibehalten
           });
         } else {
-            console.warn(`AI tried to modify non-existent textcard with ID: ${item.id}`);
+          console.warn(
+            `AI tried to modify non-existent textcard with ID: ${item.id}`
+          );
         }
       } else if (item.type === "Bereich") {
         const currentRectangle = currentRectanglesMap.get(item.id);
@@ -353,14 +361,18 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
             });
             console.log("Heading:", item.heading);
           } else {
-              console.warn(`AI provided duplicate new element ID "${item.id}". Skipping duplicate.`);
+            console.warn(
+              `AI provided duplicate new element ID "${item.id}". Skipping duplicate.`
+            );
           }
         }
       } else {
-          console.warn(`Unknown element type "${item.type}" from AI response for ID: ${item.id}`);
+        console.warn(
+          `Unknown element type "${item.type}" from AI response for ID: ${item.id}`
+        );
       }
     });
-    
+
     console.log("Applying AI Layout: Setting next TextCards state.");
     setTextCards(nextTextCards);
     console.log("Applying AI Layout: Setting next Rectangles state.");
@@ -424,7 +436,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         />
       )}
       {selectedTool === "AutoLayout" && (
-        <AutoLayoutTool 
+        <AutoLayoutTool
           elements={elements}
           setIsAutoLayoutRunning={setIsAutoLayoutRunning}
           isAutoLayoutRunning={isAutoLayoutRunning}
