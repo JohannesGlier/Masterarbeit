@@ -156,7 +156,7 @@ const TextCardContent = ({
   };
 
   const language = useMemo(() => 
-    text.match(/[äöüßÄÖÜ]/) ? 'de' : 'en',
+    text?.match(/[äöüßÄÖÜ]/) ? 'de' : 'en',
     [text]
   );
 

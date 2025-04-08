@@ -1,0 +1,61 @@
+/* Keyframes für das Pulsieren des Divs */
+@keyframes pulse-div {
+    0%, 100% {
+      transform: scale(1);
+      background-color: rgba(230, 230, 230, 0.4); /* Start-/Endfarbe */
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Start-/Endschatten */
+    }
+    50% {
+      transform: scale(1.03); /* Leicht vergrößern */
+      background-color: rgba(200, 200, 200, 0.55); /* Andere Farbe im Puls */
+      box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3); /* Intensiverer Schatten im Puls */
+    }
+  }
+  
+  /* Klasse, die die Puls-Animation auf das Div anwendet */
+  .loadingPulseDiv {
+    animation: pulse-div 1.2s ease-in-out infinite;
+  }
+  
+  /* Container für die Lade-Punkte */
+  .loadingDotsContainer  {
+    display: flex; /* Punkte nebeneinander anordnen */
+    justify-content: center; /* Horizontal zentrieren */
+    align-items: center; /* Vertikal zentrieren */
+    width: 100%;
+    height: 100%; /* Füllt das Elternelement aus */
+  }
+  
+  /* Styling für jeden einzelnen Punkt */
+  .loadingDotsContainer span {
+    display: inline-block; /* Wichtig für transform */
+    color: rgba(0, 0, 0, 0.6); /* Punktfarbe */
+    font-size: 1.8em; /* Größere Punkte */
+    line-height: 1; /* Hilft bei vertikaler Zentrierung */
+    margin: 0 4px; /* Abstand zwischen den Punkten */
+    /* Animation anwenden - Dauer wie Div-Puls, unendlich */
+    animation: scale-dot 1.8s ease-in-out infinite;
+  }
+  
+  /* Keyframes für das Skalieren der Punkte */
+  @keyframes scale-dot {
+    0%, 60%, 100% { /* Länger im kleinen Zustand bleiben */
+      transform: scale(0.8);
+      opacity: 0.5;
+    }
+    30% { /* Kurz aufskalieren */
+      transform: scale(1.2);
+      opacity: 1;
+    }
+  }
+  
+  /* Zeitliche Staffelung der Punkt-Animationen */
+  .loadingDotsContainer span:nth-child(1) {
+    animation-delay: 0s;
+  }
+  .loadingDotsContainer span:nth-child(2) {
+    animation-delay: 0.2s; /* Zweiter Punkt startet später */
+  }
+  .loadingDotsContainer span:nth-child(3) {
+    animation-delay: 0.4s; /* Dritter Punkt startet noch später */
+  }

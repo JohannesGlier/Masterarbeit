@@ -22,22 +22,14 @@ export const DEFAULT_PROMPT_TEMPLATES = {
        - Sind S und E ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
        - Sind S und E ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.`,
   
-    RELATIONSHIP_ARROW: ({ textFromTextcard, mappedArrowLength }) => 
-      `Erstelle ein Konzept, eine Idee, einen Fakt oder einen Gedanken basierend auf folgendem Eingabetext und Verwandtschaftswert:
-        Eingabetext: ${textFromTextcard}
-        Verwandtschaftswert: ${mappedArrowLength} (0 = sehr nah verwandt, 1 = weit entfernt verwandt)  
-
-        Denke dabei an folgende Regeln:
-        Wenn der Verwandtschaftswert nahe 0 ist, bleibe eng beim Thema.
-        Wenn der Wert sich 1 nähert, denke weiter entfernt.
-        Antworte prägnant und ohne lange Erklärungen, maximal in Stichpunkten oder kurzen Phrasen auf deutsch.
-       
-       Die Antwort darf ausschließlich den generierten Text enthalten – keine Einleitungen, Überschriften oder Erklärungen.  
-       
-       Die Länge der Antwort soll sich an der Länge des Eingabetexts orientieren:  
-       - Ist der Eingabetext ein einzelnes Wort, soll die Antwort ebenfalls nur ein Wort sein.  
-       - Ist der Eingabetext ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
-       - Ist der Eingabetext ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.`, 
+    RELATIONSHIP_ARROW: ({ textFromTextcard }) => 
+      `Input term: ${textFromTextcard}
+      Generate 10 thematically related terms or texts based on the input term, where:
+      - The first item is thematically very close to the input term.
+      - The last item is thematically distant but still has a conceptual connection.
+      - Items 2 to 9 create a smooth conceptual gradient from the first to the last.
+      - Each item should be approximately the same length as the input term (±20% character count).
+      - Return the result as a JSON array with each item as a string.`, 
     
     PROMPT_ARROW_TEXTCARD_INPUT: ({ inputText, promptText }) => 
       `Kontext: "${inputText}".

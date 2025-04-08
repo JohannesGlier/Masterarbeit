@@ -11,6 +11,7 @@ import TextCard from "@/components/Tools/TextCard";
 import Frame from "@/components/Tools/Frame";
 import Arrow from "@/components/Tools/Arrow";
 import { getAnchorPosition } from "@/utils/Arrow/anchorUtils";
+import { ChatGPTService } from "@/services/ChatGPTService";
 
 const generateUniqueId = () => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -31,6 +32,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [arrows, setArrows] = useState([]);
   const [initialArrowStart, setInitialArrowStart] = useState(null);
   const [isAutoLayoutRunning, setIsAutoLayoutRunning] = useState(false);
+  const chatGPTService = new ChatGPTService();
+  const [chatGPTResponse, setChatGPTResponse] = useState(null);
 
   const elements = useMemo(() => {
     return [
@@ -253,9 +256,27 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     );
   };
 
-  const handleStartArrowFromFrame = (startData) => {
+  const handleStartArrowFromFrame = async (startData) => {
+    const startElement = elements.find((e) => e.id === startData.elementId);
+    const startText = startElement?.type === "textcard" 
+            ? startElement.text 
+            : startElement?.type === "rectangle" 
+            ? startElement.heading 
+            : null;
+    
     setSelectedTool("Arrow");
     setInitialArrowStart(startData);
+    setChatGPTResponse(null);
+    
+    if (startText) {
+      try {
+        const response = await chatGPTService.relationshipArrow(startText, length);
+        setChatGPTResponse(response);
+      } catch (error) {
+        console.error("Fehler bei ChatGPT-Anfrage:", error);
+        setChatGPTResponse({ content: "Fehler beim Generieren" });
+      }
+    }
   };
 
   const handleEndArrowFromFrame = (endData) => {
@@ -381,6 +402,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           addTextcard={addTextcards}
           updateArrowPosition={updateArrowPosition}
           updateTextcardText={updateTextCardText}
+          chatGPTResponse={chatGPTResponse}
+          onResponseProcessed={() => setChatGPTResponse(null)}
         />
       )}
       {selectedTool === "Scissor" && (

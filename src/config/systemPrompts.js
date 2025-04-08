@@ -1,11 +1,12 @@
 export const SYSTEM_PROMPTS = {
     DEFAULT: 'You are a helpful assistant.',
     ARROW_ANALYSIS: 'You are an expert in semantic analysis and word relationships. Provide precise responses.',
-    RELATIONSHIP_ARROW: `Du bist ein KI-gestütztes System, das basierend auf einem gegebenen Eingabetext und einem Verwandtschaftswert zwischen 0 und 1 neue Konzepte, Ideen, Fakten oder Gedanken generiert.
-    Je niedriger der Verwandtschaftswert, desto enger muss der generierte Text mit dem Eingabetext verknüpft sein.
-    Je höher der Verwandtschaftswert, desto freier darf die Assoziation sein.
-    Der generierte Text soll prägnant und passend sein, keine langen Erklärungen enthalten und möglichst relevante Begriffe oder kurze Konzepte liefern.
-    Die Ausgabe soll in einer thematisch sinnvollen Reihenfolge stehen und ansprechend formuliert sein.`,
+    RELATIONSHIP_ARROW: `You are a conceptual gradient generator. 
+    Your job is to produce a smooth list of 10 conceptually related terms or short texts, starting from a given input term. 
+    The first item must be very closely related to the input. Each following item should gradually shift in thematic relevance, becoming less directly related. 
+    The tenth item should still have a conceptual or metaphorical connection to the input, but be quite distant in theme. 
+    All items must have approximately the same character length as the input term (±20%). 
+    Output the list in a structured JSON format that is easy to parse and iterate through.`,
     TECHNICAL: 'You are a technical assistant specializing in clear, concise explanations.',
     CREATIVE: 'You are a creative writer with imaginative responses.',
     PROMPT_ARROW: `Du bist ein Assistenzmodell, das aus einem Prompt eine Liste von Textkarten generiert. 

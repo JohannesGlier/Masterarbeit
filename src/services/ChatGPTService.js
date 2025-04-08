@@ -40,8 +40,8 @@ export class ChatGPTService {
     });
   }
 
-  async relationshipArrow(textFromTextcard, mappedArrowLength) {
-    const prompt = this.promptTemplates.RELATIONSHIP_ARROW({ textFromTextcard, mappedArrowLength });
+  async relationshipArrow(textFromTextcard) {
+    const prompt = this.promptTemplates.RELATIONSHIP_ARROW({ textFromTextcard });
     return this._sendRequest({
       message: prompt,
       promptType: 'RELATIONSHIP_ARROW'
