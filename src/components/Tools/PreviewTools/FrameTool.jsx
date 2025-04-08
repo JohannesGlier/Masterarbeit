@@ -46,8 +46,8 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
       }
       else {
         // Vordefiniertes Rechteck durch Click
-        const defaultWidth = 100;
-        const defaultHeight = 100;  
+        const defaultWidth = 250;
+        const defaultHeight = 150;  
         const finalRectangle = {
           x: tempRectangle.x - defaultWidth / 2,
           y: tempRectangle.y - defaultHeight / 2,

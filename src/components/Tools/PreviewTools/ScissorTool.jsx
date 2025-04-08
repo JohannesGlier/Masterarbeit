@@ -106,8 +106,8 @@ const ScissorTool = ({
               addTextcard({
                 x: element.position.x + element.size.width + widthOffset,
                 y: element.position.y + index * heightOffset,
-                width: 150,
-                height: 100,
+                width: 200,
+                height: 75,
                 text: item.text,
               });
               resolve();

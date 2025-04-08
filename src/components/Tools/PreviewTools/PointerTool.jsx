@@ -36,8 +36,8 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
         const newTextcard = {
           x: tempRectangle.x + tempRectangle.width + 20,
           y: tempRectangle.y + tempRectangle.height + 20,
-          width: 200,
-          height: 150,
+          width: 250,
+          height: 125,
           text: response.content
         };
 

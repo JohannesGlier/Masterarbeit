@@ -92,8 +92,8 @@ const TextCard = ({
     [toggleSelectedElement, rect, isResizing, isDragging]
   );
 
-  const handleTextChange = (e) => {
-    const newText = e.target.value;
+  const handleTextChange = (newText) => {
+    //const newText = e.target.value;
     //setText(newText);
     onTextChange(newText);
   };
@@ -184,6 +184,12 @@ const TextCard = ({
     setIsEditing(true);
   };
 
+  const handleDoubleClick = useCallback((e) => {
+    if (!isEditing) {
+      setIsEditing(true);
+    }
+  }, [isEditing]);
+
   const handleArrowCreation = (e, handle) => {
     e.stopPropagation();
     onStartArrowFromFrame({
@@ -256,6 +262,7 @@ const TextCard = ({
           fontStyles={properties.fontStyles}
           containerSize={size}
           scale={scaleRef.current}
+          onDoubleClick={handleDoubleClick}
         />
         {showActionBar && (
           <Handles

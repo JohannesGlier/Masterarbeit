@@ -46,8 +46,8 @@ const TextCardTool = ({ canvasRef, canvasWrapperRef, addTextcard }) => {
         setSelectedTool('Pointer');
       } else {
         // Vordefiniertes Rechteck durch Click
-        const defaultWidth = 100;
-        const defaultHeight = 50;
+        const defaultWidth = 200;
+        const defaultHeight = 75;
         const finalRectangle = {
           x: tempRectangle.x - defaultWidth / 2, // Zentriere horizontal
           y: tempRectangle.y - defaultHeight / 2, // Zentriere vertikal

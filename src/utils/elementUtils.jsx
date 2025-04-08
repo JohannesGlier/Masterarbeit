@@ -71,7 +71,7 @@ export const attachElementToArrow = (point, arrow, element) => {
   const arrowPoint = point === "start" ? arrow.start : arrow.end;
   const otherPoint = point === "start" ? arrow.end : arrow.start;
 
-  const rectWidth = 100; // Breite des Rechtecks
+  const rectWidth = 150; // Breite des Rechtecks
   const rectHeight = 100; // Höhe des Rechtecks
 
   // Berechne die Richtung des Pfeils
@@ -118,8 +118,8 @@ export const attachElementToArrow = (point, arrow, element) => {
 
 export const attachTextcardToArrow = (arrow, startPointAnchor) => {
   const arrowPoint = arrow.end;
-  const rectWidth = 100;
-  const rectHeight = 100;
+  const rectWidth = 200;
+  const rectHeight = 75;
 
   const anchorMap = {
     top: { anchor: "bottom", x: arrowPoint.x - rectWidth / 2, y: arrowPoint.y - rectHeight },

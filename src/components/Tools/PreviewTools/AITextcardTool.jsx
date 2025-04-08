@@ -71,8 +71,8 @@ const AITextCardTool = ({
   );
 
   const addEmptyTextcard = (mousePos) => {
-    const defaultWidth = 100;
-    const defaultHeight = 50;
+    const defaultWidth = 200;
+    const defaultHeight = 75;
     const finalRectangle = {
       x: mousePos.x - defaultWidth / 2,
       y: mousePos.y - defaultHeight / 2,
