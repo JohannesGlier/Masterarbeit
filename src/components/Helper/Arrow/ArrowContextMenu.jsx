@@ -29,6 +29,7 @@ const ContextMenu = ({ top, left, buttons }) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            color: "black",
           }}
         >
           {button.icon}

@@ -28,12 +28,8 @@ export class ChatGPTService {
     }
   }
 
-  async analyzeArrow(startText, endText, position) {
-    const prompt = this.promptTemplates.ARROW_ANALYSIS({
-      startText,
-      endText,
-      position
-    });
+  async analyzeArrow(startText, endText) {
+    const prompt = this.promptTemplates.ARROW_ANALYSIS({ startText, endText });
     return this._sendRequest({
       message: prompt,
       promptType: 'ARROW_ANALYSIS'

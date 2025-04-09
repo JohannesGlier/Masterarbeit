@@ -16,7 +16,7 @@ export const getArrowStyles = (
   width: `${
     Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2)) * scale
   }px`,
-  height: "2px",
+  height: "0px",
   color: isSelected ? "blue" : properties.lineColor,
   borderStyle: properties.lineStyle,
   borderWidth: properties.lineWidth,
@@ -25,4 +25,6 @@ export const getArrowStyles = (
   pointerEvents,
   zIndex,
   cursor: "pointer",
+  overflow: "hidden",
+  transition: "border-color 0.3s ease",
 });

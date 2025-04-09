@@ -1,26 +1,9 @@
 export const DEFAULT_PROMPT_TEMPLATES = {
-    ARROW_ANALYSIS: ({ startText, endText, position }) => 
-      `Gegeben sind:
-       Startkonzept (S): "${startText || "No context"}"
-       Endkonzept (E): "${endText || "No context"}"
-       Positionswert (P): ${position.toFixed(2)} auf einer Skala von 0 (starke Nähe zu S) bis 1 (starke Nähe zu E).
-
-       Erzeuge ein einzelnes Wort oder eine kurze Phrase auf deutsch, die thematisch zwischen S und E vermittelt.
-       Wenn P nahe bei 0 liegt, soll der Begriff stärker mit S verbunden sein, aber noch eine Beziehung zu E haben.
-       Wenn P nahe bei 1 liegt, soll der Begriff stärker mit E verbunden sein, aber noch eine Beziehung zu S haben.
-       Werte dazwischen repräsentieren fließende Übergänge zwischen S und E.
-
-       Beispiel:
-       S = "Ernährung", E = "Fußball", P = 0.5 → Ergebnis: "Leistungssteigerung"
-       S = "Ernährung", E = "Fußball", P = 0.25 → Ergebnis: "Gewichtsmanagement"
-       S = "Ernährung", E = "Fußball", P = 0.75 → Ergebnis: "Spielvorbereitung"
-
-       Wichtig: Gebe nur das Ergebnis zurück als reinen Text ohne Anführungszeichen und ohne "Ergebnis:".
-
-       Die Länge der Antwort soll sich an der Länge von S und E orientieren:  
-       - Sind S und E nur ein einzelnes Wort, soll die Antwort ebenfalls nur ein Wort sein.  
-       - Sind S und E ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
-       - Sind S und E ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.`,
+    ARROW_ANALYSIS: ({ startText, endText }) => 
+      `Generate 10 connecting points between the concepts "${startText}" and "${endText}".
+      The list should represent a conceptual gradient from the first to the second term.
+      Return only short headlines, keywords, or phrases.
+      Return the result as a JSON array with each item as a string.`, 
   
     RELATIONSHIP_ARROW: ({ textFromTextcard }) => 
       `Input term: ${textFromTextcard}

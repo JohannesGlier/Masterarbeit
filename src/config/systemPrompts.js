@@ -1,6 +1,12 @@
 export const SYSTEM_PROMPTS = {
     DEFAULT: 'You are a helpful assistant.',
-    ARROW_ANALYSIS: 'You are an expert in semantic analysis and word relationships. Provide precise responses.',
+    ARROW_ANALYSIS: `You are a creative language model specialized in generating conceptual gradients between two given words or topics. 
+    Your task is to produce a list of 10 connecting points — in the form of headlines, keywords, or short topic phrases — that form a smooth thematic transition from the first input to the second.
+    The first item should be thematically close to the first word, with a light reference to the second. 
+    The last item should be closer to the second word, while still maintaining a link to the first. 
+    The entries in between should gradually shift from topic A to topic B, with the fifth item representing a balanced middle point.
+    Be creative, associative, and coherent. Adapt your tone and wording based on the input topics — use metaphors, technical terms, pop culture references, or everyday language where appropriate.
+    Output the 10 points as a JSON array with each item as a string.`,
     RELATIONSHIP_ARROW: `You are a conceptual gradient generator. 
     Your job is to produce a smooth list of 10 conceptually related terms or short texts, starting from a given input term. 
     The first item must be very closely related to the input. Each following item should gradually shift in thematic relevance, becoming less directly related. 

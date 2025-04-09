@@ -24,6 +24,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html.global-loading,
+html.global-loading * {
+  cursor: wait !important;
+  pointer-events: auto !important;
+}
+
+html.global-loading {
+  cursor: wait !important;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;

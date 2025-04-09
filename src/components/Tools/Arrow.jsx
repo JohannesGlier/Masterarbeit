@@ -14,14 +14,15 @@ import { getAnchorPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
 import {
   getElementAtPosition,
   attachElementToArrow,
-  getElementsInRectangle
+  getElementsInRectangle,
+  getTextFromElement,
 } from "@/utils/elementUtils";
-import { 
+import {
   parseChatGPTResponse,
   calculateGridLayout,
   combineCards,
-  positionCardsInGrid
-} from '@/utils/Arrow/arrowHelpers';
+  positionCardsInGrid,
+} from "@/utils/Arrow/arrowHelpers";
 import ArrowHeads from "@/components/Helper/Arrow/ArrowHeads";
 import { ARROW_DEFAULTS } from "@/utils/Arrow/arrowDefaultProperties";
 import { getArrowStyles } from "@/utils/Arrow/arrowStyles";
@@ -30,6 +31,8 @@ import ArrowContextMenu from "@/components/Helper/Arrow/ArrowContextMenu";
 import { MdOutlineRectangle } from "react-icons/md";
 import { RiTextBlock } from "react-icons/ri";
 import { ChatGPTService } from "@/services/ChatGPTService";
+import styles from "@/components/Tools/Arrow.module.css";
+import clsx from "clsx";
 
 const Arrow = ({
   arrow,
@@ -43,7 +46,9 @@ const Arrow = ({
   addTextcard,
   updateTextcardText,
   handleFrameResize,
-  handleTextcardUpdate
+  handleTextcardUpdate,
+  isLoading,
+  responseItems,
 }) => {
   const [properties, setProperties] = useState(() => ({
     ...ARROW_DEFAULTS,
@@ -56,6 +61,12 @@ const Arrow = ({
   const frameRef = useRef(null);
   const isDragging = useRef(false);
   const chatGPTService = new ChatGPTService();
+
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [tooltipText, setTooltipText] = useState("");
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [hoverPointPosition, setHoverPointPosition] = useState(null);
+  const prevIsLoadingRef = useRef();
 
   const {
     selectedTool,
@@ -96,6 +107,138 @@ const Arrow = ({
 
   const lineAngle = Math.atan2(endY - startY, endX - startX);
 
+  const arrowGeometry = useMemo(() => {
+    const x1 = startX;
+    const y1 = startY;
+    const x2 = endX;
+    const y2 = endY;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lengthSq = dx * dx + dy * dy;
+    const length = lengthSq > 0 ? Math.sqrt(lengthSq) : 0;
+    return { x1, y1, x2, y2, dx, dy, length, lengthSq };
+  }, [startX, startY, endX, endY]);
+
+  const handleMouseMove = useCallback(
+    (event) => {
+      const isArrayCheckResult = Array.isArray(responseItems);
+      const arrayLength = responseItems ? responseItems.length : 0;
+      const isNotArray = !isArrayCheckResult;
+      const isEmpty = responseItems == null || arrayLength === 0;
+      const isZeroLengthSq =
+        arrowGeometry == null || arrowGeometry.lengthSq === 0;
+
+      if (isNotArray || isEmpty || isZeroLengthSq) {
+        if (tooltipVisible) {
+          setTooltipVisible(false);
+        }
+        if (hoverPointPosition !== null) {
+          setHoverPointPosition(null);
+        }
+        return;
+      }
+
+      const rect = canvasRef.current.getBoundingClientRect();
+      const logicalMouseX =
+        (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
+      const logicalMouseY =
+        (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
+
+      const mouseVecX = logicalMouseX - arrowGeometry.x1;
+      const mouseVecY = logicalMouseY - arrowGeometry.y1;
+      const dotProduct =
+        mouseVecX * arrowGeometry.dx + mouseVecY * arrowGeometry.dy;
+      const normalizedDistance = Math.max(
+        0,
+        Math.min(1, dotProduct / arrowGeometry.lengthSq)
+      );
+
+      const arrayIndex = Math.min(
+        arrayLength - 1,
+        Math.max(0, Math.floor(normalizedDistance * arrayLength))
+      );
+
+      if (arrayIndex < 0 || arrayIndex >= arrayLength) {
+        console.error(
+          `Calculated index ${arrayIndex} is out of bounds for length ${arrayLength}!`
+        );
+        setTooltipText("Error: Index calculation failed");
+        // Optionally hide tooltip on error
+        if (tooltipVisible) setTooltipVisible(false);
+        if (hoverPointPosition !== null) setHoverPointPosition(null);
+      } else {
+        const currentText = responseItems[arrayIndex];
+        if (typeof currentText === "string") {
+          setTooltipText(currentText);
+        } else {
+          console.error("Retrieved item is not a string:", currentText);
+          setTooltipText("Error: Invalid data type");
+        }
+
+        const pointX_logical =
+          arrowGeometry.x1 + arrowGeometry.dx * normalizedDistance;
+        const pointY_logical =
+          arrowGeometry.y1 + arrowGeometry.dy * normalizedDistance;
+        setHoverPointPosition({ x: pointX_logical, y: pointY_logical });
+
+        if (!tooltipVisible) {
+          setTooltipVisible(true);
+        }
+      }
+
+      setTooltipPosition({ x: event.clientX + 15, y: event.clientY + 10 });
+
+      if (!tooltipVisible) {
+        setTooltipVisible(true);
+      }
+    },
+    [
+      canvasRef,
+      offsetRef,
+      scaleRef,
+      tooltipVisible,
+      arrowGeometry,
+      responseItems,
+      setTooltipVisible,
+      setTooltipPosition,
+      setHoverPointPosition,
+      hoverPointPosition,
+    ]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipVisible(false);
+    setHoverPointPosition(null);
+  }, [setTooltipVisible, setHoverPointPosition]);
+
+  useEffect(() => {
+    const prevIsLoading = prevIsLoadingRef.current;
+    if (prevIsLoading === true && isLoading === false) {
+      setDraggingPoint(null);
+      setHoveredElement(null);
+      isDragging.current = false;
+      setIsArrowDragging(false);
+
+      if (selectedTool === "Pointer") {
+        toggleSelectedElement(
+          { ...arrow, isDragging: isDragging.current },
+          false
+        );
+      }
+    }
+    prevIsLoadingRef.current = isLoading;
+  }, [
+    isLoading,
+    prevIsLoadingRef,
+    arrow.id,
+    setHoveredElement,
+    setIsArrowDragging,
+    setDraggingPoint,
+  ]);
+
+
+
   const updateArrowStyle = useCallback((newProps) => {
     setProperties((prev) => ({ ...prev, ...newProps }));
   }, []);
@@ -122,6 +265,8 @@ const Arrow = ({
     ]
   );
 
+
+
   useEffect(() => {
     setIsSelected(selectedElements.some((el) => el.id === arrow.id));
     closeContextMenu(arrow.id);
@@ -143,6 +288,8 @@ const Arrow = ({
     };
   }, [canvasWrapperRef, arrow, updateArrowPosition, draggingPoint]);
 
+
+  
   const StartDragging = (point, e) => {
     e.preventDefault();
     if (e.buttons === 1) {
@@ -269,66 +416,43 @@ const Arrow = ({
     }
   };
 
-  const InsertAtPosition = async (e) => {
-    const hasElementAttached = arrow.start.elementId && arrow.end.elementId;
+  const CreateTextcardFromTooltip = async (e) => {
+    if (tooltipVisible && tooltipText) {
+      const scale = scaleRef.current;
+      const offset = offsetRef.current;
+      const canvas = canvasRef.current;
 
-    if (hasElementAttached) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const clickX =
-        (e.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const clickY =
-        (e.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
-      // Pfeillänge berechnen
-      const dx = endX - startX;
-      const dy = endY - startY;
-      const length = Math.sqrt(dx * dx + dy * dy);
-
-      const t =
-        ((clickX - startX) * dx + (clickY - startY) * dy) / (length * length);
-      console.log("Action: Double Click on Arrow Line at position:\n", t);
-
-      const startElement = elements.find((e) => e.id === arrow.start.elementId);
-      const endElement = elements.find((e) => e.id === arrow.end.elementId);
-
-      // Texte extrahieren
-      const startText =
-        startElement?.type === "textcard"
-          ? startElement.text
-          : startElement?.type === "rectangle"
-          ? startElement.heading
-          : null;
-
-      const endText =
-        endElement?.type === "textcard"
-          ? endElement.text
-          : endElement?.type === "rectangle"
-          ? endElement.heading
-          : null;
-
-      // ChatGPT-Aufruf nur wenn beide Texte vorhanden
-      if (startText && endText) {
-        try {
-          console.log("Eingabe für Prompt:\n", startText, " | ", endText);
-          const response = await chatGPTService.analyzeArrow(
-            startText,
-            endText,
-            t
-          );
-          console.log("ChatGPT Response:", response.content);
-          const newTextcard = {
-            x: clickX - 50,
-            y: clickY + 30,
-            width: 150,
-            height: 60,
-            text: response.content
-          };
-    
-          addTextcard(newTextcard);
-        } catch (error) {
-          console.error("Fehler bei ChatGPT-Anfrage:", error);
-        }
+      if (!canvas) {
+        console.error("Canvas ref is not available!");
+        return;
       }
+
+      const rect = canvas.getBoundingClientRect();
+      const clickX_viewport = e.clientX;
+      const clickY_viewport = e.clientY;
+
+      const tooltipBaseWidth = 200;
+      const tooltipBaseHeight = 75;
+      const tooltipScaledWidth = tooltipBaseWidth * scale;
+
+      const tooltipLeft_viewport =
+        clickX_viewport + 15 - tooltipScaledWidth / 2;
+      const tooltipTop_viewport = clickY_viewport + 10 + 50 * scaleRef.current;
+
+      const logicalX = (tooltipLeft_viewport - rect.left - offset.x) / scale;
+      const logicalY = (tooltipTop_viewport - rect.top - offset.y) / scale;
+
+      const newTextcard = {
+        x: logicalX,
+        y: logicalY,
+        width: tooltipBaseWidth,
+        height: tooltipBaseHeight,
+        text: tooltipText,
+      };
+
+      console.log("Erstelle Tooltip als Textkarte:", newTextcard);
+      addTextcard(newTextcard);
+      setTooltipVisible(false);
     }
   };
 
@@ -350,41 +474,6 @@ const Arrow = ({
 
     showContextMenu({ x: posX, y: posY }, point, arrow.id);
   };
-
-  const pointerEvents = getPointerEvents({
-    selectedTool,
-    isDrawing,
-    selectedElements,
-    elementId: arrow.id,
-  });
-
-  const arrowStyles = useMemo(
-    () =>
-      getArrowStyles(
-        startX,
-        startY,
-        endX,
-        endY,
-        scaleRef.current,
-        offsetRef.current,
-        properties,
-        isSelected,
-        pointerEvents,
-        arrow.zIndex
-      ),
-    [
-      startX,
-      startY,
-      endX,
-      endY,
-      scaleRef.current,
-      offsetRef.current,
-      properties,
-      isSelected,
-      pointerEvents,
-      arrow.zIndex,
-    ]
-  );
 
   const contextMenuButtons = [
     {
@@ -421,6 +510,7 @@ const Arrow = ({
           y: newTextcard.y,
           width: newTextcard.width,
           height: newTextcard.height,
+          text: "",
         });
 
         updateArrowPosition(
@@ -434,130 +524,145 @@ const Arrow = ({
   ];
 
   const runPromptButton = async () => {
-    if (!text) {
-      console.log("Prompt is empty! Prompt kann nicht ausgeführt werden");
-      return;
-    }
-  
-    if (!properties.arrowHeadStart && !properties.arrowHeadEnd) {
-      console.log("Pfeil hat keine Richtung! Prompt wird nicht ausgeführt");
-      return;
-    }
-  
-    if (properties.arrowHeadStart && properties.arrowHeadEnd) {
-      console.log("Pfeil zeigt in beide Richtungen! Prompt wird nicht ausgeführt");
-      return;
-    }
-  
-    // Hilfsfunktionen
-    const getInputFromElement = (element) => {
-      if (!element) return "undefined";
-      
-      if (element.type === "textcard") {
-        return element.text;
-      } else if (element.type === "rectangle") {
-        const elementsInRect = getElementsInRectangle(elements, {
-          x: element.position.x,
-          y: element.position.y,
-          width: element.size.width,
-          height: element.size.height
-        });
-        
-        /*
-        const simplifiedElements = elementsInRect.map(el => ({
-          type: el.type,
-          position: { ...el.position },
-          size: { ...el.size },
-          ...(el.type === "textcard" && { text: el.text }),
-          ...(el.type === "rectangle" && { heading: el.heading })
-        }));
-        */
-
-        const simplifiedElements = elementsInRect.map(el => {
-          if (el.type === "textcard") {
-            return el.text;
-          }
-          else if (el.type === "rectangle") {
-            return el.heading;
-          }
-          return null;
-        }).filter(item => item !== null);
-  
-        return JSON.stringify(simplifiedElements, null, 2);
+    try {
+      if (!text) {
+        console.log("Prompt is empty! Prompt kann nicht ausgeführt werden");
+        return;
       }
-      return "undefined";
-    };
 
-    const handleOutput = async (outputElement, inputText, promptText, outputText) => {
-      if (!outputElement) {
-        try {
-          console.log("Kein Output Element");
-          console.log("Eingabe Prompt:", promptText);
-          console.log("Eingabe Text:", inputText);
-          const response = await getChatGPTResponse(inputText, promptText);
+      if (!properties.arrowHeadStart && !properties.arrowHeadEnd) {
+        console.log("Pfeil hat keine Richtung! Prompt wird nicht ausgeführt");
+        return;
+      }
 
-          const attachPosition = properties.arrowHeadStart ? "start" : "end";
+      if (properties.arrowHeadStart && properties.arrowHeadEnd) {
+        console.log(
+          "Pfeil zeigt in beide Richtungen! Prompt wird nicht ausgeführt"
+        );
+        return;
+      }
 
-          const newRect = attachElementToArrow(attachPosition, arrow, "Frame");
-          const newFrameId = addRectangle({
-            x: newRect.x,
-            y: newRect.y,
-            width: newRect.width,
-            height: newRect.height,
+      /*
+      // Hilfsfunktionen
+      const getInputFromElement = (element) => {
+        if (!element) return "undefined";
+        
+        if (element.type === "textcard") {
+          return element.text;
+        } else if (element.type === "rectangle") {
+          const elementsInRect = getElementsInRectangle(elements, {
+            x: element.position.x,
+            y: element.position.y,
+            width: element.size.width,
+            height: element.size.height
           });
 
-          updateArrowPosition(
-            arrow.id,
-            { elementId: newFrameId, anchor: newRect.anchor },
-            attachPosition
+          const simplifiedElements = elementsInRect.map(el => {
+            if (el.type === "textcard") {
+              return el.text;
+            }
+            else if (el.type === "rectangle") {
+              return el.heading;
+            }
+            return null;
+          }).filter(item => item !== null);
+    
+          return JSON.stringify(simplifiedElements, null, 2);
+        }
+        return "undefined";
+      };
+      */
+
+      const handleOutput = async (
+        outputElement,
+        inputText,
+        promptText,
+        outputText
+      ) => {
+        if (!outputElement) {
+          try {
+            console.log("Kein Output Element");
+            console.log("Eingabe Prompt:", promptText);
+            console.log("Eingabe Text:", inputText);
+            const response = await getChatGPTResponse(inputText, promptText);
+
+            const attachPosition = properties.arrowHeadStart ? "start" : "end";
+
+            const newRect = attachElementToArrow(
+              attachPosition,
+              arrow,
+              "Frame"
+            );
+            const newFrameId = addRectangle({
+              x: newRect.x,
+              y: newRect.y,
+              width: newRect.width,
+              height: newRect.height,
+            });
+
+            updateArrowPosition(
+              arrow.id,
+              { elementId: newFrameId, anchor: newRect.anchor },
+              attachPosition
+            );
+            console.log("ChatGPT Response:", response.content);
+            const myRect = {
+              id: newFrameId,
+              position: { x: newRect.x, y: newRect.y },
+              size: { width: newRect.width, height: newRect.height },
+              type: "rectangle",
+            };
+            await handleRectangleOutput(myRect, response);
+            return;
+          } catch (error) {
+            console.error("Fehler bei der Ausgabeverarbeitung:", error);
+          }
+        }
+
+        try {
+          console.log("Eingabe Prompt:", promptText);
+          console.log("Eingabe Text:", inputText);
+          const response = await getChatGPTResponse_Output(
+            inputText,
+            promptText,
+            outputElement.type,
+            outputText
           );
           console.log("ChatGPT Response:", response.content);
-          const myRect = {
-            id: newFrameId,
-            position: { x: newRect.x, y: newRect.y },
-            size: { width: newRect.width, height: newRect.height },
-            type: "rectangle"
-          };
-          await handleRectangleOutput(myRect, response);
-          return;
+
+          if (outputElement.type === "textcard") {
+            updateTextcardText(outputElement.id, response.content);
+            return;
+          }
+
+          if (outputElement.type === "rectangle") {
+            await handleRectangleOutput(outputElement, response);
+          }
         } catch (error) {
           console.error("Fehler bei der Ausgabeverarbeitung:", error);
         }
-      }
-    
-      try {
-        console.log("Eingabe Prompt:", promptText);
-        console.log("Eingabe Text:", inputText);
-        const response = await getChatGPTResponse_Output(inputText, promptText, outputElement.type, outputText);
-        console.log("ChatGPT Response:", response.content);
+      };
 
-        if (outputElement.type === "textcard") {
-          updateTextcardText(outputElement.id, response.content);
-          return;
-        }
-    
-        if (outputElement.type === "rectangle") {
-          await handleRectangleOutput(outputElement, response);
-        }
-      } catch (error) {
-        console.error("Fehler bei der Ausgabeverarbeitung:", error);
-      }
-    };
-  
-    // Hauptlogik
-    const isInputFirst = properties.arrowHeadStart && !properties.arrowHeadEnd;
-    const inputElement = isInputFirst 
-      ? elements.find(e => e.id === arrow.end?.elementId)
-      : elements.find(e => e.id === arrow.start?.elementId);
-  
-    const outputElement = isInputFirst
-      ? elements.find(e => e.id === arrow.start?.elementId)
-      : elements.find(e => e.id === arrow.end?.elementId);
-  
-    const inputText = getInputFromElement(inputElement);
-    const outputText = getInputFromElement(outputElement);
+      // Hauptlogik
+      const isInputFirst =
+        properties.arrowHeadStart && !properties.arrowHeadEnd;
+      const inputElement = isInputFirst
+        ? elements.find((e) => e.id === arrow.end?.elementId)
+        : elements.find((e) => e.id === arrow.start?.elementId);
 
-    await handleOutput(outputElement, inputText, text, outputText);
+      const outputElement = isInputFirst
+        ? elements.find((e) => e.id === arrow.start?.elementId)
+        : elements.find((e) => e.id === arrow.end?.elementId);
+
+      const inputText = getTextFromElement(inputElement, elements);
+      const outputText = getTextFromElement(outputElement, elements);
+
+      await handleOutput(outputElement, inputText, text, outputText);
+    } catch (error) {
+      console.error("Fehler:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getChatGPTResponse = async (inputText, promptText, outputText) => {
@@ -567,7 +672,12 @@ const Arrow = ({
       : chatGPTService.promptArrow(promptText);
   };
 
-  const getChatGPTResponse_Output = async (inputText, promptText, outputType, outputText) => {
+  const getChatGPTResponse_Output = async (
+    inputText,
+    promptText,
+    outputType,
+    outputText
+  ) => {
     const input = inputText !== "undefined" ? inputText : outputText;
     return input
       ? chatGPTService.promptArrow_Input_Output(input, promptText, outputType)
@@ -584,47 +694,142 @@ const Arrow = ({
         x: outputElement.position.x,
         y: outputElement.position.y,
         width: outputElement.size.width,
-        height: outputElement.size.height
-      }).filter(el => el.type === "textcard");
+        height: outputElement.size.height,
+      }).filter((el) => el.type === "textcard");
 
       const allCards = combineCards(existingCards, cardsData);
-      const grid = calculateGridLayout(allCards.length, cardSize.width, cardSize.height, padding);
-
-      positionCardsInGrid(
-        allCards,
-        grid,
-        outputElement,
-        cardSize,
-        padding,
-        {
-          updatePosition: handleTextcardUpdate,
-          addCard: addTextcard
-        }
+      const grid = calculateGridLayout(
+        allCards.length,
+        cardSize.width,
+        cardSize.height,
+        padding
       );
 
-      handleFrameResize(outputElement.id, { 
-        width: grid.requiredWidth, 
-        height: grid.requiredHeight 
-      }, { 
-        x: outputElement.position.x, 
-        y: outputElement.position.y 
+      positionCardsInGrid(allCards, grid, outputElement, cardSize, padding, {
+        updatePosition: handleTextcardUpdate,
+        addCard: addTextcard,
       });
 
+      handleFrameResize(
+        outputElement.id,
+        {
+          width: grid.requiredWidth,
+          height: grid.requiredHeight,
+        },
+        {
+          x: outputElement.position.x,
+          y: outputElement.position.y,
+        }
+      );
     } catch (error) {
       console.error("Fehler bei der Rechteck-Verarbeitung:", error);
       return;
     }
   };
 
+  const pointerEvents = getPointerEvents({
+    selectedTool,
+    isDrawing,
+    selectedElements,
+    elementId: arrow.id,
+  });
+
+  const arrowInlineStyles = useMemo(
+    () =>
+      getArrowStyles(
+        startX,
+        startY,
+        endX,
+        endY,
+        scaleRef.current,
+        offsetRef.current,
+        properties,
+        isSelected,
+        pointerEvents,
+        arrow.zIndex
+      ),
+    [
+      startX,
+      startY,
+      endX,
+      endY,
+      scaleRef.current,
+      offsetRef.current,
+      properties,
+      isSelected,
+      pointerEvents,
+      arrow.zIndex,
+    ]
+  );
+
+  const arrowClassName = clsx(styles["arrow-line"], {
+    [styles["arrow-loading"]]: isLoading,
+  });
 
   return (
     <>
       <div
         ref={frameRef}
-        style={arrowStyles}
+        className={arrowClassName}
+        style={arrowInlineStyles}
         onClick={SelectArrow}
-        onDoubleClick={InsertAtPosition}
+        onDoubleClick={CreateTextcardFromTooltip}
+        onMouseMove={responseItems?.length > 0 ? handleMouseMove : undefined}
+        onMouseLeave={responseItems?.length > 0 ? handleMouseLeave : undefined}
       />
+
+      {tooltipVisible && start && end && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${tooltipPosition.x - (200 * scaleRef.current) / 2}px`,
+            top: `${tooltipPosition.y + 25}px`,
+            width: `${200 * scaleRef.current}px`,
+            height: `${75 * scaleRef.current}px`,
+            color: "black",
+            backgroundColor: "rgba(230, 230, 230, 0.4)",
+            borderRadius: "25px",
+            boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
+            padding: "12px",
+            boxSizing: "border-box",
+            border: "0px solid #ccc",
+            zIndex: 3000,
+            pointerEvents: "none",
+            fontSize: "auto",
+            textAlign: "center",
+            alignContent: "center",
+            overflow: "hidden",
+            transition: "opacity 0.1s ease-in-out",
+            //whiteSpace: "nowrap",
+          }}
+        >
+          {tooltipText}
+        </div>
+      )}
+
+      {tooltipVisible && hoverPointPosition && start && end && (
+        <div
+          style={{
+            position: "absolute",
+            left: `${
+              hoverPointPosition.x * scaleRef.current + offsetRef.current.x
+            }px`,
+            top: `${
+              hoverPointPosition.y * scaleRef.current + offsetRef.current.y
+            }px`,
+            width: "13px",
+            height: "13px",
+            backgroundColor: "rgba(0, 0, 0, 1)",
+            borderRadius: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: (arrowInlineStyles.zIndex || 1) + 1,
+            pointerEvents: "none",
+            transition: "opacity 0.3s ease-in-out",
+            opacity: 1,
+          }}
+          aria-hidden="true"
+        />
+      )}
 
       <ArrowHeads
         start={properties.arrowHeadStart}
@@ -637,7 +842,7 @@ const Arrow = ({
         offset={offsetRef.current}
         lineAngle={lineAngle}
         color={properties.lineColor}
-        zIndex={arrowStyles.zIndex}
+        zIndex={arrowInlineStyles.zIndex}
       />
 
       <ArrowLabel
@@ -652,7 +857,7 @@ const Arrow = ({
         end={{ x: endX, y: endY }}
         textSize={properties.textSize}
         textColor={properties.textColor}
-        zIndex={arrowStyles.zIndex}
+        zIndex={arrowInlineStyles.zIndex}
         pointerEvents={pointerEvents}
       />
 

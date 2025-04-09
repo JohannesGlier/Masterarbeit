@@ -1,0 +1,66 @@
+/* Arrow.css */
+
+.arrow-line {
+    /* Wichtig: Wird für die absolute Positionierung des ::after benötigt */
+    /* position: absolute; (wird schon inline gesetzt) */
+}
+
+.arrow-line:hover {
+  cursor: inherit; /* Übernimmt den Wert aus den inline-styles */
+}
+  
+@keyframes pulse-opacity {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes loading-flow {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 40px 0px;
+  }
+}
+
+.arrow-loading {
+  animation: pulse-opacity 1.2s ease-in-out infinite;
+  position: relative;
+}
+
+.arrow-loading::after {
+  content: '';
+  position: absolute;
+  /* Positioniere es genau über dem Elternelement (der Linie) */
+  top: -1px; /* Leicht anpassen, um über dem Border zu liegen */
+  left: 0;
+  width: 100%;
+  /* Höhe sollte der Linienbreite entsprechen */
+  height: calc(100% + 2px); /* Leicht anpassen, um über dem Border zu liegen */
+
+  /* Streifen-Gradient (Beispiel: schräge, halbtransparente weiße Streifen) */
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.4), /* Hellerer Streifen */
+    rgba(255, 255, 255, 0.4) 10px, /* Breite des helleren Streifens */
+    transparent 10px, /* Transparenter Bereich */
+    transparent 20px /* Gesamtbreite eines Musters = 20px */
+  );
+
+  /* Größe des sich wiederholenden Musters */
+  /* Breite (40px) sollte das Doppelte der Streifenmusterbreite (20px) sein */
+  background-size: 40px 40px;
+
+  /* Wende die Fluss-Animation an */
+  animation: loading-flow 0.8s linear infinite; /* Geschwindigkeit anpassen */
+
+  /* Stelle sicher, dass der Effekt keine Maus-Events blockiert */
+  pointer-events: none;
+
+  /* Optional: Mischen mit der Pfeilfarbe */
+  mix-blend-mode: overlay;
+}

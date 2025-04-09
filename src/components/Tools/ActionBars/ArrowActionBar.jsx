@@ -157,7 +157,7 @@ const ArrowActionBar = ({ arrow, updateArrowStyle }) => {
 
       {/* Pfeildicke */}
       <div style={{ display: "flex", flexDirection: "column", alignSelf: "end", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
-        <span style={{ marginBottom: "2px", fontSize: "20px" }}>Line Thickness</span>
+        <span style={{ marginBottom: "2px", fontSize: "20px", color: "black" }}>Line Thickness</span>
         <Slider
           min={1}
           max={10}

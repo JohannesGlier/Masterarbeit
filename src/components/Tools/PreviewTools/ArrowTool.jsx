@@ -43,6 +43,7 @@ const ArrowTool = ({
   const [lastTextcardId, setLastTextcardId] = useState(null);
   const [lastPreviewIndex, setLastPreviewIndex] = useState(-1);
 
+
   useEffect(() => {
     if (previewStatus === "success" && lastTextcardId && previewEntries.length > 0) {
       const targetIndex = lastPreviewIndex >= 0 ? lastPreviewIndex : 
@@ -348,6 +349,7 @@ const ArrowTool = ({
     setLastTextcardId,
     lastTextcardId
   ]);
+  
 
   const addTextcardToShortcutArrow = async (start, end) => {
     // Erstelle die Textkarte immer sofort
@@ -471,17 +473,12 @@ const ArrowTool = ({
     const baseWidth = 200;
     const baseHeight = 75;
 
-    // --- Skalierte Dimensionen für den Style des Preview-Divs ---
     const scale = scaleRef.current;
     const scaledWidth = baseWidth * scale;
     const scaledHeight = baseHeight * scale;
 
-    // --- Berechne die RAW Top-Left Koordinaten ---
-    // basierend auf dem ENDPUNKT und dem AKTUELLEN Start-Anker
-    // Diese Logik spiegelt attachTextcardToArrow
     let rawX, rawY;
-    const currentEndPoint = endPoint; // Aktuelle Position während des Ziehens
-    // *** Verwende den AKTUELLEN Anker aus dem startPoint State ***
+    const currentEndPoint = endPoint;
     const currentStartAnchor = startPoint.anchor;
 
     switch (currentStartAnchor) { // Verwende den dynamischen Anker

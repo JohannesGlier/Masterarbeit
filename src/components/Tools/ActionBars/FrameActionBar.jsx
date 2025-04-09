@@ -361,7 +361,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
 
       {/* Frame Broder Thickness */}
       <div style={{ display: "flex", flexDirection: "column", alignSelf: "end", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
-        <span style={{ marginBottom: "2px", fontSize: "20px" }}>Border Thickness</span>
+        <span style={{ marginBottom: "2px", fontSize: "20px", color: "black" }}>Border Thickness</span>
         <Slider
           min={0}
           max={10}

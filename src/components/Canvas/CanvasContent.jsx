@@ -12,6 +12,7 @@ import Frame from "@/components/Tools/Frame";
 import Arrow from "@/components/Tools/Arrow";
 import { getAnchorPosition } from "@/utils/Arrow/anchorUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
+import { getTextFromElement } from "@/utils/elementUtils";
 
 const generateUniqueId = () => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -34,6 +35,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [isAutoLayoutRunning, setIsAutoLayoutRunning] = useState(false);
   const chatGPTService = new ChatGPTService();
   const [chatGPTResponse, setChatGPTResponse] = useState(null);
+  const [processedArrows, setProcessedArrows] = useState(new Set());
+  const [loadingArrows, setLoadingArrows] = useState(new Set());
+  const [arrowTexts, setArrowTexts] = useState({});
 
   const elements = useMemo(() => {
     return [
@@ -55,6 +59,47 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       })),
     ];
   }, [textcards, rectangles]);
+
+  
+  useEffect(() => {
+    arrows.forEach((arrow) => {
+      const hasStartElement = arrow.start?.elementId !== undefined;
+      const hasEndElement = arrow.end?.elementId !== undefined;
+
+      if (hasStartElement && hasEndElement && !processedArrows.has(arrow.id)) {
+        console.log(
+          `Arrow ${arrow.id} ist an beiden Enden mit Elementen verbunden:`
+        );
+        const startElement = elements.find(
+          (e) => e.id === arrow.start.elementId
+        );
+        const endElement = elements.find((e) => e.id === arrow.end.elementId);
+        const startText = getTextFromElement(startElement, elements);
+        const endText = getTextFromElement(endElement, elements);
+        console.log("Start Text:", startText);
+        console.log("End Text:", endText);
+        getConnectionBetweenElementsText(startText, endText, arrow.id);
+        setProcessedArrows((prev) => new Set(prev).add(arrow.id));
+      } else if (processedArrows.has(arrow.id)) {
+        if (!hasStartElement || !hasEndElement) {
+          console.log(`Arrow ${arrow.id} ist nicht mehr an beiden Enden verbunden`);
+          setProcessedArrows(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(arrow.id);
+            return newSet;
+          });
+          setArrowTexts(prevTexts => {
+            const newState = { ...prevTexts };
+            delete newState[arrow.id];
+            return newState;
+          });
+          if (loadingArrows.has(arrow.id)) {
+              setArrowLoading(arrow.id, false);
+          }
+        }
+      }
+    });
+  }, [arrows, elements, processedArrows, loadingArrows]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -97,6 +142,16 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
     setArrows(updatedArrows);
   }, [elements]);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    loadingArrows.size > 0 
+      ? html.classList.add('global-loading')
+      : html.classList.remove('global-loading');
+
+    return () => html.classList.remove('global-loading');
+  }, [loadingArrows]);
+
 
   const addRectangle = (rect) => {
     const zIndex = incrementZIndex("rectangle");
@@ -256,14 +311,76 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     );
   };
 
+  const getConnectionBetweenElementsText = async (
+    startText,
+    endText,
+    arrowId
+  ) => {
+    if (loadingArrows.has(arrowId)) {
+      console.log(`Request for arrow ${arrowId} already in progress.`);
+      return;
+    }
+
+    try {
+      setArrowLoading(arrowId, true);
+      const response = await chatGPTService.analyzeArrow(startText, endText);
+
+      let parsedData = [];
+      let rawContent = response.content;
+
+      if (typeof rawContent === 'string') {
+        try {
+          parsedData = JSON.parse(rawContent);
+          console.log(`DEBUG CanvasContent: Successfully parsed JSON for ${arrowId}.`);
+
+          if (!Array.isArray(parsedData)) {
+            console.warn(`Parsed JSON for arrow ${arrowId} did not result in an array:`, parsedData);
+            parsedData = [];
+          } else {
+            parsedData = parsedData.slice(0, 10);
+            console.log(`DEBUG CanvasContent: Parsed data is an array with length ${parsedData.length}.`);
+          }
+
+        } catch (parseError) {
+          console.error(`Error parsing JSON response for arrow ${arrowId}:`, parseError, "\nRaw content was:", rawContent);
+          parsedData = []; 
+        }
+      } else if (Array.isArray(rawContent)) {
+          console.log(`DEBUG CanvasContent: Response content for ${arrowId} was already an array.`);
+          parsedData = rawContent;
+          parsedData = parsedData.slice(0, 10);
+      } else {
+         console.warn(`Response content for arrow ${arrowId} is neither a string nor an array:`, rawContent);
+         parsedData = [];
+      }
+
+      setArrowTexts(prevTexts => ({
+        ...prevTexts,
+        [arrowId]: parsedData
+      }));
+
+    } catch (error) {
+      console.error(`Fehler beim Abrufen des Textes für Pfeil ${arrowId}:`, error);
+      setArrowTexts(prevTexts => ({
+         ...prevTexts,
+         [arrowId]: []
+       }));
+    } finally {
+      setArrowLoading(arrowId, false);
+    }
+  };
+
+  const setArrowLoading = (arrowId, isLoading) => {
+    setLoadingArrows((prev) => {
+      const newSet = new Set(prev);
+      isLoading ? newSet.add(arrowId) : newSet.delete(arrowId);
+      return newSet;
+    });
+  };
+
   const handleStartArrowFromFrame = async (startData) => {
     const startElement = elements.find((e) => e.id === startData.elementId);
-    const startText =
-      startElement?.type === "textcard"
-        ? startElement.text
-        : startElement?.type === "rectangle"
-        ? startElement.heading
-        : null;
+    const startText = getTextFromElement(startElement, elements);
 
     if (startText) {
       setSelectedTool("Arrow");
@@ -271,10 +388,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       setChatGPTResponse(null);
 
       try {
-        const response = await chatGPTService.relationshipArrow(
-          startText,
-          length
-        );
+        const response = await chatGPTService.relationshipArrow(startText);
         setChatGPTResponse(response);
       } catch (error) {
         console.error("Fehler bei ChatGPT-Anfrage:", error);
@@ -494,6 +608,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           updateTextcardText={updateTextCardText}
           handleFrameResize={handleFrameResize}
           handleTextcardUpdate={handleTextcardUpdate}
+          isLoading={loadingArrows.has(arrow.id)}
+          responseItems={arrowTexts[arrow.id] || []}
         />
       ))}
     </div>
