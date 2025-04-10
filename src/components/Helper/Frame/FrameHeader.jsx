@@ -19,7 +19,7 @@ const FrameHeader = memo(({
     pointerEvents,
   }}>
     <TextInput
-      placeholder="Überschrift"
+      placeholder="Heading.."
       value={heading}
       onChange={onHeadingChange}
       minWidth={`${size.width * scale}px`}

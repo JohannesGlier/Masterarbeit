@@ -31,7 +31,7 @@ const Handles = memo(({ onResize, onCreateArrow, text }) => (
 
       let handleTitle = '';
       if (isDisabled) {
-        handleTitle = 'Enter Text to create a relation arrow.';
+        handleTitle = 'Enter text/heading to create a relation arrow.';
       } else if (type === 'arrow') {
         handleTitle = 'Click and drag to create a relation arrow.';
       } else if (type === 'resize') {

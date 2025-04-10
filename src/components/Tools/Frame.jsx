@@ -192,6 +192,7 @@ const Frame = ({
           <Handles
             onResize={handleResize}
             onCreateArrow={handleArrowCreation}
+            text={headingText}
           />
         )}
       </div>

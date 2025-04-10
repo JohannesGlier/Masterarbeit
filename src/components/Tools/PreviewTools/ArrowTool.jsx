@@ -353,7 +353,6 @@ const ArrowTool = ({
 
   const addTextcardToShortcutArrow = async (start, end) => {
     // Erstelle die Textkarte immer sofort
-    console.log("Add Textcard");
     const arrow = addArrow({ start, end });
     const newTextcard = attachTextcardToArrow(arrow, start.anchor);
     
