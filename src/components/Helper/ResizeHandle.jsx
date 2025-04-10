@@ -1,6 +1,6 @@
 import React from "react";
 
-const ResizeHandle = ({ position, cursor, onMouseDown, color }) => {
+const ResizeHandle = ({ position, cursor, onMouseDown, color, title }) => {
   const baseStyles = {
     position: "absolute",
     width: "15px",
@@ -39,7 +39,7 @@ const ResizeHandle = ({ position, cursor, onMouseDown, color }) => {
     },
   };
 
-  return <div style={{ ...baseStyles, ...positionStyles[position] }} onMouseDown={onMouseDown} />;
+  return <div style={{ ...baseStyles, ...positionStyles[position] }} onMouseDown={onMouseDown} title={title} />;
 };
 
 export default ResizeHandle;

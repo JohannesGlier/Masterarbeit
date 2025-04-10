@@ -279,7 +279,7 @@ const ArrowTool = ({
 
       let textcardID = null;
       // Shortcut-Pfeil
-      if (initialStart) {
+      if (initialStart && !end?.elementId) {
         end = calculateLimitedPosition(start, end, MAX_LENGTH);
         textcardID = await addTextcardToShortcutArrow(start, end);
       } else {
@@ -353,6 +353,7 @@ const ArrowTool = ({
 
   const addTextcardToShortcutArrow = async (start, end) => {
     // Erstelle die Textkarte immer sofort
+    console.log("Add Textcard");
     const arrow = addArrow({ start, end });
     const newTextcard = attachTextcardToArrow(arrow, start.anchor);
     

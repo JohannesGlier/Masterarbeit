@@ -268,6 +268,7 @@ const TextCard = ({
           <Handles
             onResize={handleResize}
             onCreateArrow={handleArrowCreation}
+            text={textcardText}
           />
         )}
       </div>
