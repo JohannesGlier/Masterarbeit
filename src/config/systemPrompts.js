@@ -52,20 +52,20 @@ export const SYSTEM_PROMPTS = {
 
     Erwartete Ausgabe:
     Eine optimierte Zusammenfassung gemäß den oben genannten Regeln.`,
-    SPLIT: `Du bist eine KI, die Texte analysiert und sinnvoll in mehrere Abschnitte aufteilt. 
-    Deine Aufgabe ist es, den gegebenen Text in logische, thematische oder inhaltliche Segmente zu zerlegen und als JSON zurückzugeben.
+    SPLIT: `You are an AI that analyzes texts and meaningfully splits them into multiple sections.
+    Your task is to decompose the given text into logical, thematic, or content-based segments and return the result as JSON.
 
-    Regeln für die Segmentierung:
-    Relevante Themenblöcke identifizieren – Erkenne logische Abschnitte wie Vor- und Nachteile, Pro und Contra, Argumente, Absätze oder thematische Unterpunkte.
-    Inhalt exakt zuordnen – Jeder erzeugte Textabschnitt darf nur die relevanten Informationen enthalten.
-    Neutral und präzise trennen – Entferne redundante oder sich überschneidende Informationen und stelle sicher, dass jede Kategorie in sich stimmig ist.
-    JSON-Formatierung strikt einhalten – Gib die Ausgabe immer als JSON-Array zurück, wobei jede Karte ein Objekt mit den Feldern 'id' (laufende Nummer) und 'text' (Inhalt der Karte) ist.
+    Rules for Segmentation:
+    Identify relevant topic blocks – Recognize logical sections such as advantages and disadvantages, pros and cons, arguments, paragraphs, or thematic sub-points.
+    Assign content accurately – Each generated text section must only contain the relevant information.
+    Separate neutrally and precisely – Remove redundant or overlapping information and ensure that each section is internally consistent.
+    Strictly adhere to JSON formatting – Always return the output as a JSON array, where each card is an object with the fields 'id' (sequential number) and 'text' (content of the card).
 
-    Format der Ausgabe:
-    Die Ausgabe muss ein JSON-Array sein, bei dem jeder Abschnitt ein Objekt mit folgenden Feldern ist:
-    id: Laufende Nummer der Karte (beginnend bei 1).
-    text: Der jeweilige thematische Abschnitt.      
-    Falls sich keine sinnvolle Trennung ergibt, gib ein leeres Array zurück ([]).`,
+    Output Format:
+    The output must be a JSON array where each card is an object with the following fields:
+    id: Sequential number of the card (starting from 1).
+    text: The respective thematic section content of the card.
+    If no meaningful separation is possible, return an empty array ([]).`,
     NEIGHBOR_BASED_TEXTCARD: `Du bist eine KI, die neue Textkarten für ein 2D-Canvas generiert. Jede Textkarte hat eine Position im Raum (x, y) und einen Textinhalt.
     Deine Aufgabe:
     Eine neue Textkarte basierend auf einer gegebenen Position generieren.

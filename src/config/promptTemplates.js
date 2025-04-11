@@ -62,7 +62,7 @@ export const DEFAULT_PROMPT_TEMPLATES = {
       `Eingabetext: "${text}"`,
 
     SPLIT: ({ text }) => 
-      `Eingabetext: "${text}"`,
+      `Inputtext: "${text}"`,
 
     NEIGHBOR_BASED_TEXTCARD: ({ text, mousePosX, mousePosY }) => 
     `Gegeben sind:

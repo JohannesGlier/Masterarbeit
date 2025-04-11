@@ -9,7 +9,7 @@ import {
   attachTextcardToArrow,
 } from "@/utils/elementUtils";
 import { getCanvasMousePosition } from "@/utils/canvasUtils";
-import styles from "@/components/Tools/PreviewTools/ArrowTool.module.css";
+import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
 
 const ArrowTool = ({
   canvasRef,
@@ -506,39 +506,14 @@ const ArrowTool = ({
     const finalTop = rawY * scale + offsetRef.current.y;
 
     return (
-      <div
-        style={{
-          position: "absolute",
-          top: `${finalTop}px`,
-          left: `${finalLeft}px`,
-          width: `${scaledWidth}px`,
-          height: `${scaledHeight}px`,
-          color: "black",
-          backgroundColor: "rgba(230, 230, 230, 0.4)",
-          borderRadius: "25px",
-          boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
-          padding: "12px",
-          boxSizing: "border-box",
-          border: "0px solid #ccc",
-          zIndex: 3000,
-          pointerEvents: "none",
-          fontSize: "auto",
-          textAlign: "center",
-          alignContent: "center",
-          overflow: "hidden",
-        }}
-        className={isLoading ? styles.loadingPulseDiv : ""}
-      >
-        {isLoading ? (
-          <div className={styles.loadingDotsContainer}>
-            <span>.</span>
-            <span>.</span>
-            <span>.</span>
-          </div>
-        ) : (
-          <span style={{ padding: "12px" }}>{previewTextContent}</span>
-        )}
-      </div>
+      <PreviewTextcard
+        finalTop={finalTop}
+        finalLeft={finalLeft}
+        scaledWidth={scaledWidth}
+        scaledHeight={scaledHeight}
+        isLoading={isLoading}
+        previewTextContent={previewTextContent}
+      />
     );
   };
 
