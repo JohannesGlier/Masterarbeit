@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/Canvas/CanvasContext';
+import { ChatGPTService } from "@/services/ChatGPTService";
+import {
+  getElementsInRectangle,
+} from "@/utils/elementUtils";
 
-const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
+const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
   const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
+  const chatGPTService = new ChatGPTService();
 
   // Mouse event handling for drawing
   useEffect(() => {
@@ -40,6 +45,12 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
       if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
+        // Check, ob der Bereich über anderen Element ist, wenn ja, generiere eine passende Überschrift
+        const text = getTextInsideFrame(elements, tempRectangle);
+        if(text) {
+          console.log("Generiere eine Überschrift");
+        }
+
         // Benutzerdefiniertes Rechteck durch Ziehen
         addRectangle(tempRectangle);
         setSelectedTool('Pointer');
@@ -54,6 +65,13 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
           width: defaultWidth,
           height: defaultHeight,
         };
+
+        // Check, ob der Bereich über anderen Element ist, wenn ja, generiere eine passende Überschrift
+        const text = getTextInsideFrame(elements, finalRectangle);
+        if(text) {
+          console.log("Generiere eine Überschrift");
+        }
+
         addRectangle(finalRectangle);
         setSelectedTool('Pointer');
       }
@@ -73,6 +91,25 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle }) => {
         canvasWrapper.removeEventListener("mouseup", handleMouseUp);
     };
   }, [canvasRef, canvasWrapperRef, isDrawing, tempRectangle, scaleRef, offsetRef]);
+
+  const getTextInsideFrame = (elements, finalRectangle) => {
+    const elementsInFrame = getElementsInRectangle(elements, finalRectangle);
+    if(elementsInFrame.length > 0){
+      const textFromElements = elementsInFrame
+        .map((el) => {
+          if (el.type === "textcard") {
+            return el.text;
+          } else if (el.type === "rectangle") {
+            return el.heading;
+          }
+          return null;
+        })
+        .filter((item) => item !== null);
+
+      return JSON.stringify(textFromElements, null, 2);
+    }
+    return null;
+}
 
   return (
     <div>

@@ -507,6 +507,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
           addRectangle={addRectangle}
+          elements={elements}
         />
       )}
       {selectedTool === "TextCard" && (
