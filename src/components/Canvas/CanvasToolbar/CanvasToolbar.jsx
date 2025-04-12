@@ -7,7 +7,6 @@ import { CgArrowLongUp } from "react-icons/cg";
 import { MdOutlineRectangle } from "react-icons/md";
 import { RiTextBlock } from "react-icons/ri";
 import { FiScissors } from "react-icons/fi";
-import { LuSquareMousePointer } from "react-icons/lu";
 import { LuLayoutDashboard } from "react-icons/lu";
 
 const CanvasToolbar = () => {
@@ -49,13 +48,6 @@ const CanvasToolbar = () => {
           onClick={() => setSelectedTool('Scissor')}
         >
           <FiScissors />
-        </button>
-        <button
-          title="Intelligentes Textkarten-Erstellungs-Tool zum Erstellen von Textkarten mit automatisch generiertem Inhalt"
-          className={`${styles['button']} ${selectedTool === 'AITextcard' ? styles.selectedButton : ''}`} 
-          onClick={() => setSelectedTool('AITextcard')}
-        >
-          <LuSquareMousePointer />
         </button>
         <button
           title="Auto-Layout-Tool zum automatischen Anordnen von Elementen auf dem Canvas"

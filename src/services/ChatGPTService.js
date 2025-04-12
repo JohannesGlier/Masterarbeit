@@ -118,8 +118,8 @@ export class ChatGPTService {
     });
   }
 
-  async neighborbasedTextcard(text, mousePosX, mousePosY) {
-    const prompt = this.promptTemplates.NEIGHBOR_BASED_TEXTCARD({text, mousePosX, mousePosY});
+  async neighborbasedTextcard(text) {
+    const prompt = this.promptTemplates.NEIGHBOR_BASED_TEXTCARD({text});
     return this._sendRequest({
       message: prompt,
       promptType: 'NEIGHBOR_BASED_TEXTCARD' // Füge den promptType hinzu (System Prompt)

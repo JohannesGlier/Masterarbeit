@@ -5,7 +5,6 @@ import ArrowTool from "@/components/Tools/PreviewTools/ArrowTool";
 import TextCardTool from "@/components/Tools/PreviewTools/TextCardTool";
 import PointerTool from "@/components/Tools/PreviewTools/PointerTool";
 import ScissorTool from "@/components/Tools/PreviewTools/ScissorTool";
-import AITextcardTool from "@/components/Tools/PreviewTools/AITextcardTool";
 import AutoLayoutTool from "@/components/Tools/PreviewTools/AutoLayoutTool";
 import TextCard from "@/components/Tools/TextCard";
 import Frame from "@/components/Tools/Frame";
@@ -515,6 +514,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
           addTextcard={addTextcards}
+          elements={elements}
         />
       )}
       {selectedTool === "Arrow" && (
@@ -538,15 +538,6 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasWrapperRef={canvasWrapperRef}
           elements={elements}
           addTextcard={addTextcards}
-        />
-      )}
-      {selectedTool === "AITextcard" && (
-        <AITextcardTool
-          canvasRef={canvasRef}
-          canvasWrapperRef={canvasWrapperRef}
-          addTextcard={addTextcards}
-          elements={elements}
-          updateTextCardText={updateTextCardText}
         />
       )}
       {selectedTool === "AutoLayout" && (

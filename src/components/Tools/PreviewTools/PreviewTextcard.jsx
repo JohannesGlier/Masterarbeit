@@ -22,7 +22,7 @@ const PreviewTextcard = ({
     padding: "12px",
     boxSizing: "border-box",
     border: "0px solid #ccc",
-    zIndex: 3000,
+    zIndex: 5000,
     pointerEvents: "none",
     fontSize: "auto",
     textAlign: "center",

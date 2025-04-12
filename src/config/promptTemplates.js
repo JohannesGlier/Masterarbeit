@@ -64,21 +64,17 @@ export const DEFAULT_PROMPT_TEMPLATES = {
     SPLIT: ({ text }) => 
       `Inputtext: "${text}"`,
 
-    NEIGHBOR_BASED_TEXTCARD: ({ text, mousePosX, mousePosY }) => 
-    `Gegeben sind:
-    Kontext (Textkarten mit Positionen): ${text || "No context"}
-    Position der neuen Textkarte (E): x: ${mousePosX}, y: ${mousePosY}
+    NEIGHBOR_BASED_TEXTCARD: ({ text }) => 
+    `Based on the following text:
+    ${text || "No input text provided."}
 
-    Generiere eine neue Textkarte an der Position (${mousePosX}, ${mousePosY}).
-    Der Textinhalt der neuen Karte soll thematisch zu den bestehenden Textkarten passen.
-    Die Position der neuen Karte beeinflusst den Inhalt:
-    - Nah an einer bestehenden Karte → direkte Ergänzung oder Vertiefung des Themas.
-    - Zwischen zwei Karten → eine Verbindung zwischen den Themen herstellen.
-    - Weit entfernt von anderen Karten → neuer Gedanke innerhalb des Kontexts.
-    - Falls eine benachbarte Karte keinen Text hat, kann die neue Karte eine Hypothese oder eine sinnvolle Fortsetzung sein.
-    
-    Gib die Ergebnisse als reinen Text zurück und nicht in einem Json-Objekt!
-    Die Antwort darf ausschließlich den generierten Text enthalten ohne Anführungszeichen.`,
+    Generate a concise and thematically related text snippet designed to spark further reflection, inspire new ideas, or offer a thought-provoking angle connected to the input text.
+
+    *Adapt the output format based on the input:*
+    - If the input consists only of keywords, single words, or very short bullet points, your output should be a *single relevant keyword or a very short phrase*.
+    - Otherwise, your output should be a maximum of 2 sentences.
+
+    Your response should contain *only* the generated text snippet/keyword itself, without any introductory phrases, labels, or quotation marks.`,
 
     AUTO_LAYOUT: ({ text }) => 
     `Bitte analysiere die folgenden JSON-Daten, die Elemente (jeweils mit einer id) auf einem Canvas repräsentieren. Basierend auf dem Inhalt der 'Textkarte'-Elemente, ordne alle Elemente logisch und übersichtlich an.

@@ -178,3 +178,16 @@ export const getTextFromElement = (element, allElements) => {
   console.log("Text from element " + element.id + "is undefined");
   return "undefined";
 };
+
+export const getTextFromAllElement = (allElements) => {
+  if (!allElements) return "Kein Element auf dem Canvas!";
+
+  const simplifiedElements = allElements.map((el) => ({
+    ...(el.type === "textcard" && { text: el.text }),
+    ...(el.type === "rectangle" && { text: el.heading }),
+  }));
+
+  const text = JSON.stringify(simplifiedElements, null, 2);
+  console.log("Text von allen Elementen auf dem Canvas:\n", text);
+  return text;
+};
