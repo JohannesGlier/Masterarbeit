@@ -845,30 +845,34 @@ const Arrow = ({
         zIndex={arrowInlineStyles.zIndex}
       />
 
-      <ArrowLabel
-        middleX={middleX}
-        middleY={middleY}
-        scale={scaleRef.current}
-        offset={offsetRef.current}
-        textAlignment={properties.textAlignment}
-        text={text}
-        onChange={setText}
-        start={{ x: startX, y: startY }}
-        end={{ x: endX, y: endY }}
-        textSize={properties.textSize}
-        textColor={properties.textColor}
-        zIndex={arrowInlineStyles.zIndex}
-        pointerEvents={pointerEvents}
-      />
+      {!start || !end && (
+        <ArrowLabel
+          middleX={middleX}
+          middleY={middleY}
+          scale={scaleRef.current}
+          offset={offsetRef.current}
+          textAlignment={properties.textAlignment}
+          text={text}
+          onChange={setText}
+          start={{ x: startX, y: startY }}
+          end={{ x: endX, y: endY }}
+          textSize={properties.textSize}
+          textColor={properties.textColor}
+          zIndex={arrowInlineStyles.zIndex}
+          pointerEvents={pointerEvents}
+        />
+      )}
 
-      <RunPromptButton
-        position={{ x: middleX, y: middleY }}
-        scale={scaleRef.current}
-        offset={offsetRef.current}
-        lineWidth={properties.lineWidth}
-        handleClick={runPromptButton}
-        pointerEvents={pointerEvents}
-      />
+      {!start || !end && (
+        <RunPromptButton
+          position={{ x: middleX, y: middleY }}
+          scale={scaleRef.current}
+          offset={offsetRef.current}
+          lineWidth={properties.lineWidth}
+          handleClick={runPromptButton}
+          pointerEvents={pointerEvents}
+        />
+      )}
 
       {isSelected && (
         <>
