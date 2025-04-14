@@ -21,6 +21,11 @@ export const CanvasProvider = ({ children }) => {
     point: null,
     arrowID: null,
   });
+  const [headingGeneration, setHeadingGeneration] = useState({
+    rectId: null,
+    generateHeading: false,
+    text: null,
+  });
 
   const showContextMenu = (position, point, id) => {
     setContextMenu({
@@ -113,6 +118,8 @@ export const CanvasProvider = ({ children }) => {
         contextMenu,
         showContextMenu,
         closeContextMenu,
+        headingGeneration,
+        setHeadingGeneration,
       }}
     >
       {children}

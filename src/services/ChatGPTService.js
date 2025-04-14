@@ -134,6 +134,14 @@ export class ChatGPTService {
     });
   }
 
+  async generateHeading(text) {
+    const prompt = this.promptTemplates.GENERATE_HEADING({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'GENERATE_HEADING' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
   async customRequest(message) {
     const prompt = this.promptTemplates.DEFAULT(message);
     return this._sendRequest({

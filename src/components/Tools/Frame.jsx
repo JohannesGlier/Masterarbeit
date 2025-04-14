@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import FrameActionBar from "@/components/Tools/ActionBars/FrameActionBar";
 import useDrag from "@/hooks/useDrag";
@@ -8,6 +8,7 @@ import FrameHeader from "@/components/Helper/Frame/FrameHeader";
 import { FRAME_DEFAULTS } from "@/utils/Frame/frameDefaultProperties";
 import { getFrameStyles } from "@/utils/Frame/frameStyles";
 import { getPointerEvents } from "@/utils/pointerEventUtils";
+import { ChatGPTService } from "@/services/ChatGPTService";
 
 const Frame = ({
   rect,
@@ -26,6 +27,9 @@ const Frame = ({
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
   const [isDragging, setIsDragging] = useState(false);
+  const [isGeneratingHeading, setIsGeneratingHeading] = useState(false);
+  const generationTriggeredRef = useRef(false);
+  const chatGPTService = new ChatGPTService();
 
   const {
     selectedTool,
@@ -35,7 +39,10 @@ const Frame = ({
     mouseDownElement,
     hoveredElement,
     isArrowDragging,
+    headingGeneration,
+    setHeadingGeneration,
   } = useCanvas();
+
 
   useEffect(() => {
     setPosition({ x: rect.x, y: rect.y });
@@ -49,6 +56,43 @@ const Frame = ({
       y: rect.y
     }));
   }, [rect.x, rect.y, rect.width, rect.height]);
+
+  useEffect(() => {
+    const generateAndSetHeading = async () => {
+      if (headingGeneration.rectId === rect.id && headingGeneration.generateHeading && headingGeneration.text && !isGeneratingHeading && !generationTriggeredRef.current) {
+        generationTriggeredRef.current = true;
+        setIsGeneratingHeading(true);
+        try {
+          console.log("Generiere Überschrift für den Text", headingGeneration.text);
+          
+          const response = await chatGPTService.generateHeading(headingGeneration.text);
+          const generatedHeading = response.content;
+          
+          onHeadingChange(generatedHeading);
+          console.log("Erfolgreich Überschrift generiert:", generatedHeading);
+        } catch (error) {
+          console.error("Fehler bei der Überschriftgenerierung:", error);
+          onHeadingChange("Heading..");
+        } finally {
+          setIsGeneratingHeading(false);
+          setHeadingGeneration({
+            rectId: null,
+            generateHeading: false,
+            text: null
+          });
+        }
+      }
+    };
+  
+    generateAndSetHeading();
+  }, [headingGeneration, rect.id, onHeadingChange, isGeneratingHeading, setHeadingGeneration, chatGPTService]);
+
+  useEffect(() => {
+    if (!headingGeneration.generateHeading || headingGeneration.rectId !== rect.id) {
+         generationTriggeredRef.current = false;
+    }
+ }, [headingGeneration.generateHeading, headingGeneration.rectId, rect.id]);
+
 
   const isSelected = useMemo(
     () => selectedElements.some((el) => el.id === rect.id),
@@ -186,6 +230,7 @@ const Frame = ({
         textStyles={properties}
         onHeadingChange={handleHeadingChange}
         pointerEvents={frameStyles.pointerEvents}
+        isLoading={isGeneratingHeading} 
       />
       <div style={frameStyles} onMouseDown={handleDrag}>
         {showActionBar && (

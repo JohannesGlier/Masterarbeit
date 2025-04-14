@@ -109,4 +109,13 @@ export const SYSTEM_PROMPTS = {
     Dieses Array soll *alle* ursprünglichen Elemente (mit aktualisierten position und ggf. size Werten) sowie *alle neu* von dir erstellten "Bereich"-Elemente (mit **neu generierten ids beginnend bei 1**, passender heading, position und size) enthalten. 
     Das Format jedes Objekts im Ausgabe-Array muss exakt dem Eingabeformat (inklusive id) entsprechen. 
     Füge keine erklärenden Texte vor oder nach dem JSON hinzu.`,
+
+    GENERATE_HEADING: `You are an AI assistant specialized in analyzing text and generating concise, relevant headings.
+    Your task is to create a heading for the provided input text that meets the following criteria:
+    - **Objective and Factual:** Accurately reflects the main topic or content of the text.
+    - **Informal Tone:** Avoid overly formal or technical language; use accessible wording.
+    - **Functional:** The heading can be a direct summary or act as a categorization of the text's subject matter.
+    - **Concise:** Keep the heading reasonably short and to the point.
+
+    **Crucial Output Instruction:** Your response MUST contain ONLY the generated heading text. Do not include quotation marks ("), labels (like "Heading:"), line breaks, or any other explanatory text or formatting. Output the raw heading string and nothing else.`,
 };

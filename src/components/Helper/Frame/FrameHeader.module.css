@@ -1,0 +1,55 @@
+.headerContainer {
+    /* Statischere Styles, die nicht direkt von sich ständig ändernden Props abhängen */
+    display: flex;
+    align-items: center; /* Vertikale Zentrierung für Loader/Input */
+    padding: 5px;       /* Konsistenter Innenabstand */
+    height: 30px;       /* Beispielhafte feste Höhe, anpassen falls nötig */
+    box-sizing: border-box; /* Padding in die Höhe/Breite einbeziehen */
+  }
+  
+  /* ------------------------------------ */
+  /* Ladeanimation-Styles         */
+  /* ------------------------------------ */
+  
+  /* Keyframes für die pulsierenden Punkte */
+  @keyframes loadingPulse {
+    0%, 80%, 100% {
+      transform: scale(0);
+      opacity: 0.5;
+    } 40% {
+      transform: scale(1.0);
+      opacity: 1;
+    }
+  }
+  
+  /* Container für die Lade-Punkte */
+  .loadingIndicator {
+    /* Grundlegende Layout-Anpassungen, falls nötig */
+    line-height: 1; /* Verhindert extra Zeilenhöhe */
+    /* Die Farbe wird dynamisch inline gesetzt, um textStyles.textColor zu nutzen */
+  }
+  
+  /* Styles für die einzelnen Punkte */
+  .dot {
+    display: inline-block;
+    width: 8px;       /* Größe anpassen */
+    height: 8px;      /* Größe anpassen */
+    margin: 0 2px;    /* Abstand zwischen Punkten anpassen */
+    background-color: currentColor; /* Nimmt die 'color' vom Parent (.loadingIndicator) */
+    border-radius: 50%;
+    /* Animation anwenden */
+    animation: loadingPulse 1.4s infinite ease-in-out both;
+  }
+  
+  /* Animationsverzögerungen für die einzelnen Punkte */
+  .dot:nth-child(1) {
+    animation-delay: -0.32s;
+  }
+  
+  .dot:nth-child(2) {
+    animation-delay: -0.16s;
+  }
+  
+  .dot:nth-child(3) {
+    animation-delay: 0s;
+  }

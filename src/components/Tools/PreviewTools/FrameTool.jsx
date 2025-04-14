@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useCanvas } from '@/components/Canvas/CanvasContext';
-import { ChatGPTService } from "@/services/ChatGPTService";
 import {
   getElementsInRectangle,
 } from "@/utils/elementUtils";
 
 const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
-  const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
+  const { offsetRef, scaleRef, setSelectedTool, setHeadingGeneration } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
-  const chatGPTService = new ChatGPTService();
 
   // Mouse event handling for drawing
   useEffect(() => {
@@ -44,15 +42,20 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
-      if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
+      if (tempRectangle && tempRectangle.width > 50 && tempRectangle.height > 50) {
+        // Benutzerdefiniertes Rechteck durch Ziehen
+        const rectId = addRectangle(tempRectangle);
+
         // Check, ob der Bereich über anderen Element ist, wenn ja, generiere eine passende Überschrift
         const text = getTextInsideFrame(elements, tempRectangle);
         if(text) {
-          console.log("Generiere eine Überschrift");
+          setHeadingGeneration({
+            rectId,
+            generateHeading: true,
+            text: text,
+          });
         }
 
-        // Benutzerdefiniertes Rechteck durch Ziehen
-        addRectangle(tempRectangle);
         setSelectedTool('Pointer');
       }
       else {
@@ -66,13 +69,17 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
           height: defaultHeight,
         };
 
+        const rectId = addRectangle(finalRectangle);
+
         // Check, ob der Bereich über anderen Element ist, wenn ja, generiere eine passende Überschrift
         const text = getTextInsideFrame(elements, finalRectangle);
         if(text) {
-          console.log("Generiere eine Überschrift");
+          setHeadingGeneration({
+            rectId,
+            generateHeading: true,
+            text: text,
+          });
         }
-
-        addRectangle(finalRectangle);
         setSelectedTool('Pointer');
       }
       setTempRectangle(null);

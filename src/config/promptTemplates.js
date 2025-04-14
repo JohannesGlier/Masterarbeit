@@ -127,6 +127,10 @@ export const DEFAULT_PROMPT_TEMPLATES = {
 
     Hier sind die aktuellen Elementdaten: "${text}"`,
 
+    GENERATE_HEADING: ({ text }) => 
+      `Generate a concise, objective, and informal heading for the following text. The heading can also serve as a categorization. Return only the heading text itself.
+      Input text: ${text}`,
+
     DEFAULT: (message) => message
 };
   
