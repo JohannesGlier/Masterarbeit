@@ -62,10 +62,16 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   
   useEffect(() => {
     arrows.forEach((arrow) => {
-      const hasStartElement = arrow.start?.elementId !== undefined;
-      const hasEndElement = arrow.end?.elementId !== undefined;
+      const hasStartElementId = arrow.start?.elementId !== undefined;
+      const hasEndElementId = arrow.end?.elementId !== undefined;
 
-      if (hasStartElement && hasEndElement && !processedArrows.has(arrow.id)) {
+      const startElement = hasStartElementId ? elements.find((e) => e.id === arrow.start.elementId) : undefined;
+      const endElement = hasEndElementId ? elements.find((e) => e.id === arrow.end.elementId) : undefined;
+
+      const startElementExists = !!startElement;
+      const endElementExists = !!endElement;
+
+      if (startElementExists && endElementExists && !processedArrows.has(arrow.id)) {
         console.log(
           `Arrow ${arrow.id} ist an beiden Enden mit Elementen verbunden:`
         );
@@ -80,7 +86,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         getConnectionBetweenElementsText(startText, endText, arrow.id);
         setProcessedArrows((prev) => new Set(prev).add(arrow.id));
       } else if (processedArrows.has(arrow.id)) {
-        if (!hasStartElement || !hasEndElement) {
+        if (!startElementExists || !endElementExists) {
           console.log(`Arrow ${arrow.id} ist nicht mehr an beiden Enden verbunden`);
           setProcessedArrows(prev => {
             const newSet = new Set(prev);
@@ -323,6 +329,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     try {
       setArrowLoading(arrowId, true);
       const response = await chatGPTService.analyzeArrow(startText, endText);
+      console.log("ChatGPT Response:", response.content);
 
       let parsedData = [];
       let rawContent = response.content;
@@ -388,6 +395,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
       try {
         const response = await chatGPTService.relationshipArrow(startText);
+        console.log("Eingabe Text für Verbindung", startText)
         setChatGPTResponse(response);
       } catch (error) {
         console.error("Fehler bei ChatGPT-Anfrage:", error);

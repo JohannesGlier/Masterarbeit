@@ -22,6 +22,7 @@ import {
   calculateGridLayout,
   combineCards,
   positionCardsInGrid,
+  attachElementToArrowCentered
 } from "@/utils/Arrow/arrowHelpers";
 import ArrowHeads from "@/components/Helper/Arrow/ArrowHeads";
 import { ARROW_DEFAULTS } from "@/utils/Arrow/arrowDefaultProperties";
@@ -33,6 +34,7 @@ import { RiTextBlock } from "react-icons/ri";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import styles from "@/components/Tools/Arrow.module.css";
 import clsx from "clsx";
+import frameHeaderStyles from "@/components/Helper/Frame/FrameHeader.module.css";
 
 const Arrow = ({
   arrow,
@@ -62,6 +64,7 @@ const Arrow = ({
   const isDragging = useRef(false);
   const chatGPTService = new ChatGPTService();
 
+  const [generatingResponse, setGeneratingResponse] = useState(false);
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [tooltipText, setTooltipText] = useState("");
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
@@ -70,8 +73,10 @@ const Arrow = ({
 
   const {
     selectedTool,
+    setSelectedTool,
     selectedElements,
     toggleSelectedElement,
+    setSelectedElements,
     isDrawing,
     setHoveredElement,
     setIsArrowDragging,
@@ -119,6 +124,11 @@ const Arrow = ({
     const length = lengthSq > 0 ? Math.sqrt(lengthSq) : 0;
     return { x1, y1, x2, y2, dx, dy, length, lengthSq };
   }, [startX, startY, endX, endY]);
+
+  const forceCursor = (style) => {
+    document.body.style.cursor = style;
+    document.body.style.pointerEvents = "auto";
+  };
 
   const handleMouseMove = useCallback(
     (event) => {
@@ -219,13 +229,14 @@ const Arrow = ({
       setHoveredElement(null);
       isDragging.current = false;
       setIsArrowDragging(false);
-
+      
       if (selectedTool === "Pointer") {
         toggleSelectedElement(
           { ...arrow, isDragging: isDragging.current },
           false
         );
       }
+      setSelectedElements([]);
     }
     prevIsLoadingRef.current = isLoading;
   }, [
@@ -236,8 +247,6 @@ const Arrow = ({
     setIsArrowDragging,
     setDraggingPoint,
   ]);
-
-
 
   const updateArrowStyle = useCallback((newProps) => {
     setProperties((prev) => ({ ...prev, ...newProps }));
@@ -265,8 +274,6 @@ const Arrow = ({
     ]
   );
 
-
-
   useEffect(() => {
     setIsSelected(selectedElements.some((el) => el.id === arrow.id));
     closeContextMenu(arrow.id);
@@ -282,14 +289,25 @@ const Arrow = ({
     const canvasWrapper = canvasWrapperRef.current;
     canvasWrapper.addEventListener("mousemove", HandleDragging);
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
+
+    let frameId;
+
+    const persistentCursorUpdate = () => {
+      if (generatingResponse) {
+        forceCursor("wait");
+      }
+      frameId = requestAnimationFrame(persistentCursorUpdate);
+    };
+
+    persistentCursorUpdate();
     return () => {
       canvasWrapper.removeEventListener("mousemove", HandleDragging);
       canvasWrapper.removeEventListener("mouseup", handleMouseUp);
+      cancelAnimationFrame(frameId);
+      forceCursor("");
     };
-  }, [canvasWrapperRef, arrow, updateArrowPosition, draggingPoint]);
+  }, [canvasWrapperRef, arrow, updateArrowPosition, draggingPoint, generatingResponse, forceCursor]);
 
-
-  
   const StartDragging = (point, e) => {
     e.preventDefault();
     if (e.buttons === 1) {
@@ -542,62 +560,49 @@ const Arrow = ({
         return;
       }
 
-      /*
-      // Hilfsfunktionen
-      const getInputFromElement = (element) => {
-        if (!element) return "undefined";
-        
-        if (element.type === "textcard") {
-          return element.text;
-        } else if (element.type === "rectangle") {
-          const elementsInRect = getElementsInRectangle(elements, {
-            x: element.position.x,
-            y: element.position.y,
-            width: element.size.width,
-            height: element.size.height
-          });
-
-          const simplifiedElements = elementsInRect.map(el => {
-            if (el.type === "textcard") {
-              return el.text;
-            }
-            else if (el.type === "rectangle") {
-              return el.heading;
-            }
-            return null;
-          }).filter(item => item !== null);
-    
-          return JSON.stringify(simplifiedElements, null, 2);
-        }
-        return "undefined";
-      };
-      */
-
       const handleOutput = async (
         outputElement,
         inputText,
-        promptText,
-        outputText
+        promptText
       ) => {
         if (!outputElement) {
           try {
-            console.log("Kein Output Element");
             console.log("Eingabe Prompt:", promptText);
             console.log("Eingabe Text:", inputText);
             const response = await getChatGPTResponse(inputText, promptText);
 
-            const attachPosition = properties.arrowHeadStart ? "start" : "end";
+            const cardsData = parseChatGPTResponse(response.content);
+            const cardSize = { width: 200, height: 75 };
+            const padding = 20;
+            
+            const grid = calculateGridLayout(
+              cardsData.length,
+              cardSize.width,
+              cardSize.height,
+              padding
+            );
 
-            const newRect = attachElementToArrow(
+            // Frame-Größe basierend auf Grid berechnen
+            const frameSize = {
+              width: grid.requiredWidth,
+              height: grid.requiredHeight
+            };
+
+            // Frame am Pfeil mittig positionieren
+            const attachPosition = properties.arrowHeadStart ? "start" : "end";
+            const newRect = attachElementToArrowCentered(
               attachPosition,
               arrow,
-              "Frame"
+              frameSize
             );
+
+            // Frame erstellen
             const newFrameId = addRectangle({
               x: newRect.x,
               y: newRect.y,
               width: newRect.width,
               height: newRect.height,
+              heading: promptText,
             });
 
             updateArrowPosition(
@@ -605,47 +610,30 @@ const Arrow = ({
               { elementId: newFrameId, anchor: newRect.anchor },
               attachPosition
             );
-            console.log("ChatGPT Response:", response.content);
+
             const myRect = {
               id: newFrameId,
               position: { x: newRect.x, y: newRect.y },
               size: { width: newRect.width, height: newRect.height },
               type: "rectangle",
             };
-            await handleRectangleOutput(myRect, response);
+
+            positionCardsInGrid(cardsData, grid, myRect, cardSize, padding, {
+              updatePosition: handleTextcardUpdate,
+              addCard: addTextcard,
+            });
+
             return;
           } catch (error) {
             console.error("Fehler bei der Ausgabeverarbeitung:", error);
           }
-        }
-
-        try {
-          console.log("Eingabe Prompt:", promptText);
-          console.log("Eingabe Text:", inputText);
-          const response = await getChatGPTResponse_Output(
-            inputText,
-            promptText,
-            outputElement.type,
-            outputText
-          );
-          console.log("ChatGPT Response:", response.content);
-
-          if (outputElement.type === "textcard") {
-            updateTextcardText(outputElement.id, response.content);
-            return;
-          }
-
-          if (outputElement.type === "rectangle") {
-            await handleRectangleOutput(outputElement, response);
-          }
-        } catch (error) {
-          console.error("Fehler bei der Ausgabeverarbeitung:", error);
+        } else {
+          console.log("Run Prompt hatte ein Ausgabe-Element");
         }
       };
 
       // Hauptlogik
-      const isInputFirst =
-        properties.arrowHeadStart && !properties.arrowHeadEnd;
+      const isInputFirst = properties.arrowHeadStart && !properties.arrowHeadEnd;
       const inputElement = isInputFirst
         ? elements.find((e) => e.id === arrow.end?.elementId)
         : elements.find((e) => e.id === arrow.start?.elementId);
@@ -655,13 +643,14 @@ const Arrow = ({
         : elements.find((e) => e.id === arrow.end?.elementId);
 
       const inputText = getTextFromElement(inputElement, elements);
-      const outputText = getTextFromElement(outputElement, elements);
 
-      await handleOutput(outputElement, inputText, text, outputText);
+      setGeneratingResponse(true);
+      await handleOutput(outputElement, inputText, text);
     } catch (error) {
       console.error("Fehler:", error);
     } finally {
-      setIsLoading(false);
+      setGeneratingResponse(false);
+      setSelectedTool("Pointer");
     }
   };
 
@@ -670,61 +659,6 @@ const Arrow = ({
     return input
       ? chatGPTService.promptArrow_Input(input, promptText)
       : chatGPTService.promptArrow(promptText);
-  };
-
-  const getChatGPTResponse_Output = async (
-    inputText,
-    promptText,
-    outputType,
-    outputText
-  ) => {
-    const input = inputText !== "undefined" ? inputText : outputText;
-    return input
-      ? chatGPTService.promptArrow_Input_Output(input, promptText, outputType)
-      : chatGPTService.promptArrow_Output(promptText, outputType);
-  };
-
-  const handleRectangleOutput = async (outputElement, response) => {
-    try {
-      const cardsData = parseChatGPTResponse(response.content);
-      const cardSize = { width: 200, height: 75 };
-      const padding = 20;
-
-      const existingCards = getElementsInRectangle(elements, {
-        x: outputElement.position.x,
-        y: outputElement.position.y,
-        width: outputElement.size.width,
-        height: outputElement.size.height,
-      }).filter((el) => el.type === "textcard");
-
-      const allCards = combineCards(existingCards, cardsData);
-      const grid = calculateGridLayout(
-        allCards.length,
-        cardSize.width,
-        cardSize.height,
-        padding
-      );
-
-      positionCardsInGrid(allCards, grid, outputElement, cardSize, padding, {
-        updatePosition: handleTextcardUpdate,
-        addCard: addTextcard,
-      });
-
-      handleFrameResize(
-        outputElement.id,
-        {
-          width: grid.requiredWidth,
-          height: grid.requiredHeight,
-        },
-        {
-          x: outputElement.position.x,
-          y: outputElement.position.y,
-        }
-      );
-    } catch (error) {
-      console.error("Fehler bei der Rechteck-Verarbeitung:", error);
-      return;
-    }
   };
 
   const pointerEvents = getPointerEvents({
@@ -763,8 +697,18 @@ const Arrow = ({
   );
 
   const arrowClassName = clsx(styles["arrow-line"], {
-    [styles["arrow-loading"]]: isLoading,
+    [styles["arrow-loading"]]: isLoading || generatingResponse,
   });
+
+  const hasHeadAtStart = properties.arrowHeadStart;
+  const hasHeadAtEnd = properties.arrowHeadEnd;
+
+  // Bedingung A: Ist genau eine Pfeilspitze gesetzt?
+  const isExactlyOneHeadSet = hasHeadAtStart !== hasHeadAtEnd;
+  // Bedingung B: Ist der Punkt an der gesetzten Pfeilspitze NICHT verbunden?
+  const isConnectedAtHeadLocation = (hasHeadAtStart && start) || (!hasHeadAtStart && end); 
+
+  const showPromptArrow = isExactlyOneHeadSet && !isConnectedAtHeadLocation;
 
   return (
     <>
@@ -845,34 +789,79 @@ const Arrow = ({
         zIndex={arrowInlineStyles.zIndex}
       />
 
-      {!start || !end && (
-        <ArrowLabel
-          middleX={middleX}
-          middleY={middleY}
-          scale={scaleRef.current}
-          offset={offsetRef.current}
-          textAlignment={properties.textAlignment}
-          text={text}
-          onChange={setText}
-          start={{ x: startX, y: startY }}
-          end={{ x: endX, y: endY }}
-          textSize={properties.textSize}
-          textColor={properties.textColor}
-          zIndex={arrowInlineStyles.zIndex}
-          pointerEvents={pointerEvents}
-        />
+      {showPromptArrow && (
+        <>
+          <ArrowLabel
+            middleX={middleX}
+            middleY={middleY}
+            scale={scaleRef.current}
+            offset={offsetRef.current}
+            textAlignment={properties.textAlignment}
+            text={text}
+            onChange={setText}
+            start={{ x: startX, y: startY }}
+            end={{ x: endX, y: endY }}
+            textSize={properties.textSize}
+            textColor={properties.textColor}
+            zIndex={arrowInlineStyles.zIndex}
+            pointerEvents={pointerEvents}
+          />
+          <RunPromptButton
+            position={{ x: middleX, y: middleY }}
+            scale={scaleRef.current}
+            offset={offsetRef.current}
+            lineWidth={properties.lineWidth}
+            handleClick={runPromptButton}
+            pointerEvents={pointerEvents}
+          />
+        </>
       )}
 
-      {!start || !end && (
-        <RunPromptButton
-          position={{ x: middleX, y: middleY }}
-          scale={scaleRef.current}
-          offset={offsetRef.current}
-          lineWidth={properties.lineWidth}
-          handleClick={runPromptButton}
-          pointerEvents={pointerEvents}
-        />
-      )}
+      {generatingResponse &&
+          (() => {
+            const attachXBase = properties.arrowHeadStart ? startX : endX;
+            const attachYBase = properties.arrowHeadStart ? startY : endY;
+
+            const offsetDistance = 25;
+
+            const angleMultiplier = properties.arrowHeadStart ? -1 : 1;
+            const offsetX = Math.cos(lineAngle) * offsetDistance * angleMultiplier;
+            const offsetY = Math.sin(lineAngle) * offsetDistance * angleMultiplier;
+
+            const finalX = (attachXBase + offsetX) * scaleRef.current + offsetRef.current.x;
+            const finalY = (attachYBase + offsetY) * scaleRef.current + offsetRef.current.y;
+            const indicatorColor = properties.textColor || properties.lineColor || "black";
+
+            return (
+              <div
+                className={frameHeaderStyles.loadingIndicator}
+                style={{
+                  position: "absolute",
+                  left: `${finalX}px`,
+                  top: `${finalY}px`,
+                  color: indicatorColor,
+                  zIndex: (arrowInlineStyles.zIndex || 1) + 2,
+                  transform: "translate(-50%, -50%)", // Bereits in CSS-Klasse
+                }}
+                aria-live="polite" // Optional: Screenreader informieren, dass sich etwas tut
+                aria-label="Ladevorgang" // Optional: Beschreibung für Screenreader
+              >
+                <span
+                  className={frameHeaderStyles.dot}
+                  aria-hidden="true"
+                ></span>
+                <span
+                  className={frameHeaderStyles.dot}
+                  aria-hidden="true"
+                ></span>
+                <span
+                  className={frameHeaderStyles.dot}
+                  aria-hidden="true"
+                ></span>
+              </div>
+            );
+          })()
+      }
 
       {isSelected && (
         <>

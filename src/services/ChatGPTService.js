@@ -44,40 +44,6 @@ export class ChatGPTService {
     });
   }
 
-  async promptArrow_Input_Output(inputText, promptText, output) {
-    if(output === "textcard"){
-      const prompt = this.promptTemplates.PROMPT_ARROW_TEXTCARD_INPUT({ inputText, promptText });
-      return this._sendRequest({
-        message: prompt,
-        promptType: 'PROMPT_ARROW_TEXTCARD_INPUT'
-      });
-    }
-    else{
-      const prompt = this.promptTemplates.PROMPT_ARROW_INPUT({ inputText, promptText });
-      return this._sendRequest({
-        message: prompt,
-        promptType: 'PROMPT_ARROW_INPUT'
-      });
-    }
-  }
-
-  async promptArrow_Output(promptText, output) {
-    if(output === "textcard"){
-      const prompt = this.promptTemplates.PROMPT_ARROW_TEXTCARD({ promptText });
-      return this._sendRequest({
-        message: prompt,
-        promptType: 'PROMPT_ARROW_TEXTCARD'
-      });
-    }
-    else{
-      const prompt = this.promptTemplates.PROMPT_ARROW({ promptText });
-      return this._sendRequest({
-        message: prompt,
-        promptType: 'PROMPT_ARROW'
-      });
-    }
-  }
-
   async promptArrow_Input(inputText, promptText) {
     const prompt = this.promptTemplates.PROMPT_ARROW_INPUT({ inputText, promptText });
     return this._sendRequest({

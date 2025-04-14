@@ -43,30 +43,18 @@ export const DEFAULT_PROMPT_TEMPLATES = {
             "string_representing_item_10"
           ]
         }`, 
-    
-    PROMPT_ARROW_TEXTCARD_INPUT: ({ inputText, promptText }) => 
-      `Kontext: "${inputText}".
-       User Prompt: "${promptText}". 
-       Wende den User Prompt auf den Kontext an.
-       Gib die Ergebnisse als reinen Text zurück und nicht in einem Json-Objekt!
-       Die Antwort darf ausschließlich den generierten Text enthalten.`,
-
-    PROMPT_ARROW_TEXTCARD: ({ promptText }) => 
-      `User Prompt: "${promptText}". 
-       Gib die Ergebnisse als reinen Text zurück.
-       Die Antwort darf ausschließlich den generierten Text enthalten.`,
 
     PROMPT_ARROW_INPUT: ({ inputText, promptText }) => 
-      `Kontext: "${inputText}".
-       User Prompt: "${promptText}". 
-       Wende den User Prompt auf den Kontext an.
-       Gib die Ergebnisse als JSON zurück.
-       Die Antwort darf ausschließlich das JSON-Objekt enthalten.`,
+      `Context: "${inputText}"
+      User Prompt: "${promptText}"
+      Apply the User Prompt to the Context.
+      Return the results as JSON.
+      The response must contain only the JSON object.`,
 
     PROMPT_ARROW: ({ promptText }) => 
       `User Prompt: "${promptText}". 
-       Gib die Ergebnisse als JSON zurück.
-       Die Antwort darf ausschließlich das JSON-Objekt enthalten.`,
+       Return the results as JSON.
+       The response must contain only the JSON object.`,
 
     COMBINE_TEXTCARDS: ({ text1, text2 }) => 
     `Gegeben sind:
