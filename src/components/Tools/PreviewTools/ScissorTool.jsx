@@ -116,6 +116,23 @@ const ScissorTool = ({
         mousePos.x,
         mousePos.y
       );
+
+      if(!elementUnderMouse.text){
+        console.log("Split empty textcard");
+        const widthOffset = 40;
+        const heightOffset = 110;
+        for(let i = 0; i < 2; i++){
+          addTextcard({
+            x: elementUnderMouse.position.x + elementUnderMouse.size.width + widthOffset,
+            y: elementUnderMouse.position.y + i * heightOffset,
+            width: 200,
+            height: 75,
+            text: "",
+          });
+        }
+        return;
+      }
+
       if (elementUnderMouse?.type === "textcard" && elementUnderMouse.text) {
         isCutting.current = true;
         setIsAnimatingCut(true);
@@ -156,7 +173,6 @@ const ScissorTool = ({
     
             console.log("Setting cursor for Pointer tool to 'default'");
             forceCursor('default'); // <-- WICHTIG
-    
           }
         } else {
           // Fall: Klick war nicht auf gültiger Textkarte -> auch zurück zum Pointer
@@ -182,6 +198,15 @@ const ScissorTool = ({
 
       if (!Array.isArray(content)) {
         throw new Error("Ungültiges Format - Array erwartet");
+      }
+
+      const defaultErrorText = "No meaningful split possible";
+      if (content.length === 0) {
+        console.log("Content array ist leer. Füge Standard-Einträge hinzu.");
+        content = [
+            { text: defaultErrorText }, // Erster Standardeintrag
+            { text: defaultErrorText }  // Zweiter Standardeintrag
+        ];
       }
 
       const widthOffset = 40;

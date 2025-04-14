@@ -6,13 +6,43 @@ export const DEFAULT_PROMPT_TEMPLATES = {
       Return the result as a JSON array with each item as a string.`, 
   
     RELATIONSHIP_ARROW: ({ textFromTextcard }) => 
-      `Input term: ${textFromTextcard}
-      Generate 10 thematically related terms or texts based on the input term, where:
-      - The first item is thematically very close to the input term.
-      - The last item is thematically distant but still has a conceptual connection.
-      - Items 2 to 9 create a smooth conceptual gradient from the first to the last.
-      - Each item should be approximately the same length as the input term (±20% character count).
-      - Return the result as a JSON array with each item as a string.`, 
+      `**Task Description:**
+        Generate exactly 10 thematically related terms or short texts based on the provided input term. 
+        These items should represent a conceptual gradient, moving from very close to distantly related.
+
+        **Input:**
+        Input Term: ${textFromTextcard}
+
+        **Requirements:**
+        1.  **Conceptual Gradient:**
+            * The first item (Item 1) in the list must be thematically very close (e.g., synonym, direct association, hypernym/hyponym) to the Input Term (but not the input term itself).
+            * The last item (Item 10) must be thematically distant from the Input Term but still possess a recognizable conceptual link or abstract connection. The connection might be indirect or metaphorical.
+            * Items 2 through 9 must create a smooth, gradual thematic transition bridging the conceptual gap between the first and the last item. Each step should logically follow the previous one while subtly shifting the theme.
+        2.  **Length Consistency:** Each of the 10 generated items should ideally have a character count that is approximately similar to the character count of the Input Term. Aim for within ±20% deviation, but prioritize the quality and coherence of the conceptual gradient if exact length matching conflicts with finding suitable terms.
+        3.  **Quantity:** Ensure exactly 10 items are generated in the list.
+
+        **Output Structure:**
+        You MUST return the result **exclusively** as a single, valid JSON object.
+        * This JSON object must contain exactly one top-level key named: "conceptual_gradient".
+        * The value associated with the "conceptual_gradient" key must be a JSON array.
+        * This JSON array must contain exactly 10 elements.
+        * Each element within the array must be a string representing one of the generated terms or short texts, ordered according to the conceptual gradient (Item 1 = closest, Item 10 = most distant).
+
+        **Example of the Required Output Format (Structure Only):**
+        {
+          "conceptual_gradient": [
+            "string_representing_item_1",
+            "string_representing_item_2",
+            "string_representing_item_3",
+            "string_representing_item_4",
+            "string_representing_item_5",
+            "string_representing_item_6",
+            "string_representing_item_7",
+            "string_representing_item_8",
+            "string_representing_item_9",
+            "string_representing_item_10"
+          ]
+        }`, 
     
     PROMPT_ARROW_TEXTCARD_INPUT: ({ inputText, promptText }) => 
       `Kontext: "${inputText}".
@@ -62,7 +92,12 @@ export const DEFAULT_PROMPT_TEMPLATES = {
       `Eingabetext: "${text}"`,
 
     SPLIT: ({ text }) => 
-      `Inputtext: "${text}"`,
+      `Split the following text into distinct thematic sections. 
+      Format the output strictly as a JSON array where each object has an "id" (sequential, starting from 1) and a "text" field containing the content of that section. 
+      If no meaningful split into multiple sections is possible, return an empty array ([]).
+
+      Text to split:
+      ${text}`,
 
     NEIGHBOR_BASED_TEXTCARD: ({ text }) => 
     `Based on the following text:

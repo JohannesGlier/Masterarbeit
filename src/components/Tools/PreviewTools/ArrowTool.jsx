@@ -85,7 +85,7 @@ const ArrowTool = ({
       setPreviewEntries([]);
 
       console.log("Rohe Antwort von ChatGPT:", chatGPTResponse.content);
-      const result = parseUnknownKeyArray(chatGPTResponse.content);
+      const result = parseResponse(chatGPTResponse.content);
 
       if (result.success) {
         setPreviewEntries(result.data);
@@ -105,12 +105,12 @@ const ArrowTool = ({
     if (!isDrawing || !startPoint || !endPoint) return;
   
     const normalizedLength = calculateNormalizedLength(startPoint, endPoint);
-    const index = Math.floor(normalizedLength * 10); // Immer 10 Stufen
-    
+    let index = Math.floor(normalizedLength * 10); // Immer 10 Stufen
+    index = Math.min(index, 9); // 0 - 9
     setCurrentPreviewIndex(index);
   }, [endPoint, isDrawing, startPoint]);
 
-  const parseUnknownKeyArray = (jsonString) => {
+  const parseResponse = (jsonString) => {
     let data;
   
     // 1. Versuch, den String als JSON zu parsen
@@ -133,17 +133,13 @@ const ArrowTool = ({
   
     // 3. Finde den ersten Wert im Objekt, der ein Array ist
     for (const key in data) {
-      // Stelle sicher, dass es sich um eine eigene Eigenschaft des Objekts handelt
       if (Object.prototype.hasOwnProperty.call(data, key)) {
         const value = data[key];
         if (Array.isArray(value)) {
-          // Optional: Prüfen, ob die Array-Elemente Strings sind (für zusätzliche Robustheit)
           const allStrings = value.every(item => typeof item === 'string');
           if (!allStrings) {
                const warningMessage = `Warnung: Array unter Schlüssel '${key}' enthält nicht nur Strings. Gebe es trotzdem zurück.`;
                console.warn(warningMessage, "Array-Inhalt:", value);
-               // Entscheide, ob du hier einen Fehler zurückgeben oder weitermachen möchtest.
-               // Hier geben wir es trotzdem zurück, aber mit einer Warnung.
           }
           // Erfolg! Gib das gefundene Array zurück.
           return { success: true, data: value, error: null };
@@ -464,7 +460,7 @@ const ArrowTool = ({
       } else if (previewEntries.length === 0) {
         previewTextContent = "Nichts gefunden";
       } else {
-        previewTextContent = "Ungültiger Index";
+        previewTextContent = "Invalid Index";
       }
     } else if (previewStatus === "error") {
       previewTextContent = "Fehler";
