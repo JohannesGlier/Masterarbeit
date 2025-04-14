@@ -2,7 +2,7 @@
     /* Statischere Styles, die nicht direkt von sich ständig ändernden Props abhängen */
     display: flex;
     align-items: center; /* Vertikale Zentrierung für Loader/Input */
-    padding: 5px;       /* Konsistenter Innenabstand */
+    padding: 0px;       /* Konsistenter Innenabstand */
     height: 30px;       /* Beispielhafte feste Höhe, anpassen falls nötig */
     box-sizing: border-box; /* Padding in die Höhe/Breite einbeziehen */
   }

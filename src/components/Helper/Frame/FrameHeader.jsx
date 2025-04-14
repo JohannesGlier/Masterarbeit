@@ -32,10 +32,10 @@ const FrameHeader = memo(
       <div style={dynamicHeaderStyle} className={styles.headerContainer}>
         {isLoading ? (
           <div
-            className={styles.loadingIndicator} // <-- Klasse für Loader-Wrapper
-            style={{ color: textStyles.textColor || "inherit" }} // <-- Farbe dynamisch setzen
-            role="status" // Barrierefreiheit: Gibt an, dass sich hier etwas tut
-            aria-live="polite" // Barrierefreiheit: Änderungen höflich ansagen
+            className={styles.loadingIndicator}
+            style={{ color: textStyles.textColor || "inherit" }}
+            role="status"
+            aria-live="polite"
           >
             <span className={styles.dot} aria-hidden="true"></span>{" "}
             {/* aria-hidden für dekorative Elemente */}

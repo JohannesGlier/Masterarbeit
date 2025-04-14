@@ -1,5 +1,5 @@
 export const FRAME_DEFAULTS = {
-  frameColor: "rgb(205, 205, 205)",
+  frameColor: "rgba(205, 205, 205, 0)",
   frameBorderColor: "#000000",
   borderWidth: 2,
   font: "Arial",
