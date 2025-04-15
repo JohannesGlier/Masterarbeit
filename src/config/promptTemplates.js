@@ -57,27 +57,37 @@ export const DEFAULT_PROMPT_TEMPLATES = {
        The response must contain only the JSON object.`,
 
     COMBINE_TEXTCARDS: ({ text1, text2 }) => 
-    `Gegeben sind:
-      Textkarte 1 (T1): "${text1 || "No context"}"
-      Textkarte 2 (T2): "${text2 || "No context"}"
+    `Given:
+      Text 1 (T1): "${text1 || "No context"}"
+      Text 2 (T2): "${text2 || "No context"}"
 
-      Erstelle eine originelle Idee, ein Wortspiel, eine Metapher oder ein innovatives Konzept, das beide Begriffe, Phrasen oder Texte (T1 & T2) vereint.
+      Generate five distinct creative outputs that combine, unite, or relate to both texts (T1 and T2). These outputs should be:
+      1.  An original idea
+      2.  A pun or wordplay
+      3.  A metaphor
+      4.  An innovative concept
+      5.  An association
 
-      Beispiel:
-      T1 = "Brettspiel"
-      T2 = "Fussball"
-      Ergebnis = "Kicker"
+      The length of each of the five generated outputs should correspond to the approximate length of the input texts (T1 and T2):
+      - If T1 and T2 are single words, each output should ideally be a single word or a very short phrase.
+      - If T1 and T2 are short phrases/sentences, each output should be a short phrase/sentence.
+      - If T1 and T2 are longer paragraphs, each output should be of a comparable length.
 
-      Die Länge der Antwort soll sich an der Länge von T1 und T2 orientieren:  
-      - Sind T1 und T2 nur einzelne Wörter, soll die Antwort ebenfalls nur ein Wort sein.  
-      - Sind T1 und T2 ein kurzer Satz, soll die Antwort ebenfalls ein kurzer Satz sein.  
-      - Sind T1 und T2 ein längerer Absatz, soll die Antwort eine vergleichbare Länge haben.
-      
-      Gib das Ergebnis als reinen Text zurück.
-      Die Antwort darf ausschließlich den generierten Text enthalten ohne Anführungszeichen.`,
+      Return the result strictly as a JSON object with the following structure:
+      {
+        "response": [
+          "string_representing_the_original_idea",
+          "string_representing_the_pun_or_wordplay",
+          "string_representing_the_metaphor",
+          "string_representing_the_innovative_concept",
+          "string_representing_the_association"
+        ]
+      }
+
+      Do not include any text, explanation, or formatting outside of this JSON structure.`,
 
     SUMMARIZE: ({ text }) => 
-      `Eingabetext: "${text}"`,
+      `Summarize the following text concisely. Provide only the summary: ${text}`,
 
     SPLIT: ({ text }) => 
       `Split the following text into distinct thematic sections. 

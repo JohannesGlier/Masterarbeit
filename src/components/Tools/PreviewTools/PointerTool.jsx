@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import { isElementInRectangle } from "@/utils/elementUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
+import { getCanvasMousePosition } from "@/utils/canvasUtils";
+import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
 
 const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => {
   const {
@@ -14,6 +16,115 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
   } = useCanvas();
   const [tempRectangle, setTempRectangle] = useState(null);
   const chatGPTService = new ChatGPTService();
+  const [preview, setPreview] = useState([]);
+
+  const forceCursor = (style) => {
+    document.body.style.cursor = style;
+    document.body.style.pointerEvents = "auto";
+  };
+
+  // Mouse event handling for drawing
+  useEffect(() => {
+    const handleMouseDown = (event) => {
+      if (event.button !== 0) return;
+      document.body.style.cursor = "crosshair";
+
+      setIsDrawing(true);
+      setSelectedElements([]);
+
+      const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
+      setTempRectangle({ x: mousePos.x, y: mousePos.y, width: 0, height: 0 });
+    };
+
+    const handleMouseMove = (event) => {
+      if (event.button !== 0) return;
+      if (!isDrawing || !tempRectangle) return;
+
+      const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
+
+      setTempRectangle({
+        x: tempRectangle.x,
+        y: tempRectangle.y,
+        width: mousePos.x - tempRectangle.x,
+        height: mousePos.y - tempRectangle.y,
+      });
+
+      if (
+        tempRectangle &&
+        tempRectangle.width > 0 &&
+        tempRectangle.height > 0
+      ) {
+        const selected = elements.filter((element) =>
+          isElementInRectangle(element, tempRectangle)
+        );
+
+        setSelectedElements(selected);
+      }
+    };
+
+    const handleMouseUp = (event) => {
+      if (event.button !== 0) return;
+
+      if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
+        console.log("Aktion: Rechteck über Elemente ziehen\n", selectedElements);
+        createPreviewTextcard();
+        CreateSummaryTextcard();
+      }
+
+      setTempRectangle(null);
+      setIsDrawing(false);
+    };
+
+    const canvasWrapper = canvasWrapperRef.current;
+
+    canvasWrapper.addEventListener("mousedown", handleMouseDown);
+    canvasWrapper.addEventListener("mousemove", handleMouseMove);
+    canvasWrapper.addEventListener("mouseup", handleMouseUp);
+
+    let frameId;
+
+    const persistentCursorUpdate = () => {
+      if (preview.length === 1) {
+        forceCursor("wait");
+      }
+      frameId = requestAnimationFrame(persistentCursorUpdate);
+    };
+
+    persistentCursorUpdate();
+    return () => {
+      canvasWrapper.removeEventListener("mousedown", handleMouseDown);
+      canvasWrapper.removeEventListener("mousemove", handleMouseMove);
+      canvasWrapper.removeEventListener("mouseup", handleMouseUp);
+      cancelAnimationFrame(frameId);
+      forceCursor("");
+    };
+  }, [
+    canvasRef,
+    canvasWrapperRef,
+    isDrawing,
+    tempRectangle,
+    scaleRef,
+    offsetRef,
+    preview,
+  ]);
+
+  const createPreviewTextcard = () => {
+    const defaultWidth = 250;
+    const defaultHeight = 125;
+    const previewsData = [];
+
+    previewsData.push({
+      key: `preview-${defaultWidth}`,
+      x: (tempRectangle.x + tempRectangle.width + 20) * scaleRef.current + offsetRef.current.x,
+      y: (tempRectangle.y + tempRectangle.height + 20) * scaleRef.current + offsetRef.current.y,
+      width: defaultWidth * scaleRef.current,
+      height: defaultHeight * scaleRef.current,
+      text: "",
+      isLoading: true,
+    });
+
+    setPreview(previewsData);
+  }
 
   const CreateSummaryTextcard = async () => {
     try {
@@ -45,112 +156,24 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
       }
     } catch (error) {
       console.error("Fehler bei ChatGPT-Anfrage:", error);
+    } finally {
+      forceCursor("default");
+      setPreview([]);
     }
   }
 
-  // Mouse event handling for drawing
-  useEffect(() => {
-    const handleMouseDown = (event) => {
-      if (event.button !== 0) return;
-      document.body.style.cursor = "crosshair";
-      setIsDrawing(true);
-
-      setSelectedElements([]);
-
-      const rect = canvasRef.current.getBoundingClientRect();
-      const startX =
-        (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const startY =
-        (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
-      setTempRectangle({ x: startX, y: startY, width: 0, height: 0 });
-    };
-
-    const handleMouseMove = (event) => {
-      if (event.button !== 0) return;
-      if (!isDrawing || !tempRectangle) return;
-
-      const rect = canvasRef.current.getBoundingClientRect();
-      const endX =
-        (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const endY =
-        (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
-      setTempRectangle({
-        x: tempRectangle.x,
-        y: tempRectangle.y,
-        width: endX - tempRectangle.x,
-        height: endY - tempRectangle.y,
-      });
-
-      if (
-        tempRectangle &&
-        tempRectangle.width > 0 &&
-        tempRectangle.height > 0
-      ) {
-        const selected = elements.filter((element) =>
-          isElementInRectangle(element, tempRectangle)
-        );
-
-        setSelectedElements(selected);
-      }
-    };
-
-    const handleMouseUp = (event) => {
-      if (event.button !== 0) return;
-
-      if (
-        tempRectangle &&
-        tempRectangle.width > 0 &&
-        tempRectangle.height > 0
-      ) {
-        console.log(
-          "Aktion: Rechteck über Elemente ziehen\n",
-          selectedElements
-        );
-        CreateSummaryTextcard();
-      }
-
-      /**
-      if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
-        // Benutzerdefiniertes Rechteck durch Ziehen
-        addTextcard(tempRectangle);
-      }
-      else {
-        // Vordefiniertes Rechteck durch Click
-        const defaultWidth = 100;
-        const defaultHeight = 100;  
-        const finalRectangle = {x: tempRectangle.x, y: tempRectangle.y, width: defaultWidth, height: defaultHeight};
-        addTextcard(finalRectangle);
-      }
-      */
-
-      setTempRectangle(null);
-      setIsDrawing(false);
-    };
-
-    const canvasWrapper = canvasWrapperRef.current;
-
-    canvasWrapper.addEventListener("mousedown", handleMouseDown);
-    canvasWrapper.addEventListener("mousemove", handleMouseMove);
-    canvasWrapper.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      canvasWrapper.removeEventListener("mousedown", handleMouseDown);
-      canvasWrapper.removeEventListener("mousemove", handleMouseMove);
-      canvasWrapper.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [
-    canvasRef,
-    canvasWrapperRef,
-    isDrawing,
-    tempRectangle,
-    scaleRef,
-    offsetRef,
-  ]);
-
   return (
     <div>
+      {preview.map(preview => (
+        <PreviewTextcard
+          key={preview.key}
+          finalTop={preview.y}
+          finalLeft={preview.x}
+          scaledWidth={preview.width}
+          scaledHeight={preview.height}
+          isLoading={preview.isLoading}
+        />
+      ))}
       {tempRectangle && (
         <div
           style={{

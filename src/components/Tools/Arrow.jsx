@@ -14,13 +14,11 @@ import { getAnchorPosition, getClosestAnchor } from "@/utils/Arrow/anchorUtils";
 import {
   getElementAtPosition,
   attachElementToArrow,
-  getElementsInRectangle,
   getTextFromElement,
 } from "@/utils/elementUtils";
 import {
   parseChatGPTResponse,
   calculateGridLayout,
-  combineCards,
   positionCardsInGrid,
   attachElementToArrowCentered
 } from "@/utils/Arrow/arrowHelpers";
@@ -46,8 +44,6 @@ const Arrow = ({
   canvasRef,
   addRectangle,
   addTextcard,
-  updateTextcardText,
-  handleFrameResize,
   handleTextcardUpdate,
   isLoading,
   responseItems,

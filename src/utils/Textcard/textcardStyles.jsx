@@ -10,6 +10,8 @@ export const getTextcardStyles = (
   isEditing,
   pointerEvents,
   zIndex,
+  isDragging,
+  currentOverTextcard
 ) => ({
   position: "absolute",
   top: position.y * scale + offset.y,
@@ -26,6 +28,7 @@ export const getTextcardStyles = (
   padding: "12px",
   boxSizing: "border-box",
   cursor: isEditing ? "text" : "grab",
-  zIndex,
+  zIndex: isDragging ? 4000 : zIndex,
   pointerEvents,
+  opacity: currentOverTextcard ? 0.7 : 1,
 });

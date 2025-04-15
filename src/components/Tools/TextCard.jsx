@@ -10,6 +10,7 @@ import { getPointerEvents } from "@/utils/pointerEventUtils";
 import TextCardContent from "@/components/Helper/Textcard/TextCardContent";
 import { getElementsInRectangle } from "@/utils/elementUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
+import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
 
 const TextCard = ({
   rect,
@@ -31,11 +32,17 @@ const TextCard = ({
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
   const [isDragging, setIsDragging] = useState(false);
+  const [textcardCache, setTextcardCache] = useState({});
+  const [currentOverTextcard, setCurrentOverTextcard] = useState(null);
+  const [currentResponseIndex, setCurrentResponseIndex] = useState(0);
+  const [accumulatedDistance, setAccumulatedDistance] = useState(0);
+  const [lastPosition, setLastPosition] = useState({ x: position.x, y: position.y }); 
   const chatGPTService = new ChatGPTService();
 
   const {
     selectedTool,
     selectedElements,
+    setSelectedElements,
     toggleSelectedElement,
     isDrawing,
     mouseDownElement,
@@ -98,52 +105,190 @@ const TextCard = ({
     onTextChange(newText);
   };
 
-  const handleDragEnd = useCallback(() => {
-    const currentRect = {
-      x: position.x,
-      y: position.y,
-      width: size.width,
-      height: size.height
-    };
-  
-    const elementsInside = getElementsInRectangle(elements, currentRect);
-    const textCardsInside = elementsInside.filter(
-      element => element.type === 'textcard' && element.id !== rect.id // Aktuelle Karte ausschließen
-    );
-  
-    // 4. Textkarte mit höchstem zIndex finden
-    if (textCardsInside.length > 0) {
-      const topTextCard = textCardsInside.reduce((prev, current) => 
-        (prev.zIndex > current.zIndex) ? prev : current
-      );
-      if(topTextCard.text && textcardText){
-        CreateNewTextcard(topTextCard.text);
-      }
-    } else {
-      console.log('Keine andere Textkarte gefunden');
-    }
-  }, [position, size, elements, rect.id]);
 
-  const CreateNewTextcard = async (text) => {
-    try {
-      console.log("Eingabe für Prompt:\n", textcardText, " | ", text);
-      const response = await chatGPTService.combineTextcards(textcardText, text);
-      console.log("ChatGPT Response:", response.content);
 
-      const newTextcard = {
-        x: position.x + 30, // Gleiche X-Position
-        y: position.y + 30, // Gleiche Y-Position
-        width: size.width, // Gleiche Breite
-        height: size.height, // Gleiche Höhe
-        text: response.content // Text von ChatGPT
+  useEffect(() => {
+    if (!isDragging) return;
+  
+    const checkOverlappingTextCards = () => {
+      const currentRect = {
+        x: position.x,
+        y: position.y,
+        width: size.width,
+        height: size.height,
       };
 
-      addTextcard(newTextcard);
+      const elementsInside = getElementsInRectangle(elements, currentRect);
+      const textCardsInside = elementsInside.filter((element) => element.type === 'textcard' && element.id !== rect.id);
 
+      if (textCardsInside.length === 0) {
+        setCurrentOverTextcard(null);
+      }
+
+      const dx = position.x - lastPosition.x;
+      const dy = position.y - lastPosition.y;
+      const frameDistance = Math.sqrt(dx * dx + dy * dy);
+
+      const newAccumulatedDistance = accumulatedDistance + frameDistance;
+      setLastPosition({ x: position.x, y: position.y });
+
+      const DISTANCE_THRESHOLD = 50;
+
+      if (newAccumulatedDistance >= DISTANCE_THRESHOLD) {
+        setCurrentResponseIndex(prev => {
+          const cacheEntry = currentOverTextcard?.id ? textcardCache[currentOverTextcard.id] : null;
+          const responseCount = cacheEntry?.responses?.length || 0;
+          return responseCount > 0 ? (prev + 1) % responseCount : 0;
+        });
+        setAccumulatedDistance(0);
+
+        const elementsInside = getElementsInRectangle(elements, currentRect);
+        const textCardsInside = elementsInside.filter((element) => element.type === 'textcard' && element.id !== rect.id);
+
+        if (textCardsInside.length > 0) {
+          const topTextCard = textCardsInside.reduce((prev, current) => 
+            prev.zIndex > current.zIndex ? prev : current
+          );
+    
+          // Wenn wir eine neue Textkarte überfahren
+          if (topTextCard.id !== currentOverTextcard?.id) {
+            setCurrentOverTextcard(topTextCard);
+            setCurrentResponseIndex(0);
+
+            const cacheEntry = textcardCache[topTextCard.id];
+            
+            if (!cacheEntry && topTextCard.text && textcardText) {
+              console.log("Neue Textkarte gefunden, starte ChatGPT-Aufruf");
+              getTextcardCombinationTexts(topTextCard.text, topTextCard.id);
+            } 
+            else if (cacheEntry && cacheEntry.responses) {
+              console.log("Verwende zwischengespeicherte Antworten");
+              useCachedResponses(topTextCard.id);
+            }
+          }
+        } else {
+          setCurrentOverTextcard(null);
+          setAccumulatedDistance(0);
+        }
+      } else {
+        setAccumulatedDistance(newAccumulatedDistance);
+      }
+    };
+  
+    const intervalId = setInterval(checkOverlappingTextCards, 10);
+    return () => clearInterval(intervalId);
+  }, [isDragging, position, size, elements, rect.id, textcardText, currentOverTextcard, setCurrentOverTextcard, textcardCache, accumulatedDistance, lastPosition, currentResponseIndex]);
+
+  const handleDragEnd = useCallback(() => {
+    if(currentOverTextcard && !textcardCache[currentOverTextcard.id].isGeneratingResponse) {
+      const findFreePosition = (baseCard, depth = 0) => {
+        // Sicherheitsabbruch nach 10 Versuchen
+        if (depth > 10) return baseCard;
+  
+        const testRect = {
+          x: baseCard.position.x,
+          y: baseCard.position.y + baseCard.size.height + 25,
+          width: baseCard.size.width,
+          height: baseCard.size.height
+        };
+  
+        const elementsInside = getElementsInRectangle(elements, testRect);
+        const overlappingCards = elementsInside.filter(e => e.type === 'textcard');
+  
+        if (overlappingCards.length > 0) {
+          // Nächste Position testen (rekursiv)
+          return findFreePosition({
+            position: { x: testRect.x, y: testRect.y },
+            size: { width: testRect.width, height: testRect.height }
+          }, depth + 1);
+        }
+  
+        return testRect;
+      };
+  
+      // Startposition bestimmen
+      const freePosition = findFreePosition(currentOverTextcard);
+  
+      // Neue Textkarte erstellen
+      const newTextcard = {
+        x: freePosition.x,
+        y: freePosition.y,
+        width: currentOverTextcard.size.width,
+        height: currentOverTextcard.size.height,
+        text: textcardCache[currentOverTextcard.id].responses[currentResponseIndex]
+      };
+  
+      addTextcard(newTextcard);
+      setCurrentOverTextcard(null);
+      setSelectedElements([]);
+      setAccumulatedDistance(0);
+    } else if(currentOverTextcard && textcardCache[currentOverTextcard.id].isGeneratingResponse) {
+      //setCurrentOverTextcard(null);
+      setSelectedElements([]);
+      setAccumulatedDistance(0);
+    }
+  }, [currentOverTextcard, textcardCache, currentResponseIndex, elements]);
+
+  const getTextcardCombinationTexts = async (text, sourceId) => {
+    try {
+      setTextcardCache(prev => ({
+        ...prev,
+        [sourceId]: {
+          isGeneratingResponse: true,
+          responses: []
+        }
+      }));
+
+      console.log("Eingabe für Prompt:\n", textcardText, " | ", text);
+      const response = await chatGPTService.combineTextcards(textcardText, text);
+      console.log("ChatGPT Antwort", response.content);
+
+      let parsedData = [];
+      try {
+        parsedData = JSON.parse(response.content);
+      } catch (error) {
+        console.error("JSON Parse Error:", error);
+        parsedData = { response: [] }; // Fallback
+      }
+
+      const responses = Array.isArray(parsedData?.response) 
+        ? parsedData.response.map(text => text.trim()).slice(0, 5) 
+        : [];
+
+      console.log("Final Responses:", responses);
+
+      setTextcardCache(prev => ({
+        ...prev,
+        [sourceId]: {
+          isGeneratingResponse: false,
+          responses: responses
+        }
+      }));
     } catch (error) {
       console.error("Fehler bei ChatGPT-Anfrage:", error);
+      setTextcardCache(prev => ({
+        ...prev,
+        [sourceId]: {
+          isGeneratingResponse: false,
+          responses: [],
+          error: true
+        }
+      }));
     }
   }
+
+  const useCachedResponses = (sourceId) => {
+    const cacheEntry = textcardCache[sourceId];
+    
+    if (!cacheEntry || !cacheEntry.responses || cacheEntry.responses.length === 0) {
+      console.log("Keine zwischengespeicherten Antworten vorhanden");
+      return;
+    }
+
+    console.log("Use Cached Response", cacheEntry.responses[0]);
+  }
+
+
 
   const { startDragging } = useDrag(
     position,
@@ -226,6 +371,8 @@ const TextCard = ({
         isEditing,
         pointerEvents(),
         rect.zIndex,
+        isDragging,
+        currentOverTextcard,
       ),
     [
       position,
@@ -240,11 +387,24 @@ const TextCard = ({
       isEditing,
       pointerEvents(),
       rect.zIndex,
+      isDragging,
+      currentOverTextcard,
     ]
   );
 
   return (
     <>
+      {currentOverTextcard && (
+        <PreviewTextcard 
+          key={rect.id}
+          finalTop={(currentOverTextcard.position.y - currentOverTextcard.size.height - 25) * scaleRef.current + offsetRef.current.y}
+          finalLeft={currentOverTextcard.position.x * scaleRef.current + offsetRef.current.x}
+          scaledWidth={currentOverTextcard.size.width * scaleRef.current}
+          scaledHeight={currentOverTextcard.size.height * scaleRef.current}
+          isLoading={textcardCache[currentOverTextcard.id].isGeneratingResponse}
+          previewTextContent={textcardCache[currentOverTextcard.id].responses[currentResponseIndex]}
+        />
+      )}
       <div
         style={textcardStyles}
         onMouseDown={handleDrag}

@@ -605,8 +605,6 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasRef={canvasRef}
           addRectangle={addRectangle}
           addTextcard={addTextcards}
-          updateTextcardText={updateTextCardText}
-          handleFrameResize={handleFrameResize}
           handleTextcardUpdate={handleTextcardUpdate}
           isLoading={loadingArrows.has(arrow.id)}
           responseItems={arrowTexts[arrow.id] || []}
