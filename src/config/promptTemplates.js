@@ -57,34 +57,9 @@ export const DEFAULT_PROMPT_TEMPLATES = {
        The response must contain only the JSON object.`,
 
     COMBINE_TEXTCARDS: ({ text1, text2 }) => 
-    `Given:
-      Text 1 (T1): "${text1 || "No context"}"
-      Text 2 (T2): "${text2 || "No context"}"
-
-      Generate five distinct creative outputs that combine, unite, or relate to both texts (T1 and T2). These outputs should be:
-      1.  An original idea
-      2.  A pun or wordplay
-      3.  A metaphor
-      4.  An innovative concept
-      5.  An association
-
-      The length of each of the five generated outputs should correspond to the approximate length of the input texts (T1 and T2):
-      - If T1 and T2 are single words, each output should ideally be a single word or a very short phrase.
-      - If T1 and T2 are short phrases/sentences, each output should be a short phrase/sentence.
-      - If T1 and T2 are longer paragraphs, each output should be of a comparable length.
-
-      Return the result strictly as a JSON object with the following structure:
-      {
-        "response": [
-          "string_representing_the_original_idea",
-          "string_representing_the_pun_or_wordplay",
-          "string_representing_the_metaphor",
-          "string_representing_the_innovative_concept",
-          "string_representing_the_association"
-        ]
-      }
-
-      Do not include any text, explanation, or formatting outside of this JSON structure.`,
+    `Input:
+    Concept 1 (C1): ${text1 || "No context"}
+    Concept 2 (C2): ${text2 || "No context"}`,
 
     SUMMARIZE: ({ text }) => 
       `Summarize the following text concisely. Provide only the summary: ${text}`,
@@ -98,16 +73,17 @@ export const DEFAULT_PROMPT_TEMPLATES = {
       ${text}`,
 
     NEIGHBOR_BASED_TEXTCARD: ({ text }) => 
-    `Based on the following text:
-    ${text || "No input text provided."}
+    `Based on the following text: "${text || "No input text provided."}".
 
-    Generate a concise and thematically related text snippet designed to spark further reflection, inspire new ideas, or offer a thought-provoking angle connected to the input text.
-
-    *Adapt the output format based on the input:*
+    Generate a thematically relevant new text based on the given input, which maintains a clear connection to the input text but introduces ideas or content that is not yet present in the original text.
+    Adapt the output format based on the input:
     - If the input consists only of keywords, single words, or very short bullet points, your output should be a *single relevant keyword or a very short phrase*.
     - Otherwise, your output should be a maximum of 2 sentences.
 
     Your response should contain *only* the generated text snippet/keyword itself, without any introductory phrases, labels, or quotation marks.`,
+
+    NEIGHBOR_BASED_TEXTCARD_2: ({ text }) => 
+      `${text || "No input text provided."}.`,
 
     AUTO_LAYOUT: ({ text }) => 
     `Bitte analysiere die folgenden JSON-Daten, die Elemente (jeweils mit einer id) auf einem Canvas repräsentieren. Basierend auf dem Inhalt der 'Textkarte'-Elemente, ordne alle Elemente logisch und übersichtlich an.
@@ -128,6 +104,9 @@ export const DEFAULT_PROMPT_TEMPLATES = {
     GENERATE_HEADING: ({ text }) => 
       `Generate a concise, objective, and informal heading for the following text. The heading can also serve as a categorization. Return only the heading text itself.
       Input text: ${text}`,
+
+    GENERATE_FIRST_TEXTCARD: () => 
+      `Surprise the user with a random topic, a provocative statement, a creative idea, or a critical question. The generated text must be no longer than one sentence.`,
 
     DEFAULT: (message) => message
 };

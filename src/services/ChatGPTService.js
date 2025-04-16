@@ -92,6 +92,22 @@ export class ChatGPTService {
     });
   }
 
+  async neighborbasedTextcard2(text) {
+    const prompt = this.promptTemplates.NEIGHBOR_BASED_TEXTCARD_2({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'NEIGHBOR_BASED_TEXTCARD_2' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
+  async generateFirstTextcard() {
+    const prompt = this.promptTemplates.GENERATE_FIRST_TEXTCARD();
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'GENERATE_FIRST_TEXTCARD' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
   async autoLayout(text) {
     const prompt = this.promptTemplates.AUTO_LAYOUT({text});
     return this._sendRequest({

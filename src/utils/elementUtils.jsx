@@ -191,3 +191,188 @@ export const getTextFromAllElement = (allElements) => {
   console.log("Text von allen Elementen auf dem Canvas:\n", text);
   return text;
 };
+
+export const getTextFromAllElements = (elements) => {
+  // Prüfen, ob elements ein Array ist und nicht leer
+  if (!Array.isArray(elements)) {
+    console.error("Ungültige Eingabe: 'elements' ist kein Array.");
+    // Je nach Anforderung hier null, einen leeren String oder eine Fehlermeldung zurückgeben
+    return "Fehler: Ungültige Eingabe.";
+  }
+  if (elements.length === 0) {
+    return "Keine Elemente übergeben."; // Oder "[]" wenn ein leerer JSON-Array gewünscht ist
+  }
+
+  // Map durch die Elemente und erstelle das neue Format
+  const simplifiedElements = elements
+    .map((el, index) => {
+      let textContent;
+
+      // Extrahiere den Text basierend auf dem Typ
+      if (el.type === "textcard" && typeof el.text === 'string') {
+        textContent = el.text;
+      } else if (el.type === "rectangle" && typeof el.heading === 'string') {
+        textContent = el.heading;
+      } else {
+        // Element hat keinen relevanten Text oder ist vom falschen Typ
+        return null; // Markiere zum späteren Herausfiltern
+      }
+
+      // Bestimme den Schlüssel basierend auf dem Index
+      const keyName = index === 0 ? "Primary text" : "Secondary text";
+
+      // Erstelle das Objekt mit dynamischem Schlüssel
+      return { [keyName]: textContent };
+    })
+    .filter(item => item !== null); // Entferne Elemente ohne extrahierten Text
+
+  // Konvertiere das Ergebnis-Array in einen JSON-String
+  const jsonText = JSON.stringify(simplifiedElements, null, 2); // null, 2 für Pretty-Printing
+
+  console.log("Formatierter Text von Elementen:\n", jsonText);
+  return jsonText;
+};
+
+const calculateDistance = (x1, y1, x2, y2) => {
+  const deltaX = x1 - x2;
+  const deltaY = y1 - y2;
+  return Math.hypot(deltaX, deltaY);
+};
+
+const calculateCosineSimilarity = (vecA, vecB, distA, distB) => {
+  const magnitudeA =
+    distA !== undefined ? distA : Math.sqrt(vecA.x * vecA.x + vecA.y * vecA.y);
+  const magnitudeB =
+    distB !== undefined ? distB : Math.sqrt(vecB.x * vecB.x + vecB.y * vecB.y);
+
+  if (magnitudeA === 0 || magnitudeB === 0) {
+    return magnitudeA === 0 && magnitudeB === 0 ? 1 : 0; // Oder eine andere Logik
+  }
+
+  const dotProduct = vecA.x * vecB.x + vecA.y * vecB.y;
+  return dotProduct / (magnitudeA * magnitudeB);
+};
+
+export const findTopVisibleNearbyElements = (
+  mousePos,
+  elements,
+  maxNeighbors = 4,
+  cosineThreshold = 0.95 // Schwellenwert anpassen für gewünschte "Sichtbarkeit"
+) => {
+  // --- Eingabevalidierung ---
+  if (
+    !mousePos ||
+    typeof mousePos.x !== "number" ||
+    typeof mousePos.y !== "number"
+  ) {
+    console.error("Ungültige mousePos übergeben.");
+    return [];
+  }
+  if (!Array.isArray(elements)) {
+    console.error("Ungültiges elements Array übergeben.");
+    return [];
+  }
+  if (maxNeighbors <= 0) {
+    return [];
+  }
+
+  const elementsWithData = [];
+
+  elements.forEach((element) => {
+    if (
+      !element ||
+      typeof element.position?.x !== "number" ||
+      typeof element.position?.y !== "number" ||
+      typeof element.size?.width !== "number" ||
+      typeof element.size?.height !== "number"
+    ) {
+      console.warn(
+        "Ungültiges oder unvollständiges Element übersprungen:",
+        element
+      );
+      return;
+    }
+
+    const centerX = element.position.x + element.size.width / 2;
+    const centerY = element.position.y + element.size.height / 2;
+    const distance = calculateDistance(
+      mousePos.x,
+      mousePos.y,
+      centerX,
+      centerY
+    );
+    const vectorX = centerX - mousePos.x;
+    const vectorY = centerY - mousePos.y;
+
+    // Element direkt an der Mausposition (oder sehr nah) sollte berücksichtigt werden
+    // und keine Division durch Null verursachen.
+    const isAtMousePos = distance < 1e-6; // Kleine Toleranz für Fließkommaungenauigkeiten
+
+    elementsWithData.push({
+      element: element,
+      distance: distance,
+      vector: { x: vectorX, y: vectorY },
+      isAtMousePos: isAtMousePos,
+    });
+  });
+
+  // --- 2. Sortiere nach Distanz ---
+  elementsWithData.sort((a, b) => a.distance - b.distance);
+
+  // --- 3. Iteratives Filtern ---
+  const visibleNeighbors = [];
+  const acceptedVectors = []; // Speichere die Vektoren der bereits akzeptierten Nachbarn
+
+  for (const currentData of elementsWithData) {
+    // Wenn wir genug Nachbarn haben, stoppen.
+    if (visibleNeighbors.length >= maxNeighbors) {
+      break;
+    }
+
+    // Elemente direkt an der Mausposition werden immer hinzugefügt (falls Platz ist)
+    if (currentData.isAtMousePos) {
+      visibleNeighbors.push(currentData.element);
+      // Füge einen "Pseudo"-Vektor hinzu oder behandle ihn speziell,
+      // damit er keine zukünftigen Elemente fälschlicherweise blockiert.
+      // Hier fügen wir ihn nicht zu acceptedVectors hinzu, da seine Richtung undefiniert ist.
+      continue; // Gehe zum nächsten Element
+    }
+
+    let isOccluded = false;
+    // Vergleiche mit allen *bereits akzeptierten*, näheren Elementen
+    for (let i = 0; i < acceptedVectors.length; i++) {
+      const acceptedVector = acceptedVectors[i].vector;
+      const acceptedDistance = acceptedVectors[i].distance; // Brauchen wir für die Kosinus-Funktion
+
+      // Berechne Kosinus-Ähnlichkeit nur, wenn der akzeptierte Vektor gültig ist
+      if (acceptedDistance > 1e-6) {
+        const similarity = calculateCosineSimilarity(
+          currentData.vector,
+          acceptedVector,
+          currentData.distance,
+          acceptedDistance
+        );
+
+        // Wenn die Richtung zu ähnlich ist, ist das aktuelle Element verdeckt
+        if (similarity > cosineThreshold) {
+          isOccluded = true;
+          break; // Keine weiteren Vergleiche für dieses Element nötig
+        }
+      }
+    }
+
+    // Wenn nicht verdeckt, füge es zur Ergebnisliste und zu den Vergleichsvektoren hinzu
+    if (!isOccluded) {
+      visibleNeighbors.push(currentData.element);
+      // Füge nur hinzu, wenn es eine klare Richtung gibt (nicht an Mausposition)
+      if (!currentData.isAtMousePos) {
+        acceptedVectors.push({
+          vector: currentData.vector,
+          distance: currentData.distance,
+        });
+      }
+    }
+  }
+
+  return visibleNeighbors;
+};

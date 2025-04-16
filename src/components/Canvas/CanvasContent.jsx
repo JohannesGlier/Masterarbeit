@@ -551,10 +551,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       )}
       {selectedTool === "AutoLayout" && (
         <AutoLayoutTool
-          elements={elements}
-          setIsAutoLayoutRunning={setIsAutoLayoutRunning}
           isAutoLayoutRunning={isAutoLayoutRunning}
-          applyAILayout={applyAILayout}
+          textcards={textcards}
         />
       )}
 

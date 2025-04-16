@@ -7,6 +7,8 @@ import {
   getElementAtPosition,
   getTextFromElement,
   getTextFromAllElement,
+  findTopVisibleNearbyElements,
+  getTextFromAllElements
 } from "@/utils/elementUtils";
 
 const TextCardTool = ({
@@ -68,7 +70,7 @@ const TextCardTool = ({
 
         let textContent = "";
         try {
-          textContent = await getTextcardContent(elementUnderMouse);
+          textContent = await getTextcardContent(elementUnderMouse, mousePos);
         } catch (error) {
           console.error("Fehler beim Erstellen der Textkarte:", error);
         } finally {
@@ -149,23 +151,84 @@ const TextCardTool = ({
     addTextcard(finalTextcard);
   };
 
-  const getTextcardContent = async (hoveredElement) => {
+  const getTextcardContent = async (hoveredElement, mousePos) => {
     let promptText = "";
     
-    if(hoveredElement)
+    if(hoveredElement) {
+      // Ich bin über einer Textkarte oder einem Bereich
       promptText = getTextFromElement(hoveredElement, elements);
-    else
+
+      try {
+        console.log("Eingabe für Prompt:\n", promptText);
+        const response = await chatGPTService.neighborbasedTextcard(promptText);
+        console.log("ChatGPT Response:", response.content);
+        return response.content;
+      } catch (error) {
+        throw error;
+      }
+    }
+    else {
+      // Ich bin auf dem Canvas
       promptText = getTextFromAllElement(elements);
 
-    try {
-      console.log("Eingabe für Prompt:\n", promptText);
-      const response = await chatGPTService.neighborbasedTextcard(promptText);
-      console.log("ChatGPT Response:", response.content);
-      return response.content;
-    } catch (error) {
-      throw error;
+      if(elements.length === 0 || promptText === "[]" || checkPromptTextStrict(promptText)) {
+        try {
+          // Wenn kein Element auf dem Canvas
+          const response = await chatGPTService.generateFirstTextcard(promptText);
+          console.log("ChatGPT Response:", response.content);
+          return response.content;
+        } catch (error) {
+          throw error;
+        }
+      } else {
+        const nearestElements = findTopVisibleNearbyElements(mousePos, elements, 4, 0.85);
+        promptText = getTextFromAllElements(nearestElements);
+
+        try {
+          console.log("Eingabe für Prompt:\n", promptText);
+          const response = await chatGPTService.neighborbasedTextcard2(promptText);
+          console.log("ChatGPT Response:", response.content);
+          return response.content;
+        } catch (error) {
+          throw error;
+        }       
+      }
     }
   };
+
+  function checkPromptTextStrict(promptText) {
+    if (typeof promptText !== 'string') {
+      console.warn("checkPromptTextStrict: Input ist kein String!");
+      return false;
+    }
+    const trimmedText = promptText.trim();
+    if (trimmedText === "[]") {
+      return true;
+    }
+    try {
+      const parsedData = JSON.parse(trimmedText);
+      if (!Array.isArray(parsedData)) {
+        console.warn("checkPromptTextStrict: Geparsed, aber kein Array:", parsedData);
+        return false;
+      }
+      if (parsedData.length === 0) {
+          return false;
+      }
+      return parsedData.every(element => {
+        return (
+          element &&                     
+          typeof element === 'object' &&
+          Object.keys(element).length === 1 &&
+          element.hasOwnProperty('text') &&
+          element.text === ""
+        );
+      });
+  
+    } catch (e) {
+      console.warn("checkPromptTextStrict: Fehler beim Parsen oder Prüfen:", e.message);
+      return false;
+    }
+  }
 
   return (
     <div>
