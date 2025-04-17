@@ -59,13 +59,13 @@ const Frame = ({
 
   useEffect(() => {
     const generateAndSetHeading = async () => {
-      if (headingGeneration.rectId === rect.id && headingGeneration.generateHeading && headingGeneration.text && !isGeneratingHeading && !generationTriggeredRef.current) {
+      if (headingGeneration[rect.id]?.generateHeading && headingGeneration[rect.id]?.text && !isGeneratingHeading && !generationTriggeredRef.current) {
         generationTriggeredRef.current = true;
         setIsGeneratingHeading(true);
         try {
-          console.log("Generiere Überschrift für den Text", headingGeneration.text);
+          console.log("Generiere Überschrift für den Text", headingGeneration[rect.id]?.text);
           
-          const response = await chatGPTService.generateHeading(headingGeneration.text);
+          const response = await chatGPTService.generateHeading(headingGeneration[rect.id]?.text);
           const generatedHeading = response.content;
           
           onHeadingChange(generatedHeading);
@@ -75,10 +75,10 @@ const Frame = ({
           onHeadingChange("Heading..");
         } finally {
           setIsGeneratingHeading(false);
-          setHeadingGeneration({
-            rectId: null,
-            generateHeading: false,
-            text: null
+          setHeadingGeneration(prev => {
+            const newState = { ...prev };
+            delete newState[rect.id];
+            return newState;
           });
         }
       }
@@ -88,10 +88,10 @@ const Frame = ({
   }, [headingGeneration, rect.id, onHeadingChange, isGeneratingHeading, setHeadingGeneration, chatGPTService]);
 
   useEffect(() => {
-    if (!headingGeneration.generateHeading || headingGeneration.rectId !== rect.id) {
-         generationTriggeredRef.current = false;
+    if (!headingGeneration[rect.id]?.generateHeading) {
+      generationTriggeredRef.current = false;
     }
- }, [headingGeneration.generateHeading, headingGeneration.rectId, rect.id]);
+  }, [headingGeneration, rect.id]);
 
 
   const isSelected = useMemo(

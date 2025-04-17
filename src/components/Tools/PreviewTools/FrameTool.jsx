@@ -49,11 +49,13 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
         // Check, ob der Bereich über anderen Element ist, wenn ja, generiere eine passende Überschrift
         const text = getTextInsideFrame(elements, tempRectangle);
         if(text) {
-          setHeadingGeneration({
-            rectId,
-            generateHeading: true,
-            text: text,
-          });
+          setHeadingGeneration(prev => ({
+            ...prev,
+            [rectId]: { // Verwende die rectId als Schlüssel
+              generateHeading: true,
+              text: text,
+            },
+          }));
         }
 
         setSelectedTool('Pointer');
@@ -74,11 +76,13 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
         // Check, ob der Bereich über anderen Element ist, wenn ja, generiere eine passende Überschrift
         const text = getTextInsideFrame(elements, finalRectangle);
         if(text) {
-          setHeadingGeneration({
-            rectId,
-            generateHeading: true,
-            text: text,
-          });
+          setHeadingGeneration(prev => ({
+            ...prev,
+            [rectId]: { // Verwende die rectId als Schlüssel
+              generateHeading: true,
+              text: text,
+            },
+          }));
         }
         setSelectedTool('Pointer');
       }

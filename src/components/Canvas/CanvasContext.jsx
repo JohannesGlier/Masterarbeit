@@ -23,11 +23,7 @@ export const CanvasProvider = ({ children }) => {
     point: null,
     arrowID: null,
   });
-  const [headingGeneration, setHeadingGeneration] = useState({
-    rectId: null,
-    generateHeading: false,
-    text: null,
-  });
+  const [headingGeneration, setHeadingGeneration] = useState({});
 
   const showContextMenu = (position, point, id) => {
     setContextMenu({

@@ -174,6 +174,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     if (previousView.current === "StandardView" && activeView === "LayoutView") {
       // Hier die Funktion aufrufen, die beim Wechsel von StandardView zu LayoutView ausgelöst werden soll
       setSelectedTool('AutoLayout');
+      deleteLayoutViewElements();
     }
     previousView.current = activeView; // Update previousView nach dem Vergleich
   }, [activeView]);
@@ -250,6 +251,18 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     // Zurücksetzen der Auswahl
     setSelectedElements([]);
   };
+
+  const deleteLayoutViewElements = () => {
+    setRectangles((prev) =>
+      prev.filter((rect) => rect.activeView !== "LayoutView")
+    );
+    setTextCards((prev) =>
+      prev.filter((textcard) => textcard.activeView !== "LayoutView")
+    );
+    setArrows((prev) =>
+      prev.filter((arrow) => arrow.activeView !== "LayoutView")
+    );
+  }
 
   const handleFrameUpdate = (id, newX, newY) => {
     setRectangles((prev) =>
@@ -593,9 +606,10 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       {selectedTool === "AutoLayout" && (
         <AutoLayoutTool
           isAutoLayoutRunning={isAutoLayoutRunning}
-          textcards={textcards}
+          textcards={textcards.filter(textcard => textcard.activeView === "StandardView")}
           handleTextcardUpdate={handleTextcardUpdate}
           addTextcard={addTextcards}
+          addRectangle={addRectangle}
         />
       )}
 

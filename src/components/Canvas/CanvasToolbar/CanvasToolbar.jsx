@@ -26,35 +26,28 @@ const CanvasToolbar = () => {
           className={`${styles['button']} ${selectedTool === 'TextCard' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('TextCard')}
         >
-          <RiTextBlock />
+          <RiTextBlock size={40}/>
         </button>
         <button
           title="Bereich-Tool zum Erstellen von Bereichen"
           className={`${styles['button']} ${selectedTool === 'Frame' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('Frame')}
         >
-          <MdOutlineRectangle />
+          <MdOutlineRectangle size={40}/>
         </button>
         <button
           title="Verbindungs-Tool zum Erstellen von Verbindungen"
           className={`${styles['button']} ${selectedTool === 'Arrow' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('Arrow')}
         >
-          <CgArrowLongUp style={{ transform: 'rotate(45deg)' }} />
+          <CgArrowLongUp style={{ transform: 'rotate(45deg)' }} size={40}/>
         </button>
         <button
           title="Schere-Tool zum automatischen Aufteilen von Textkarten"
           className={`${styles['button']} ${selectedTool === 'Scissor' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('Scissor')}
         >
-          <FiScissors />
-        </button>
-        <button
-          title="Auto-Layout-Tool zum automatischen Anordnen von Elementen auf dem Canvas"
-          className={`${styles['button']} ${selectedTool === 'AutoLayout' ? styles.selectedButton : ''}`} 
-          onClick={() => setSelectedTool('AutoLayout')}
-        >
-          <LuLayoutDashboard />
+          <FiScissors size={40}/>
         </button>
       </div>
     );
