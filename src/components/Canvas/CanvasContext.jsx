@@ -8,6 +8,8 @@ export const CanvasProvider = ({ children }) => {
   const zIndexTextCards = useRef(3000);  // Baselayer für Textkarten
 
   const [selectedTool, setSelectedTool] = useState('Pointer');
+  const [activeView, setActiveView] = useState('StandardView');
+
   const [selectedElements, setSelectedElements] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const offsetRef = useRef({ x: 0, y: 0 });
@@ -120,6 +122,8 @@ export const CanvasProvider = ({ children }) => {
         closeContextMenu,
         headingGeneration,
         setHeadingGeneration,
+        activeView,
+        setActiveView,
       }}
     >
       {children}

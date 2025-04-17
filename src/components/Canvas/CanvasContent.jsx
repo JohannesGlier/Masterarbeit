@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import FrameTool from "@/components/Tools/PreviewTools/FrameTool";
 import ArrowTool from "@/components/Tools/PreviewTools/ArrowTool";
@@ -26,6 +26,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     setSelectedElements,
     setSelectedTool,
     incrementZIndex,
+    activeView,
   } = useCanvas();
   const [rectangles, setRectangles] = useState([]);
   const [textcards, setTextCards] = useState([]);
@@ -37,6 +38,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [processedArrows, setProcessedArrows] = useState(new Set());
   const [loadingArrows, setLoadingArrows] = useState(new Set());
   const [arrowTexts, setArrowTexts] = useState({});
+  const previousView = useRef(activeView);
 
   const elements = useMemo(() => {
     return [
@@ -47,6 +49,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         type: "textcard",
         zIndex: textcard.zIndex,
         text: textcard.text,
+        activeView: textcard.activeView,
       })),
       ...rectangles.map((rect) => ({
         id: rect.id,
@@ -55,23 +58,31 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         type: "rectangle",
         zIndex: rect.zIndex,
         heading: rect.heading,
+        activeView: rect.activeView,
       })),
     ];
   }, [textcards, rectangles]);
 
-  
   useEffect(() => {
     arrows.forEach((arrow) => {
       const hasStartElementId = arrow.start?.elementId !== undefined;
       const hasEndElementId = arrow.end?.elementId !== undefined;
 
-      const startElement = hasStartElementId ? elements.find((e) => e.id === arrow.start.elementId) : undefined;
-      const endElement = hasEndElementId ? elements.find((e) => e.id === arrow.end.elementId) : undefined;
+      const startElement = hasStartElementId
+        ? elements.find((e) => e.id === arrow.start.elementId)
+        : undefined;
+      const endElement = hasEndElementId
+        ? elements.find((e) => e.id === arrow.end.elementId)
+        : undefined;
 
       const startElementExists = !!startElement;
       const endElementExists = !!endElement;
 
-      if (startElementExists && endElementExists && !processedArrows.has(arrow.id)) {
+      if (
+        startElementExists &&
+        endElementExists &&
+        !processedArrows.has(arrow.id)
+      ) {
         console.log(
           `Arrow ${arrow.id} ist an beiden Enden mit Elementen verbunden:`
         );
@@ -87,19 +98,21 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         setProcessedArrows((prev) => new Set(prev).add(arrow.id));
       } else if (processedArrows.has(arrow.id)) {
         if (!startElementExists || !endElementExists) {
-          console.log(`Arrow ${arrow.id} ist nicht mehr an beiden Enden verbunden`);
-          setProcessedArrows(prev => {
+          console.log(
+            `Arrow ${arrow.id} ist nicht mehr an beiden Enden verbunden`
+          );
+          setProcessedArrows((prev) => {
             const newSet = new Set(prev);
             newSet.delete(arrow.id);
             return newSet;
           });
-          setArrowTexts(prevTexts => {
+          setArrowTexts((prevTexts) => {
             const newState = { ...prevTexts };
             delete newState[arrow.id];
             return newState;
           });
           if (loadingArrows.has(arrow.id)) {
-              setArrowLoading(arrow.id, false);
+            setArrowLoading(arrow.id, false);
           }
         }
       }
@@ -150,13 +163,20 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
   useEffect(() => {
     const html = document.documentElement;
-    loadingArrows.size > 0 
-      ? html.classList.add('global-loading')
-      : html.classList.remove('global-loading');
+    loadingArrows.size > 0
+      ? html.classList.add("global-loading")
+      : html.classList.remove("global-loading");
 
-    return () => html.classList.remove('global-loading');
+    return () => html.classList.remove("global-loading");
   }, [loadingArrows]);
 
+  useEffect(() => {
+    if (previousView.current === "StandardView" && activeView === "LayoutView") {
+      // Hier die Funktion aufrufen, die beim Wechsel von StandardView zu LayoutView ausgelöst werden soll
+      setSelectedTool('AutoLayout');
+    }
+    previousView.current = activeView; // Update previousView nach dem Vergleich
+  }, [activeView]);
 
   const addRectangle = (rect) => {
     const zIndex = incrementZIndex("rectangle");
@@ -168,6 +188,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       height: rect.height,
       heading: rect.heading || "",
       zIndex,
+      activeView: activeView,
     };
     setRectangles((prevRectangles) => [...prevRectangles, newRect]);
     return newRect.id;
@@ -183,6 +204,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       height: textcard.height,
       text: textcard.text,
       zIndex,
+      activeView: activeView,
     };
     setTextCards((prevTextcards) => [...prevTextcards, newTextcard]);
     return newTextcard.id;
@@ -206,6 +228,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         y: arrow.end.y,
       },
       zIndex,
+      activeView: activeView,
     };
     setArrows((prevArrows) => [...prevArrows, newArrow]);
     return newArrow;
@@ -334,43 +357,61 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       let parsedData = [];
       let rawContent = response.content;
 
-      if (typeof rawContent === 'string') {
+      if (typeof rawContent === "string") {
         try {
           parsedData = JSON.parse(rawContent);
-          console.log(`DEBUG CanvasContent: Successfully parsed JSON for ${arrowId}.`);
+          console.log(
+            `DEBUG CanvasContent: Successfully parsed JSON for ${arrowId}.`
+          );
 
           if (!Array.isArray(parsedData)) {
-            console.warn(`Parsed JSON for arrow ${arrowId} did not result in an array:`, parsedData);
+            console.warn(
+              `Parsed JSON for arrow ${arrowId} did not result in an array:`,
+              parsedData
+            );
             parsedData = [];
           } else {
             parsedData = parsedData.slice(0, 10);
-            console.log(`DEBUG CanvasContent: Parsed data is an array with length ${parsedData.length}.`);
+            console.log(
+              `DEBUG CanvasContent: Parsed data is an array with length ${parsedData.length}.`
+            );
           }
-
         } catch (parseError) {
-          console.error(`Error parsing JSON response for arrow ${arrowId}:`, parseError, "\nRaw content was:", rawContent);
-          parsedData = []; 
+          console.error(
+            `Error parsing JSON response for arrow ${arrowId}:`,
+            parseError,
+            "\nRaw content was:",
+            rawContent
+          );
+          parsedData = [];
         }
       } else if (Array.isArray(rawContent)) {
-          console.log(`DEBUG CanvasContent: Response content for ${arrowId} was already an array.`);
-          parsedData = rawContent;
-          parsedData = parsedData.slice(0, 10);
+        console.log(
+          `DEBUG CanvasContent: Response content for ${arrowId} was already an array.`
+        );
+        parsedData = rawContent;
+        parsedData = parsedData.slice(0, 10);
       } else {
-         console.warn(`Response content for arrow ${arrowId} is neither a string nor an array:`, rawContent);
-         parsedData = [];
+        console.warn(
+          `Response content for arrow ${arrowId} is neither a string nor an array:`,
+          rawContent
+        );
+        parsedData = [];
       }
 
-      setArrowTexts(prevTexts => ({
+      setArrowTexts((prevTexts) => ({
         ...prevTexts,
-        [arrowId]: parsedData
+        [arrowId]: parsedData,
       }));
-
     } catch (error) {
-      console.error(`Fehler beim Abrufen des Textes für Pfeil ${arrowId}:`, error);
-      setArrowTexts(prevTexts => ({
-         ...prevTexts,
-         [arrowId]: []
-       }));
+      console.error(
+        `Fehler beim Abrufen des Textes für Pfeil ${arrowId}:`,
+        error
+      );
+      setArrowTexts((prevTexts) => ({
+        ...prevTexts,
+        [arrowId]: [],
+      }));
     } finally {
       setArrowLoading(arrowId, false);
     }
@@ -395,7 +436,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
       try {
         const response = await chatGPTService.relationshipArrow(startText);
-        console.log("Eingabe Text für Verbindung", startText)
+        console.log("Eingabe Text für Verbindung", startText);
         setChatGPTResponse(response);
       } catch (error) {
         console.error("Fehler bei ChatGPT-Anfrage:", error);
@@ -506,7 +547,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         <PointerTool
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
-          elements={elements}
+          elements={elements.filter(element => element.activeView === activeView)}
           addTextcard={addTextcards}
         />
       )}
@@ -515,7 +556,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
           addRectangle={addRectangle}
-          elements={elements}
+          elements={elements.filter(element => element.activeView === activeView)}
         />
       )}
       {selectedTool === "TextCard" && (
@@ -523,7 +564,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
           addTextcard={addTextcards}
-          elements={elements}
+          elements={elements.filter(element => element.activeView === activeView)}
         />
       )}
       {selectedTool === "Arrow" && (
@@ -531,7 +572,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
           addArrow={addArrows}
-          elements={elements}
+          elements={elements.filter(element => element.activeView === activeView)}
           initialStart={initialArrowStart}
           onEndArrowFromFrame={handleEndArrowFromFrame}
           addTextcard={addTextcards}
@@ -545,7 +586,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         <ScissorTool
           canvasRef={canvasRef}
           canvasWrapperRef={canvasWrapperRef}
-          elements={elements}
+          elements={elements.filter(element => element.activeView === activeView)}
           addTextcard={addTextcards}
         />
       )}
@@ -553,61 +594,142 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
         <AutoLayoutTool
           isAutoLayoutRunning={isAutoLayoutRunning}
           textcards={textcards}
+          handleTextcardUpdate={handleTextcardUpdate}
+          addTextcard={addTextcards}
         />
       )}
 
-      {/* Rendern der gespeicherten Rechtecke */}
-      {rectangles.map((rect, index) => (
-        <Frame
-          key={index}
-          rect={rect}
-          headingText={rect.heading}
-          scaleRef={scaleRef}
-          offsetRef={offsetRef}
-          onUpdate={handleFrameUpdate}
-          onResize={handleFrameResize}
-          onStartArrowFromFrame={handleStartArrowFromFrame}
-          onHeadingChange={(newHeading) =>
-            updateFrameHeading(rect.id, newHeading)
-          }
-        />
-      ))}
+      {activeView === "StandardView" ? (
+        <div>
+          {/* Rendern der gespeicherten Rechtecke */}
+          {rectangles
+            .filter((rect) => rect.activeView === "StandardView")
+            .map((rect, index) => (
+              <Frame
+                key={index}
+                rect={rect}
+                headingText={rect.heading}
+                scaleRef={scaleRef}
+                offsetRef={offsetRef}
+                onUpdate={handleFrameUpdate}
+                onResize={handleFrameResize}
+                onStartArrowFromFrame={handleStartArrowFromFrame}
+                onHeadingChange={(newHeading) =>
+                  updateFrameHeading(rect.id, newHeading)
+                }
+            />
+          ))}
 
-      {/* Rendern der gespeicherten Textkarten */}
-      {textcards.map((textcard, index) => (
-        <TextCard
-          key={index}
-          rect={textcard}
-          textcardText={textcard.text}
-          onTextChange={(newText) => updateTextCardText(textcard.id, newText)}
-          scaleRef={scaleRef}
-          offsetRef={offsetRef}
-          onUpdate={handleTextcardUpdate}
-          onResize={handleTextcardResize}
-          onStartArrowFromFrame={handleStartArrowFromFrame}
-          elements={elements}
-          addTextcard={addTextcards}
-        />
-      ))}
+          {/* Rendern der gespeicherten Textkarten */}
+          {textcards
+            .filter((textcard) => textcard.activeView === "StandardView")
+            .map((textcard, index) => (
+              <TextCard
+                key={index}
+                rect={textcard}
+                textcardText={textcard.text}
+                onTextChange={(newText) =>
+                  updateTextCardText(textcard.id, newText)
+                }
+                scaleRef={scaleRef}
+                offsetRef={offsetRef}
+                onUpdate={handleTextcardUpdate}
+                onResize={handleTextcardResize}
+                onStartArrowFromFrame={handleStartArrowFromFrame}
+                elements={elements.filter(element => element.activeView === activeView)}
+                addTextcard={addTextcards}
+              />
+          ))}
 
-      {/* Rendern der gespeicherten Verbindungen */}
-      {arrows.map((arrow, index) => (
-        <Arrow
-          key={index}
-          arrow={arrow}
-          scaleRef={scaleRef}
-          offsetRef={offsetRef}
-          elements={elements}
-          updateArrowPosition={updateArrowPosition}
-          canvasWrapperRef={canvasWrapperRef}
-          canvasRef={canvasRef}
-          addRectangle={addRectangle}
-          addTextcard={addTextcards}
-          handleTextcardUpdate={handleTextcardUpdate}
-          isLoading={loadingArrows.has(arrow.id)}
-          responseItems={arrowTexts[arrow.id] || []}
-        />
-      ))}
+          {/* Rendern der gespeicherten Verbindungen */}
+          {arrows
+            .filter((arrow) => arrow.activeView === "StandardView")
+            .map((arrow, index) => (
+              <Arrow
+                key={index}
+                arrow={arrow}
+                scaleRef={scaleRef}
+                offsetRef={offsetRef}
+                elements={elements.filter(element => element.activeView === activeView)}
+                updateArrowPosition={updateArrowPosition}
+                canvasWrapperRef={canvasWrapperRef}
+                canvasRef={canvasRef}
+                addRectangle={addRectangle}
+                addTextcard={addTextcards}
+                handleTextcardUpdate={handleTextcardUpdate}
+                isLoading={loadingArrows.has(arrow.id)}
+                responseItems={arrowTexts[arrow.id] || []}
+              />
+          ))}
+        </div>
+      ) : activeView === "LayoutView" ? (
+        <div>
+          {/* Rendern der gespeicherten Rechtecke */}
+          {rectangles
+            .filter((rect) => rect.activeView === "LayoutView")
+            .map((rect, index) => (
+              <Frame
+                key={index}
+                rect={rect}
+                headingText={rect.heading}
+                scaleRef={scaleRef}
+                offsetRef={offsetRef}
+                onUpdate={handleFrameUpdate}
+                onResize={handleFrameResize}
+                onStartArrowFromFrame={handleStartArrowFromFrame}
+                onHeadingChange={(newHeading) =>
+                  updateFrameHeading(rect.id, newHeading)
+                }
+            />
+          ))}
+
+          {/* Rendern der gespeicherten Textkarten */}
+          {textcards
+            .filter((textcard) => textcard.activeView === "LayoutView")
+            .map((textcard, index) => (
+              <TextCard
+                key={index}
+                rect={textcard}
+                textcardText={textcard.text}
+                onTextChange={(newText) =>
+                  updateTextCardText(textcard.id, newText)
+                }
+                scaleRef={scaleRef}
+                offsetRef={offsetRef}
+                onUpdate={handleTextcardUpdate}
+                onResize={handleTextcardResize}
+                onStartArrowFromFrame={handleStartArrowFromFrame}
+                elements={elements.filter(element => element.activeView === activeView)}
+                addTextcard={addTextcards}
+              />
+          ))}
+
+          {/* Rendern der gespeicherten Verbindungen */}
+          {arrows
+            .filter((arrow) => arrow.activeView === "LayoutView")
+            .map((arrow, index) => (
+              <Arrow
+                key={index}
+                arrow={arrow}
+                scaleRef={scaleRef}
+                offsetRef={offsetRef}
+                elements={elements.filter(element => element.activeView === activeView)}
+                updateArrowPosition={updateArrowPosition}
+                canvasWrapperRef={canvasWrapperRef}
+                canvasRef={canvasRef}
+                addRectangle={addRectangle}
+                addTextcard={addTextcards}
+                handleTextcardUpdate={handleTextcardUpdate}
+                isLoading={loadingArrows.has(arrow.id)}
+                responseItems={arrowTexts[arrow.id] || []}
+              />
+          ))}
+        </div>
+      ) : (
+        <div>
+          <h1>Unbekannte Ansicht: {activeView}</h1>
+        </div>
+      )}
     </div>
   );
 };

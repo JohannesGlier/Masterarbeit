@@ -401,8 +401,8 @@ const TextCard = ({
           finalLeft={currentOverTextcard.position.x * scaleRef.current + offsetRef.current.x}
           scaledWidth={currentOverTextcard.size.width * scaleRef.current}
           scaledHeight={currentOverTextcard.size.height * scaleRef.current}
-          isLoading={textcardCache[currentOverTextcard.id].isGeneratingResponse}
-          previewTextContent={textcardCache[currentOverTextcard.id].responses[currentResponseIndex]}
+          isLoading={textcardCache[currentOverTextcard.id]?.isGeneratingResponse}
+          previewTextContent={textcardCache[currentOverTextcard.id]?.responses[currentResponseIndex]}
         />
       )}
       <div

@@ -11,6 +11,8 @@ const getColorForCluster = (clusterId) => {
 const AutoLayoutTool = ({
   isAutoLayoutRunning,
   textcards,
+  handleTextcardUpdate,
+  addTextcard
 }) => {
   const { setSelectedTool } = useCanvas();
   const hasRunForThisMount = useRef(false);
@@ -94,22 +96,34 @@ const AutoLayoutTool = ({
 
 
       // 2.4 D3 Force Simulation konfigurieren
-      const width = 600; // Beispiel: Breite des Layout-Bereichs
-      const height = 400; // Beispiel: Höhe des Layout-Bereichs
+      const width = 1500; // Beispiel: Breite des Layout-Bereichs
+      const height = 1200; // Beispiel: Höhe des Layout-Bereichs
 
       const simulation = d3.forceSimulation(nodes)
           // Kraft 1: Links (Anziehung innerhalb der Cluster)
           .force("link", d3.forceLink(links)
                           .id(d => d.id) // Sagt D3, wie die Node-ID im Link gefunden wird
-                          .strength(0.1) // Stärke der Anziehung (Anpassen!) - Stärker = dichtere Cluster
+                          .strength(0.7) // Stärke der Anziehung (Anpassen!) - Stärker = dichtere Cluster
                           // .distance(30) // Optional: versucht einen bestimmten Abstand zu halten
           )
           // Kraft 2: Abstoßung zwischen ALLEN Knoten
           .force("charge", d3.forceManyBody()
-                            .strength(-100) // Stärke der Abstoßung (Anpassen!) - Größerer negativer Wert = mehr Abstand
+                            .strength(-400) // Stärke der Abstoßung (Anpassen!) - Größerer negativer Wert = mehr Abstand
           )
           // Kraft 3: Zentriert das gesamte Layout
-          .force("center", d3.forceCenter(width / 2, height / 2));
+          .force("center", d3.forceCenter(width / 2, height / 2))
+          .force("collision", d3.forceCollide()
+            .radius(d => 100)  // Radius ≈ halbe Diagonale der Textkarte (√(200²+75²)/2 ≈ 109)
+            .strength(0.05)
+          )
+          .force("cluster", d3.forceY()
+            .strength(0.05)
+            .y(d => {
+              // Jeder Cluster bekommt eine vertikale Zone
+              const clusterZones = { 0: height * 0.3, 1: height * 0.7 /* ... */ };
+              return clusterZones[d.clusterId] || height / 2;
+            })
+          );
 
       // 2.5 Simulation laufen lassen (synchron, da wir keine Visualisierung machen)
       // D3 läuft normalerweise asynchron. Um die finalen Koordinaten zu bekommen,
@@ -137,6 +151,17 @@ const AutoLayoutTool = ({
 
       console.log("Layout Ergebnisse (Koordinaten):", layoutResults);
       setLayoutData(layoutResults);
+
+      layoutResults.forEach(layoutItem => {
+        const finalTextcard = {
+          x: layoutItem.x,
+          y: layoutItem.y,
+          width: 150,
+          height: 75,
+          text: layoutItem.text,
+        };
+        addTextcard(finalTextcard);    
+      });
     } catch (err) {
       console.error("Fehler beim Abrufen der Embeddings:", err);
       setLayoutData(null);
@@ -144,7 +169,7 @@ const AutoLayoutTool = ({
       console.log("Finished: Resetting states");
       setIsLoading(false);
       forceCursor("auto"); 
-      //setSelectedTool("Pointer");
+      setSelectedTool("Pointer");
     }
   };
 
@@ -163,7 +188,7 @@ const AutoLayoutTool = ({
 
     console.log("Effect condition met: Starting performAutoLayout.");
     hasRunForThisMount.current = true;
-    handleFetchEmbeddings();
+    //handleFetchEmbeddings();
 
     return () => {
       console.log("AutoLayoutTool Cleanup (Unmount)");
@@ -180,8 +205,8 @@ const AutoLayoutTool = ({
       return null; // Oder: <div>Ready to calculate layout.</div>;
   }
 
-  const renderWidth = 800; // Breite für das Rendering
-  const renderHeight = 600; // Höhe für das Rendering
+  const renderWidth = 1500; // Breite für das Rendering
+  const renderHeight = 1200; // Höhe für das Rendering
 
   // Berechne die Grenzen der Daten
   const xValues = layoutData.map(point => point.x);
@@ -219,7 +244,8 @@ const AutoLayoutTool = ({
       top: '50%',
       transform: 'translate(-50%, -50%)',
       overflow: 'hidden',
-      margin: '10px' 
+      margin: '10px', 
+      zIndex: 10000,
     }}>
       <svg width={renderWidth} height={renderHeight}>
         <g> {/* Gruppe für die Punkte */}

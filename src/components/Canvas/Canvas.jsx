@@ -3,6 +3,7 @@ import { useCanvas } from '@/components/Canvas/CanvasContext';
 import CanvasToolbar from "@/components/Canvas/CanvasToolbar/CanvasToolbar";
 import CanvasMenu from "@/components/Canvas/CanvasMenu/CanvasMenu";
 import CanvasContent from "@/components/Canvas/CanvasContent";
+import ViewMenu from '@/components/Canvas/CanvasViewMenu/ViewMenu'; 
 
 const InfiniteCanvas = ({ onBack }) => {
   const { scaleRef, offsetRef, selectedTool, selectedElements } = useCanvas();
@@ -147,6 +148,17 @@ const InfiniteCanvas = ({ onBack }) => {
       >
         <CanvasToolbar />
         <CanvasMenu onBack={onBack} />
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: '16px',             // Gleiche Höhe wie die anderen Menüs
+          left: '50%',             // Startet bei 50% der Breite
+          transform: 'translateX(-50%)', // Zentriert das Element horizontal
+          zIndex: 4001,            // Gleiche Ebene wie die anderen Menüs
+        }}
+      >
+        <ViewMenu /> {/* Hier die neue Komponente einfügen */}
       </div>
     </div>
   );
