@@ -26,12 +26,13 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
 
   const forceCursor = (style) => {
     document.body.style.cursor = style;
-    document.body.style.pointerEvents = "none";
+    document.body.style.pointerEvents = "auto";
   };
 
   const handleFetchEmbeddings = async () => {
     if (isLoading) return;
 
+    console.log("Hier");
     setIsLoading(true);
     forceCursor("wait");
 
@@ -257,18 +258,26 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
   };
 
   useEffect(() => {
-    console.log("AutoLayoutTool Effect triggered.");
-
     let frameId;
 
     const persistentCursorUpdate = () => {
       if (isLoading) {
+        console.log("Hier");
         forceCursor("wait");
       }
       frameId = requestAnimationFrame(persistentCursorUpdate);
     };
 
     persistentCursorUpdate();
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      forceCursor("");
+    };
+  }, [isLoading, forceCursor]);
+
+  useEffect(() => {
+    console.log("AutoLayoutTool Effect triggered.");
 
     if (isAutoLayoutRunning) {
       console.log("Effect skipped: AutoLayout is already running globally.");
@@ -288,8 +297,6 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
 
     return () => {
       console.log("AutoLayoutTool Cleanup (Unmount)");
-      cancelAnimationFrame(frameId);
-      forceCursor("");
     };
   }, []);
 

@@ -410,20 +410,25 @@ const ArrowTool = ({
     const endElement = getElementAtPosition(elements, endPoint.x, endPoint.y);
     if (endElement) return null;
 
+    const normalizedLength = calculateNormalizedLength(startPoint, endPoint);
+    let lengthText;
+
+    if (normalizedLength <= 0.33) {
+      lengthText = "Near";
+    } else if (normalizedLength <= 0.66) {
+      lengthText = "Medium";
+    } else {
+      lengthText = "Far";
+    }
+
     return (
       <div
         style={{
           position: "absolute",
-          top:
-            ((startPoint.y + endPoint.y) / 2) * scaleRef.current +
-            offsetRef.current.y -
-            10,
-          left:
-            ((startPoint.x + endPoint.x) / 2) * scaleRef.current +
-            offsetRef.current.x -
-            20,
+          top: ((startPoint.y + endPoint.y) / 2) * scaleRef.current + offsetRef.current.y - 10,
+          left: ((startPoint.x + endPoint.x) / 2) * scaleRef.current + offsetRef.current.x - 20,
           color: "black",
-          fontSize: "12px",
+          fontSize: "16px",
           pointerEvents: "none",
           zIndex: 3000,
           backgroundColor: "white",
@@ -431,14 +436,7 @@ const ArrowTool = ({
           borderRadius: "3px",
         }}
       >
-        {(
-          (Math.sqrt(
-            Math.pow(endPoint.x - startPoint.x, 2) +
-              Math.pow(endPoint.y - startPoint.y, 2)
-          ) *
-            scaleRef.current) /
-          MAX_LENGTH
-        ).toFixed(2)}
+        {lengthText}
       </div>
     );
   };
@@ -513,9 +511,33 @@ const ArrowTool = ({
     );
   };
 
+  const MIN_ARROW_THICKNESS = 1;
+  const MAX_ARROW_THICKNESS = 12;
+
   return (
     <div>
-      {isDrawing && startPoint && endPoint && (
+      {isDrawing && startPoint && endPoint && (() => {
+      let arrowDisplayColor;
+      let arrowDisplayHeight;
+
+      const currentNormalizedLength = calculateNormalizedLength(startPoint, endPoint);
+
+      if (initialStart) {
+        const clampedLength = Math.max(0, Math.min(1, currentNormalizedLength));
+        const hue = (1 - clampedLength) * 120;
+        const saturation = "100%";
+        const lightness = "50%";
+        arrowDisplayColor = `hsl(${hue}, ${saturation}, ${lightness})`;
+
+        const thicknessRange = MAX_ARROW_THICKNESS - MIN_ARROW_THICKNESS;
+        const currentThickness = (1 - clampedLength) * thicknessRange + MIN_ARROW_THICKNESS;
+        arrowDisplayHeight = `${currentThickness}px`;
+      } else {
+        arrowDisplayColor = "blue";
+        arrowDisplayHeight = `${MIN_ARROW_THICKNESS}px`;
+      }
+
+      return (
         <div
           style={{
             position: "absolute",
@@ -527,8 +549,8 @@ const ArrowTool = ({
                   Math.pow(endPoint.y - startPoint.y, 2)
               ) * scaleRef.current
             }px`,
-            height: "2px",
-            backgroundColor: "blue",
+            height: arrowDisplayHeight, // Etwas dicker für bessere Farbwahrnehmung
+            backgroundColor: arrowDisplayColor, // Dynamische Farbe
             transform: `rotate(${Math.atan2(
               endPoint.y - startPoint.y,
               endPoint.x - startPoint.x
@@ -538,7 +560,8 @@ const ArrowTool = ({
             zIndex: 2999,
           }}
         />
-      )}
+      );
+    })()}
       {renderLengthIndicator()}
       {renderPreview()}
     </div>
