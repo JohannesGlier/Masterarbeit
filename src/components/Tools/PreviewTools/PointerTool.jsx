@@ -65,7 +65,7 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
 
-      if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
+      if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0 && event.ctrlKey) {
         console.log("Aktion: Rechteck über Elemente ziehen\n", selectedElements);
         createPreviewTextcard();
         CreateSummaryTextcard();

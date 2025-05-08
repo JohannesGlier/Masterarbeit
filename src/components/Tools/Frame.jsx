@@ -158,17 +158,20 @@ const Frame = ({
   );
 
   const handleDrag = (e) => {
+    if (e.buttons !== 1) return;
     handleSelection(e);
     startDragging(e);
   };
 
   const handleResize = (e, handle) => {
+    if (e.buttons !== 1) return;
     e.stopPropagation();
     handleSelection(e);
     startResizing(e, handle);
   };
 
   const handleArrowCreation = (e, handle) => {
+    if (e.buttons !== 1) return;
     e.stopPropagation();
     onStartArrowFromFrame({
       elementId: rect.id,

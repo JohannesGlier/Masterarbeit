@@ -29,6 +29,7 @@ const ArrowTool = ({
     scaleRef,
     setSelectedTool,
     setMouseDownElement,
+    hoveredElement,
     setHoveredElement,
     showContextMenu,
   } = useCanvas();
@@ -442,7 +443,7 @@ const ArrowTool = ({
   };
 
   const renderPreview = () => {
-    if (!isDrawing || !initialStart || !endPoint) return null;
+    if (!isDrawing || !initialStart || !endPoint || hoveredElement) return null;
 
     const isLoading = previewStatus === "loading" || previewStatus === "idle";
     let previewTextContent; // Text-Inhalt für den Erfolgsfall
@@ -534,7 +535,7 @@ const ArrowTool = ({
         arrowDisplayHeight = `${currentThickness}px`;
       } else {
         arrowDisplayColor = "blue";
-        arrowDisplayHeight = `${MIN_ARROW_THICKNESS}px`;
+        arrowDisplayHeight = `${MIN_ARROW_THICKNESS + 2}px`;
       }
 
       return (

@@ -7,7 +7,6 @@ import { CgArrowLongUp } from "react-icons/cg";
 import { MdOutlineRectangle } from "react-icons/md";
 import { RiTextBlock } from "react-icons/ri";
 import { FiScissors } from "react-icons/fi";
-import { LuLayoutDashboard } from "react-icons/lu";
 
 const CanvasToolbar = () => {
     const { selectedTool, setSelectedTool } = useCanvas();
@@ -15,35 +14,35 @@ const CanvasToolbar = () => {
     return (
       <div className={styles['canvasToolbar']}>
         <button
-          title="Pointer-Tool zum Auswählen, Verschieben und Anpassen von Elementen"
+          title="Pointer tool for selecting, moving, and resizing elements"
           className={`${styles['button']} ${selectedTool === 'Pointer' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('Pointer')}
         >
           <BiSolidPointer />
         </button>
         <button
-          title="Textkarten-Tool zum Erstellen von Textkarten"
+          title="Text card tool for creating text cards"
           className={`${styles['button']} ${selectedTool === 'TextCard' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('TextCard')}
         >
           <RiTextBlock size={40}/>
         </button>
         <button
-          title="Bereich-Tool zum Erstellen von Bereichen"
+          title="Region tool for creating regions"
           className={`${styles['button']} ${selectedTool === 'Frame' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('Frame')}
         >
           <MdOutlineRectangle size={40}/>
         </button>
         <button
-          title="Verbindungs-Tool zum Erstellen von Verbindungen"
+          title="Connection tool for creating connections"
           className={`${styles['button']} ${selectedTool === 'Arrow' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('Arrow')}
         >
           <CgArrowLongUp style={{ transform: 'rotate(45deg)' }} size={40}/>
         </button>
         <button
-          title="Schere-Tool zum automatischen Aufteilen von Textkarten"
+          title="Scissors tool for automatically splitting text cards"
           className={`${styles['button']} ${selectedTool === 'Scissor' ? styles.selectedButton : ''}`} 
           onClick={() => setSelectedTool('Scissor')}
         >

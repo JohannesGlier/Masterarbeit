@@ -33,19 +33,16 @@ const ScissorTool = ({
 
   const startCuttingAnimation = useCallback(() => {
     if (cursorIntervalRef.current) return;
-    console.log("Start Animation (Scheduling first frame via RAF)");
   
     let isScissor = false;
   
     requestAnimationFrame(() => {
-      console.log("Applying first frame via RAF");
       forceCursor(cursorStyles.cut);
     });
   
     cursorIntervalRef.current = setInterval(() => {
       isScissor = !isScissor;
       const nextCursor = isScissor ? cursorStyles.scissor : cursorStyles.cut;
-      console.log("Interval Tick - Setting cursor to:", nextCursor);
       forceCursor(nextCursor);
     }, 200);
   
@@ -55,7 +52,6 @@ const ScissorTool = ({
     if (cursorIntervalRef.current) {
       clearInterval(cursorIntervalRef.current);
       cursorIntervalRef.current = null;
-      console.log("Animation Interval Stopped"); // Log für Debugging behalten
     }
     // KEIN forceCursor hier!
   }, []);
@@ -168,18 +164,14 @@ const ScissorTool = ({
             console.log("Cutting finished, resetting state...");
             isCutting.current = false;
             setIsAnimatingCut(false);
-            setSelectedTool("Pointer");
             setHoveredElement(null);
-    
-            console.log("Setting cursor for Pointer tool to 'default'");
-            forceCursor('default'); // <-- WICHTIG
+            forceCursor("default"); // <-- WICHTIG
+            setSelectedTool("Pointer"); 
           }
         } else {
-          // Fall: Klick war nicht auf gültiger Textkarte -> auch zurück zum Pointer
-          setSelectedTool("Pointer");
           setHoveredElement(null);
-          // Auch hier den Cursor für den Pointer setzen
-          forceCursor('default');
+          forceCursor("default");
+          setSelectedTool("Pointer");
         }
     },
     [canvasRef, elements, offsetRef, scaleRef, splitIntoMultipleTextcards, setSelectedTool, setHoveredElement, setIsAnimatingCut, isCutting, forceCursor, getScreenCoords]
@@ -193,7 +185,31 @@ const ScissorTool = ({
 
       let content = response.content;
       if (typeof content === "string") {
-        content = JSON.parse(content);
+          // Entferne den Markdown-Codeblock, falls vorhanden
+          const jsonStartIndex = content.indexOf('[');
+          if (content.startsWith('```json') && jsonStartIndex > 0) {
+              content = content.substring(jsonStartIndex);
+          } else if (content.startsWith('```') && jsonStartIndex > 0) {
+              // Fallback für andere Arten von Codeblöcken
+              content = content.substring(jsonStartIndex);
+          }
+
+          // Entferne abschließende ```, falls vorhanden
+          if (content.endsWith('```')) {
+              content = content.substring(0, content.length - 3).trim();
+          }
+
+          // Zusätzliche Bereinigung für mögliche Escape-Probleme
+          content = content.replace(/\\'/g, "'");
+          content = content.replace(/\\\`/g, "\`");
+
+          try {
+              content = JSON.parse(content);
+          } catch (parseError) {
+              console.error("Fehler nach Bereinigung und Parse-Versuch:", parseError);
+              console.error("Fehlerhafter JSON-String:", content); // Gib den fehlerhaften String aus!
+              throw parseError;
+          }
       }
 
       if (!Array.isArray(content)) {

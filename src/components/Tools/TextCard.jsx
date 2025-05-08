@@ -314,12 +314,13 @@ const TextCard = ({
   );
 
   const handleDrag = (e) => {
-    if (isEditing) return;
+    if (isEditing || e.buttons !== 1) return;
     handleSelection(e);
     startDragging(e);
   };
 
   const handleResize = (e, handle) => {
+    if (e.buttons !== 1) return;
     e.stopPropagation();
     handleSelection(e);
     startResizing(e, handle);
@@ -336,6 +337,7 @@ const TextCard = ({
   }, [isEditing]);
 
   const handleArrowCreation = (e, handle) => {
+    if (e.buttons !== 1) return;
     e.stopPropagation();
     onStartArrowFromFrame({
       elementId: rect.id,
