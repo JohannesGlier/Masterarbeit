@@ -1,10 +1,12 @@
 import { useCallback, useRef, useEffect } from "react";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const useDrag = (initialPosition, scaleRef, onUpdate, setIsDraggingState, onDragEnd) => {
   const isDragging = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
   const lastUpdate = useRef(Date.now());
   const animationFrame = useRef();
+  const { setCursorStyle } = useCursor();
 
   const handleMouseMove = useCallback(
     (e) => {
@@ -25,6 +27,8 @@ const useDrag = (initialPosition, scaleRef, onUpdate, setIsDraggingState, onDrag
     if (e.button !== 0|| !isDragging.current) return;
     setIsDraggingState(false);
     isDragging.current = false;
+
+    setCursorStyle("grab");
     document.body.style.userSelect = "";
     document.body.style.pointerEvents = "";
 
@@ -43,6 +47,7 @@ const useDrag = (initialPosition, scaleRef, onUpdate, setIsDraggingState, onDrag
         y: e.clientY - initialPosition.y * scaleRef.current,
       };
 
+      setCursorStyle("grabbing");
       document.body.style.userSelect = "none";
       document.body.style.pointerEvents = "none";
     },

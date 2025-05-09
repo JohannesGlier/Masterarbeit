@@ -9,6 +9,7 @@ export const getArrowStyles = (
   isSelected,
   pointerEvents,
   zIndex,
+  isGenerating,
 ) => ({
   position: "absolute",
   top: startY * scale + offset.y,
@@ -24,7 +25,7 @@ export const getArrowStyles = (
   transformOrigin: "0 0",
   pointerEvents,
   zIndex,
-  cursor: "pointer",
+  ...(!isGenerating && { cursor: "pointer" }),
   overflow: "hidden",
   transition: "border-color 0.3s ease",
 });

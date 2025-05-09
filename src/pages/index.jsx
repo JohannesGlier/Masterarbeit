@@ -3,6 +3,7 @@ import InfiniteCanvas from "@/components/Canvas/Canvas";
 import { useState } from "react";
 import HomeScreen from "@/components/HomeScreen/HomeScreen";
 import { CanvasProvider } from "@/components/Canvas/CanvasContext";
+import { CursorProvider } from "@/components/Canvas/CursorContext";
 
 const Home = () => {
   const [showCanvas, setShowCanvas] = useState(false);
@@ -18,7 +19,9 @@ const Home = () => {
       <div style={{ width: "100vw", height: "100vh" }}>
         <CanvasProvider>
           {showCanvas ? (
-            <InfiniteCanvas onBack={() => setShowCanvas(false)} />
+            <CursorProvider canvasWrapperRef={{ current: document.body }}>
+              <InfiniteCanvas onBack={() => setShowCanvas(false)} />
+            </CursorProvider>
           ) : (
             <HomeScreen onSelectCanvas={() => setShowCanvas(true)} />
           )}

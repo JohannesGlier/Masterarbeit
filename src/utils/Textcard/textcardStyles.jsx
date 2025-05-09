@@ -27,7 +27,7 @@ export const getTextcardStyles = (
   boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
   padding: "12px",
   boxSizing: "border-box",
-  cursor: isEditing ? "text" : "grab",
+  //cursor: isEditing ? "text" : "grab",
   zIndex: isDragging ? 4000 : zIndex,
   pointerEvents,
   opacity: currentOverTextcard ? 0.7 : 1,

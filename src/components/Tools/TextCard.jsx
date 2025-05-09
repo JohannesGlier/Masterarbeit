@@ -11,6 +11,7 @@ import TextCardContent from "@/components/Helper/Textcard/TextCardContent";
 import { getElementsInRectangle } from "@/utils/elementUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const TextCard = ({
   rect,
@@ -38,6 +39,7 @@ const TextCard = ({
   const [accumulatedDistance, setAccumulatedDistance] = useState(0);
   const [lastPosition, setLastPosition] = useState({ x: position.x, y: position.y }); 
   const chatGPTService = new ChatGPTService();
+  const { setCursorStyle, cursorStyle: currentGlobalCursor } = useCursor();
 
   const {
     selectedTool,
@@ -53,7 +55,6 @@ const TextCard = ({
   useEffect(() => {
     setPosition({ x: rect.x, y: rect.y });
     setSize({ width: rect.width, height: rect.height });
-    // Nur notwendige Properties aus rect übernehmen
     setProperties(prev => ({ 
       ...prev, 
       width: rect.width,
@@ -289,6 +290,18 @@ const TextCard = ({
   }
 
 
+  const handleMouseEnter = () => {
+    if (currentGlobalCursor === 'default' || currentGlobalCursor === 'grab' || currentGlobalCursor === 'grabbing') {
+       setCursorStyle("grab");
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (currentGlobalCursor === 'grab') { 
+        setCursorStyle("default");
+    }
+  };
+
 
   const { startDragging } = useDrag(
     position,
@@ -411,6 +424,8 @@ const TextCard = ({
         style={textcardStyles}
         onMouseDown={handleDrag}
         onDoubleClick={handleEditing}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <TextCardContent
           isEditing={isEditing}

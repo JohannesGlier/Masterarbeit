@@ -21,7 +21,7 @@ export const getFrameStyles = (
     isSelected || isHovered || isMouseDown
       ? `${properties.borderWidth <= 2 ? 3 : properties.borderWidth}px solid rgb(23, 104, 255)`
       : `${properties.borderWidth}px solid ${properties.frameBorderColor}`,
-  cursor: "grab",
+  //cursor: "grab",
   zIndex,
   pointerEvents,
 });

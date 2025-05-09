@@ -10,6 +10,7 @@ import {
   findTopVisibleNearbyElements,
   getTextFromAllElements
 } from "@/utils/elementUtils";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const TextCardTool = ({
   canvasRef,
@@ -22,15 +23,12 @@ const TextCardTool = ({
   const [tempRectangle, setTempRectangle] = useState(null);
   const chatGPTService = new ChatGPTService();
   const [preview, setPreview] = useState([]);
+  const { setCursorStyle } = useCursor();
 
-  const forceCursor = (style) => {
-    document.body.style.cursor = style;
-    document.body.style.pointerEvents = "auto";
-  };
-
-  // Mouse event handling for drawing
   useEffect(() => {
-    document.body.style.cursor = "crosshair";
+    if (preview.length === 0) {
+      setCursorStyle("crosshair");
+    }
 
     const handleMouseDown = (event) => {
       if (event.button !== 0) return;
@@ -66,7 +64,7 @@ const TextCardTool = ({
         createPreviewTextcard(mousePos);
         setIsDrawing(false);
         setTempRectangle(null);
-        forceCursor("wait");
+        setCursorStyle("wait");
 
         let textContent = "";
         try {
@@ -75,7 +73,7 @@ const TextCardTool = ({
           console.error("Fehler beim Erstellen der Textkarte:", error);
         } finally {
           console.log("Erstellen der Textkarte abgeschlossen, resetting state...");
-          forceCursor("default");
+          setCursorStyle("default");
           setSelectedTool("Pointer");
           setPreview([]);
           createTextcard(mousePos, textContent);
@@ -92,23 +90,10 @@ const TextCardTool = ({
     canvasWrapper.addEventListener("mousemove", handleMouseMove);
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
 
-    let frameId;
-
-    const persistentCursorUpdate = () => {
-      if (preview.length === 1) {
-        forceCursor("wait");
-      }
-      frameId = requestAnimationFrame(persistentCursorUpdate);
-    };
-
-    persistentCursorUpdate();
-
     return () => {
       canvasWrapper.removeEventListener("mousedown", handleMouseDown);
       canvasWrapper.removeEventListener("mousemove", handleMouseMove);
       canvasWrapper.removeEventListener("mouseup", handleMouseUp);
-      cancelAnimationFrame(frameId);
-      forceCursor("");
     };
   }, [
     canvasRef,

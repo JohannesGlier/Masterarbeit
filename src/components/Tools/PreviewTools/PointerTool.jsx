@@ -4,6 +4,7 @@ import { isElementInRectangle } from "@/utils/elementUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import { getCanvasMousePosition } from "@/utils/canvasUtils";
 import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => {
   const {
@@ -14,20 +15,16 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
     setSelectedElements,
     selectedElements,
   } = useCanvas();
+  const { setCursorStyle } = useCursor();
   const [tempRectangle, setTempRectangle] = useState(null);
   const chatGPTService = new ChatGPTService();
   const [preview, setPreview] = useState([]);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
-  const forceCursor = (style) => {
-    document.body.style.cursor = style;
-    document.body.style.pointerEvents = "auto";
-  };
-
-  // Mouse event handling for drawing
   useEffect(() => {
     const handleMouseDown = (event) => {
       if (event.button !== 0) return;
-      document.body.style.cursor = "crosshair";
+      setCursorStyle("crosshair");
 
       setIsDrawing(true);
       setSelectedElements([]);
@@ -71,6 +68,10 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
         CreateSummaryTextcard();
       }
 
+      if (!isSummaryLoading) { 
+        setCursorStyle("default");
+      }
+
       setTempRectangle(null);
       setIsDrawing(false);
     };
@@ -81,22 +82,10 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
     canvasWrapper.addEventListener("mousemove", handleMouseMove);
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
 
-    let frameId;
-
-    const persistentCursorUpdate = () => {
-      if (preview.length === 1) {
-        forceCursor("wait");
-      }
-      frameId = requestAnimationFrame(persistentCursorUpdate);
-    };
-
-    persistentCursorUpdate();
     return () => {
       canvasWrapper.removeEventListener("mousedown", handleMouseDown);
       canvasWrapper.removeEventListener("mousemove", handleMouseMove);
       canvasWrapper.removeEventListener("mouseup", handleMouseUp);
-      cancelAnimationFrame(frameId);
-      forceCursor("");
     };
   }, [
     canvasRef,
@@ -107,6 +96,16 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
     offsetRef,
     preview,
   ]);
+
+  useEffect(() => {
+    if (isSummaryLoading) {
+      setCursorStyle("wait");
+    } else {
+      if (!isDrawing) {
+        setCursorStyle("default");
+      }
+    }
+  }, [isSummaryLoading, isDrawing, setCursorStyle]);
 
   const createPreviewTextcard = () => {
     const defaultWidth = 250;
@@ -127,6 +126,8 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
   }
 
   const CreateSummaryTextcard = async () => {
+    setIsSummaryLoading(true);
+    
     try {
       if(selectedElements.length > 0){
         const simplifiedElements = selectedElements.map(el => {
@@ -157,7 +158,7 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
     } catch (error) {
       console.error("Fehler bei ChatGPT-Anfrage:", error);
     } finally {
-      forceCursor("default");
+      setIsSummaryLoading(false);
       setPreview([]);
     }
   }

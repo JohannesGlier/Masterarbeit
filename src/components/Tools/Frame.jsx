@@ -9,6 +9,7 @@ import { FRAME_DEFAULTS } from "@/utils/Frame/frameDefaultProperties";
 import { getFrameStyles } from "@/utils/Frame/frameStyles";
 import { getPointerEvents } from "@/utils/pointerEventUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const Frame = ({
   rect,
@@ -30,6 +31,7 @@ const Frame = ({
   const [isGeneratingHeading, setIsGeneratingHeading] = useState(false);
   const generationTriggeredRef = useRef(false);
   const chatGPTService = new ChatGPTService();
+  const { setCursorStyle, cursorStyle: currentGlobalCursor } = useCursor();
 
   const {
     selectedTool,
@@ -135,6 +137,20 @@ const Frame = ({
     onHeadingChange(newText);
   };
 
+
+  const handleMouseEnter = () => {
+    if (currentGlobalCursor === 'default' || currentGlobalCursor === 'grab' || currentGlobalCursor === 'grabbing') {
+       setCursorStyle("grab");
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (currentGlobalCursor === 'grab') { 
+        setCursorStyle("default");
+    }
+  };
+
+
   const { startDragging } = useDrag(
     position,
     scaleRef,
@@ -235,7 +251,7 @@ const Frame = ({
         pointerEvents={frameStyles.pointerEvents}
         isLoading={isGeneratingHeading} 
       />
-      <div style={frameStyles} onMouseDown={handleDrag}>
+      <div style={frameStyles} onMouseDown={handleDrag} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
         {showActionBar && (
           <Handles
             onResize={handleResize}

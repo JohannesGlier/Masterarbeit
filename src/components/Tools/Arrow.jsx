@@ -33,6 +33,7 @@ import { ChatGPTService } from "@/services/ChatGPTService";
 import styles from "@/components/Tools/Arrow.module.css";
 import clsx from "clsx";
 import frameHeaderStyles from "@/components/Helper/Frame/FrameHeader.module.css";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const Arrow = ({
   arrow,
@@ -59,6 +60,7 @@ const Arrow = ({
   const frameRef = useRef(null);
   const isDragging = useRef(false);
   const chatGPTService = new ChatGPTService();
+  const { setCursorStyle } = useCursor();
 
   const [generatingResponse, setGeneratingResponse] = useState(false);
   const [tooltipVisible, setTooltipVisible] = useState(false);
@@ -286,23 +288,21 @@ const Arrow = ({
     canvasWrapper.addEventListener("mousemove", HandleDragging);
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
 
-    let frameId;
-
-    const persistentCursorUpdate = () => {
-      if (generatingResponse) {
-        forceCursor("wait");
-      }
-      frameId = requestAnimationFrame(persistentCursorUpdate);
-    };
-
-    persistentCursorUpdate();
     return () => {
       canvasWrapper.removeEventListener("mousemove", HandleDragging);
       canvasWrapper.removeEventListener("mouseup", handleMouseUp);
-      cancelAnimationFrame(frameId);
-      forceCursor("");
     };
-  }, [canvasWrapperRef, arrow, updateArrowPosition, draggingPoint, generatingResponse, forceCursor]);
+  }, [canvasWrapperRef, arrow, updateArrowPosition, draggingPoint]);
+
+  useEffect(() => {
+    if (generatingResponse) {
+      setCursorStyle("wait");
+    }
+
+    return () => {
+      setCursorStyle("default");
+    };
+  }, [generatingResponse]);
 
   const StartDragging = (point, e) => {
     e.preventDefault();
@@ -676,7 +676,8 @@ const Arrow = ({
         properties,
         isSelected,
         pointerEvents,
-        arrow.zIndex
+        arrow.zIndex,
+        generatingResponse,
       ),
     [
       startX,
@@ -689,6 +690,7 @@ const Arrow = ({
       isSelected,
       pointerEvents,
       arrow.zIndex,
+      generatingResponse,
     ]
   );
 
@@ -809,10 +811,11 @@ const Arrow = ({
             lineWidth={properties.lineWidth}
             handleClick={runPromptButton}
             pointerEvents={pointerEvents}
+            isGenerating={generatingResponse}
           />
         </>
       )}
-
+      
       {generatingResponse &&
           (() => {
             const attachXBase = properties.arrowHeadStart ? startX : endX;

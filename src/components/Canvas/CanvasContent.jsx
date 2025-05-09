@@ -12,6 +12,7 @@ import Arrow from "@/components/Tools/Arrow";
 import { getAnchorPosition } from "@/utils/Arrow/anchorUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import { getTextFromElement } from "@/utils/elementUtils";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const generateUniqueId = () => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -39,6 +40,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [loadingArrows, setLoadingArrows] = useState(new Set());
   const [arrowTexts, setArrowTexts] = useState({});
   const previousView = useRef(activeView);
+  const { setCursorStyle, cursorStyle: currentGlobalCursor } = useCursor();
 
   const elements = useMemo(() => {
     return [
@@ -250,6 +252,10 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
     // Zurücksetzen der Auswahl
     setSelectedElements([]);
+
+    if (currentGlobalCursor === 'grab' || currentGlobalCursor === 'grabbing') {
+      setCursorStyle("default");
+   }
   };
 
   const deleteLayoutViewElements = () => {

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import openAIService from "@/services/OpenAIService";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const getColorForCluster = (clusterId) => {
   if (clusterId === -1) return "#888888"; // Grau für Rauschen
@@ -23,23 +24,18 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
   const { setSelectedTool, setHeadingGeneration } = useCanvas();
   const hasRunForThisMount = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const forceCursor = (style) => {
-    document.body.style.cursor = style;
-    document.body.style.pointerEvents = "auto";
-  };
+  const { setCursorStyle } = useCursor();
 
   const handleFetchEmbeddings = async () => {
     if (isLoading) return;
 
-    console.log("Hier");
     setIsLoading(true);
-    forceCursor("wait");
+    setCursorStyle("wait");
 
     if (textcards.length < 5) {
       console.log("Not enough Textcards for Auto Layout");
       setIsLoading(false);
-      forceCursor("");
+      setCursorStyle("default");
       setSelectedTool("Pointer");
       return;
     }
@@ -252,29 +248,16 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
     } finally {
       console.log("Finished: Resetting states");
       setIsLoading(false);
-      forceCursor("auto");
+      setCursorStyle("default");
       setSelectedTool("Pointer");
     }
   };
 
   useEffect(() => {
-    let frameId;
-
-    const persistentCursorUpdate = () => {
-      if (isLoading) {
-        console.log("Hier");
-        forceCursor("wait");
-      }
-      frameId = requestAnimationFrame(persistentCursorUpdate);
-    };
-
-    persistentCursorUpdate();
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      forceCursor("");
-    };
-  }, [isLoading, forceCursor]);
+    if (isLoading) {
+      setCursorStyle("wait");
+    }
+  }, [isLoading]);
 
   useEffect(() => {
     console.log("AutoLayoutTool Effect triggered.");

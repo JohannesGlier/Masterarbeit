@@ -8,6 +8,7 @@ const RunPromptButton = ({
   lineWidth,
   handleClick,
   pointerEvents,
+  isGenerating,
 }) => {
   return (
     <div
@@ -21,7 +22,7 @@ const RunPromptButton = ({
         backgroundColor: "rgb(255, 255, 255)",
         border: "1px solid rgb(88, 88, 88)",
         borderRadius: "50%",
-        cursor: "pointer",
+        ...(!isGenerating && { cursor: "pointer" }),
         zIndex: 4002,
         display: "flex",
         alignItems: "center",

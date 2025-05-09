@@ -4,9 +4,11 @@ import CanvasToolbar from "@/components/Canvas/CanvasToolbar/CanvasToolbar";
 import CanvasMenu from "@/components/Canvas/CanvasMenu/CanvasMenu";
 import CanvasContent from "@/components/Canvas/CanvasContent";
 import ViewMenu from '@/components/Canvas/CanvasViewMenu/ViewMenu'; 
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const InfiniteCanvas = ({ onBack }) => {
   const { scaleRef, offsetRef, selectedTool, selectedElements } = useCanvas();
+  const { setCursorStyle } = useCursor();
   const [scale, setScale] = useState(2);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const canvasRef = useRef(null);
@@ -78,7 +80,7 @@ const InfiniteCanvas = ({ onBack }) => {
     if (event.button === 2) {
       isPanning.current = true;
       lastMousePos.current = { x: event.clientX, y: event.clientY };
-      document.body.style.cursor = 'grabbing';
+      setCursorStyle("grabbing");
     }
   };
 
@@ -96,8 +98,8 @@ const InfiniteCanvas = ({ onBack }) => {
   };
 
   const handleMouseUp = () => {
+    if(isPanning.current) setCursorStyle("default");
     isPanning.current = false;
-    document.body.style.cursor = 'default';
   };
 
 

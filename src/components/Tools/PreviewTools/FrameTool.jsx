@@ -3,15 +3,16 @@ import { useCanvas } from '@/components/Canvas/CanvasContext';
 import {
   getElementsInRectangle,
 } from "@/utils/elementUtils";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
   const { offsetRef, scaleRef, setSelectedTool, setHeadingGeneration } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
+  const { setCursorStyle } = useCursor();
 
-  // Mouse event handling for drawing
   useEffect(() => {
-    document.body.style.cursor = "crosshair";
+    setCursorStyle("crosshair");
 
     const handleMouseDown = (event) => {
       if (event.button !== 0) return;

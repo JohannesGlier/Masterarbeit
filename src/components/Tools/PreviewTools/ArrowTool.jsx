@@ -10,6 +10,7 @@ import {
 } from "@/utils/elementUtils";
 import { getCanvasMousePosition } from "@/utils/canvasUtils";
 import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
+import { useCursor } from '@/components/Canvas/CursorContext';
 
 const ArrowTool = ({
   canvasRef,
@@ -43,6 +44,7 @@ const ArrowTool = ({
   const [currentPreviewIndex, setCurrentPreviewIndex] = useState(-1);
   const [lastTextcardId, setLastTextcardId] = useState(null);
   const [lastPreviewIndex, setLastPreviewIndex] = useState(-1);
+  const { setCursorStyle } = useCursor();
 
 
   useEffect(() => {
@@ -62,7 +64,7 @@ const ArrowTool = ({
       setLastPreviewIndex(-1);
       setSelectedTool("Pointer");
       onResponseProcessed();
-      document.body.style.cursor = "default";
+      setCursorStyle("default");
     }
     else if(previewStatus === "error") {
       updateTextcardText(lastTextcardId, "Parsing Error");
@@ -76,7 +78,7 @@ const ArrowTool = ({
       setLastPreviewIndex(-1);
       setSelectedTool("Pointer");
       onResponseProcessed();
-      document.body.style.cursor = "default";
+      setCursorStyle("default");
     }
   }, [previewStatus, previewEntries, currentPreviewIndex, lastTextcardId]);
 
@@ -174,9 +176,9 @@ const ArrowTool = ({
 
   useEffect(() => {
     if (lastTextcardId && previewStatus === "idle") {
-      document.body.style.cursor = "wait";
+      setCursorStyle("wait");
     } else {
-      document.body.style.cursor = "crosshair";
+      setCursorStyle("crosshair");
     }
 
     const handleMouseDown = (event) => {
@@ -294,9 +296,9 @@ const ArrowTool = ({
         setMouseDownElement(null);
         setHoveredElement(null);
         onEndArrowFromFrame(null);
-        document.body.style.cursor = "wait";
+        setCursorStyle("wait");
       } else {
-        document.body.style.cursor = "default";
+        setCursorStyle("default");
         resetDrawingState();
       }
     };

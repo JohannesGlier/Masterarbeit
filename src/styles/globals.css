@@ -50,3 +50,13 @@ a {
     color-scheme: dark;
   }
 }
+
+.cursor-default { cursor: default; }
+.cursor-grabbing { cursor: grabbing; }
+.cursor-grab { cursor: grab; }
+.cursor-crosshair { cursor: crosshair; }
+.cursor-wait { cursor: wait; }
+.cursor-pointer { cursor: pointer; }
+.cursor-not-allowed { cursor: not-allowed; }
+.cursor-scissor { cursor: url('/cursors/Scissor_64_64.png') 16 16, auto; }
+.cusor-cutting { cursor: url('/cursors/Scissor_Cut_64_64.png') 16 16, auto; }
