@@ -164,12 +164,14 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   }, [elements]);
 
   useEffect(() => {
-    const html = document.documentElement;
-    loadingArrows.size > 0
-      ? html.classList.add("global-loading")
-      : html.classList.remove("global-loading");
+    console.log("Loading Arrows");
 
-    return () => html.classList.remove("global-loading");
+    if(loadingArrows.size > 0){
+      setCursorStyle("wait");
+    }
+    else {
+      setCursorStyle("default");
+    }
   }, [loadingArrows]);
 
   useEffect(() => {

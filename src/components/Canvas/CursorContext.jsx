@@ -7,7 +7,6 @@ export const CursorProvider = ({ children, canvasWrapperRef }) => {
   const [cursorStyle, setCursorStyle] = useState('default'); // default, grabbing, crosshair, wait, etc.
 
   useEffect(() => {
-    console.log("Cursor: " + cursorStyle);
     const targetElement = canvasWrapperRef.current || document.body;
 
     const classesToRemove = [];
@@ -20,14 +19,7 @@ export const CursorProvider = ({ children, canvasWrapperRef }) => {
 
     if (cursorStyle && cursorStyle !== 'default') {
       targetElement.classList.add(`cursor-${cursorStyle}`);
-    } else {
-      //document.body.style.cursor = 'default';
     }
-
-    return () => {
-      //targetElement.classList.remove(...classesToRemove); // Entferne alle beim Unmounten
-      //targetElement.style.cursor = 'default';
-    };
   }, [cursorStyle, canvasWrapperRef]);
 
   return (
