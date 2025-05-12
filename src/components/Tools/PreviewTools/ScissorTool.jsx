@@ -23,6 +23,7 @@ const ScissorTool = ({
   const [isAnimatingCut, setIsAnimatingCut] = useState(false);
   const cursorIntervalRef = useRef(null);
   const cursorStyles = {
+    pointer: 'default',
     default: 'crosshair',   
     scissor: 'url("/cursors/Scissor_64_64.png") 16 16, auto',
     cut: 'url("/cursors/Scissor_Cut_64_64.png") 16 16, auto',
@@ -32,7 +33,7 @@ const ScissorTool = ({
   const forceCursor = (style) => {
     const wrapper = canvasWrapperRef.current;
     if (wrapper) {
-      wrapper.style.cursor = style;
+      wrapper.style.cursor = style || '';
     }
   };
 
@@ -89,20 +90,11 @@ const ScissorTool = ({
       }
       else{
         setHoveredElement(null);
-        forceCursor(cursorStyles.default);
+        forceCursor();
       }
     },
     [canvasRef, elements, offsetRef, scaleRef, isCutting, isAnimatingCut, setHoveredElement, cursorStyles]
   );
-
-  const getScreenCoords = useCallback((canvasX, canvasY) => {
-    const scale = scaleRef.current;
-    const offset = offsetRef.current;
-    return {
-      x: canvasX * scale + offset.x,
-      y: canvasY * scale + offset.y,
-    };
-  }, [scaleRef, offsetRef]);
 
   const handleMouseUp = useCallback(async (e) => {
       if (e.button !== 0 || isCutting.current) return;
@@ -117,6 +109,11 @@ const ScissorTool = ({
         mousePos.x,
         mousePos.y
       );
+
+      if(!elementUnderMouse) {
+        forceCursor();
+        return;
+      } 
 
       if(!elementUnderMouse.text){
         console.log("Split empty textcard");
@@ -148,14 +145,12 @@ const ScissorTool = ({
           const canvasPreviewX = elementUnderMouse.position.x + elementUnderMouse.size.width + widthOffset;
           const canvasPreviewY = elementUnderMouse.position.y + i * heightOffset;
 
-          const screenCoords = getScreenCoords(canvasPreviewX, canvasPreviewY);
-
           previewsData.push({
             key: `preview-${i}`,
-            x: screenCoords.x, // Bildschirm X
-            y: screenCoords.y, // Bildschirm Y
-            width: previewWidth * scaleRef.current, // Feste Breite in Pixel
-            height: previewHeight * scaleRef.current, // Feste Höhe in Pixel
+            x: canvasPreviewX, // Bildschirm X
+            y: canvasPreviewY, // Bildschirm Y
+            width: previewWidth, // Feste Breite in Pixel
+            height: previewHeight, // Feste Höhe in Pixel
             isLoading: true,
           });
         }
@@ -170,16 +165,16 @@ const ScissorTool = ({
             isCutting.current = false;
             setIsAnimatingCut(false);
             setHoveredElement(null);
-            forceCursor("default"); // <-- WICHTIG
+            forceCursor();
             setSelectedTool("Pointer"); 
           }
         } else {
           setHoveredElement(null);
-          forceCursor("default");
+          forceCursor();
           setSelectedTool("Pointer");
         }
     },
-    [canvasRef, elements, offsetRef, scaleRef, splitIntoMultipleTextcards, setSelectedTool, setHoveredElement, setIsAnimatingCut, isCutting, forceCursor, getScreenCoords]
+    [canvasRef, elements, offsetRef, scaleRef, splitIntoMultipleTextcards, setSelectedTool, setHoveredElement, setIsAnimatingCut, isCutting, forceCursor]
   );
 
   const splitIntoMultipleTextcards = async (element, x, y) => {
@@ -271,10 +266,10 @@ const ScissorTool = ({
       {previews.map(preview => (
         <PreviewTextcard
           key={preview.key}
-          finalTop={preview.y}
-          finalLeft={preview.x}
-          scaledWidth={preview.width}
-          scaledHeight={preview.height}
+          finalTop={preview.y * scaleRef.current + offsetRef.current.y}
+          finalLeft={preview.x * scaleRef.current + offsetRef.current.x}
+          scaledWidth={preview.width * scaleRef.current}
+          scaledHeight={preview.height * scaleRef.current}
           isLoading={preview.isLoading}
         />
       ))}

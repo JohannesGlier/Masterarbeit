@@ -142,14 +142,10 @@ const PointerTool = ({
 
     previewsData.push({
       key: `preview-${defaultWidth}`,
-      x:
-        (tempRectangle.x + tempRectangle.width + 20) * scaleRef.current +
-        offsetRef.current.x,
-      y:
-        (tempRectangle.y + tempRectangle.height + 20) * scaleRef.current +
-        offsetRef.current.y,
-      width: defaultWidth * scaleRef.current,
-      height: defaultHeight * scaleRef.current,
+      x: (tempRectangle.x + tempRectangle.width + 20),
+      y: (tempRectangle.y + tempRectangle.height + 20),
+      width: defaultWidth,
+      height: defaultHeight,
       text: "",
       isLoading: true,
     });
@@ -201,10 +197,10 @@ const PointerTool = ({
       {preview.map((preview) => (
         <PreviewTextcard
           key={preview.key}
-          finalTop={preview.y}
-          finalLeft={preview.x}
-          scaledWidth={preview.width}
-          scaledHeight={preview.height}
+          finalTop={preview.y * scaleRef.current + offsetRef.current.y}
+          finalLeft={preview.x * scaleRef.current + offsetRef.current.x}
+          scaledWidth={preview.width * scaleRef.current}
+          scaledHeight={preview.height * scaleRef.current}
           isLoading={preview.isLoading}
         />
       ))}

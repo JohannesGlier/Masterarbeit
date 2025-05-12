@@ -111,14 +111,14 @@ const TextCardTool = ({
   ]);
 
   const createPreviewTextcard = (mousePos) => {
-    const defaultWidth = 200 * scaleRef.current;
-    const defaultHeight = 75 * scaleRef.current;
+    const defaultWidth = 200;
+    const defaultHeight = 75;
     const previewsData = [];
 
     previewsData.push({
       key: `preview-${defaultWidth}`,
-      x: mousePos.x * scaleRef.current + offsetRef.current.x - defaultWidth / 2,
-      y: mousePos.y * scaleRef.current + offsetRef.current.y - defaultHeight / 2,
+      x: mousePos.x - defaultWidth / 2,
+      y: mousePos.y - defaultHeight / 2,
       width: defaultWidth,
       height: defaultHeight,
       text: "",
@@ -225,10 +225,10 @@ const TextCardTool = ({
       {preview.map(preview => (
         <PreviewTextcard
           key={preview.key}
-          finalTop={preview.y}
-          finalLeft={preview.x}
-          scaledWidth={preview.width}
-          scaledHeight={preview.height}
+          finalTop={preview.y * scaleRef.current + offsetRef.current.y}
+          finalLeft={preview.x * scaleRef.current + offsetRef.current.x}
+          scaledWidth={preview.width * scaleRef.current}
+          scaledHeight={preview.height * scaleRef.current}
           isLoading={preview.isLoading}
         />
       ))}
