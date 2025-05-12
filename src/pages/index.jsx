@@ -4,6 +4,7 @@ import { useState } from "react";
 import HomeScreen from "@/components/HomeScreen/HomeScreen";
 import { CanvasProvider } from "@/components/Canvas/CanvasContext";
 import { CursorProvider } from "@/components/Canvas/CursorContext";
+import { LanguageProvider } from "@/components/Canvas/LanguageContext";
 
 const Home = () => {
   const [showCanvas, setShowCanvas] = useState(false);
@@ -17,19 +18,20 @@ const Home = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div style={{ width: "100vw", height: "100vh" }}>
-        <CanvasProvider>
-          {showCanvas ? (
-            <CursorProvider canvasWrapperRef={{ current: document.body }}>
-              <InfiniteCanvas onBack={() => setShowCanvas(false)} />
-            </CursorProvider>
-          ) : (
-            <HomeScreen onSelectCanvas={() => setShowCanvas(true)} />
-          )}
-        </CanvasProvider>
+        <LanguageProvider>
+          <CanvasProvider>
+            {showCanvas ? (
+              <CursorProvider canvasWrapperRef={{ current: document.body }}>
+                <InfiniteCanvas onBack={() => setShowCanvas(false)} />
+              </CursorProvider>
+            ) : (
+              <HomeScreen onSelectCanvas={() => setShowCanvas(true)} />
+            )}
+          </CanvasProvider>
+        </LanguageProvider>
       </div>
     </>
   );
 };
 
 export default Home;
-

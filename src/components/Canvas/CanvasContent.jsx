@@ -13,6 +13,7 @@ import { getAnchorPosition } from "@/utils/Arrow/anchorUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import { getTextFromElement } from "@/utils/elementUtils";
 import { useCursor } from '@/components/Canvas/CursorContext';
+import { useLanguage } from "@/components/Canvas/LanguageContext";
 
 const generateUniqueId = () => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -34,7 +35,11 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [arrows, setArrows] = useState([]);
   const [initialArrowStart, setInitialArrowStart] = useState(null);
   const [isAutoLayoutRunning, setIsAutoLayoutRunning] = useState(false);
-  const chatGPTService = new ChatGPTService();
+  const { language } = useLanguage();
+  const chatGPTService = useMemo(() => {
+    console.log(`Initializing ChatGPTService with language: ${language}`);
+    return new ChatGPTService(language);
+  }, [language]);
   const [chatGPTResponse, setChatGPTResponse] = useState(null);
   const [processedArrows, setProcessedArrows] = useState(new Set());
   const [loadingArrows, setLoadingArrows] = useState(new Set());

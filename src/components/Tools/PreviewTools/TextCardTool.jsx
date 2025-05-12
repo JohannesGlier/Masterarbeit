@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import { getCanvasMousePosition } from "@/utils/canvasUtils";
@@ -11,6 +11,7 @@ import {
   getTextFromAllElements
 } from "@/utils/elementUtils";
 import { useCursor } from '@/components/Canvas/CursorContext';
+import { useLanguage } from "@/components/Canvas/LanguageContext";
 
 const TextCardTool = ({
   canvasRef,
@@ -21,7 +22,11 @@ const TextCardTool = ({
   const { offsetRef, scaleRef, setSelectedTool } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [tempRectangle, setTempRectangle] = useState(null);
-  const chatGPTService = new ChatGPTService();
+  const { language } = useLanguage();
+  const chatGPTService = useMemo(() => {
+    console.log(`Initializing ChatGPTService with language: ${language}`);
+    return new ChatGPTService(language);
+  }, [language]);
   const [preview, setPreview] = useState([]);
   const { setCursorStyle } = useCursor();
 

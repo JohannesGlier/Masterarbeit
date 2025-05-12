@@ -10,6 +10,7 @@ import { getFrameStyles } from "@/utils/Frame/frameStyles";
 import { getPointerEvents } from "@/utils/pointerEventUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import { useCursor } from '@/components/Canvas/CursorContext';
+import { useLanguage } from "@/components/Canvas/LanguageContext";
 
 const Frame = ({
   rect,
@@ -30,7 +31,11 @@ const Frame = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isGeneratingHeading, setIsGeneratingHeading] = useState(false);
   const generationTriggeredRef = useRef(false);
-  const chatGPTService = new ChatGPTService();
+  const { language } = useLanguage();
+    const chatGPTService = useMemo(() => {
+      console.log(`Initializing ChatGPTService with language: ${language}`);
+      return new ChatGPTService(language);
+    }, [language]);
   const { setCursorStyle, cursorStyle: currentGlobalCursor } = useCursor();
 
   const {

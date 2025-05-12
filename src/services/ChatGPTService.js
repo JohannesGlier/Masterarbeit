@@ -1,12 +1,33 @@
 import { DEFAULT_PROMPT_TEMPLATES } from '@/config/promptTemplates';
 
 export class ChatGPTService {
-  constructor(promptTemplates = DEFAULT_PROMPT_TEMPLATES) {
+  constructor(language = 'en', promptTemplates = DEFAULT_PROMPT_TEMPLATES) {
     this.promptTemplates = promptTemplates;
     this.apiEndpoint = '/api/chat';
+    this.language = language;
+
+    this.languageMap = {
+      'de': 'Deutsch',
+      'en': 'English',
+    };
+  }
+
+  _getLanguageInstruction() {
+    const languageName = this.languageMap[this.language] || this.language;
+
+    if (this.language === 'de') {
+        return `Antworte auf ${languageName}.`;
+    } else if (this.language === 'en') {
+        return `Answer in ${languageName}.`;
+    } else {
+        return "";
+    }
   }
 
   async _sendRequest({ message, promptType = 'DEFAULT' }) {
+    const languageInstruction = this._getLanguageInstruction();
+    const finalMessage = `${languageInstruction}\n\n${message}`;
+
     try {
       const response = await fetch(this.apiEndpoint, {
         method: 'POST',
@@ -14,7 +35,7 @@ export class ChatGPTService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          message, 
+          message: finalMessage, 
           promptType  // Sende den promptType mit
         }),
       });

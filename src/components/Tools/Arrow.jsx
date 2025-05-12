@@ -34,6 +34,7 @@ import styles from "@/components/Tools/Arrow.module.css";
 import clsx from "clsx";
 import frameHeaderStyles from "@/components/Helper/Frame/FrameHeader.module.css";
 import { useCursor } from '@/components/Canvas/CursorContext';
+import { useLanguage } from "@/components/Canvas/LanguageContext";
 
 const Arrow = ({
   arrow,
@@ -59,7 +60,11 @@ const Arrow = ({
   const [text, setText] = useState("");
   const frameRef = useRef(null);
   const isDragging = useRef(false);
-  const chatGPTService = new ChatGPTService();
+  const { language } = useLanguage();
+    const chatGPTService = useMemo(() => {
+      console.log(`Initializing ChatGPTService with language: ${language}`);
+      return new ChatGPTService(language);
+    }, [language]);
   const { setCursorStyle } = useCursor();
 
   const [generatingResponse, setGeneratingResponse] = useState(false);

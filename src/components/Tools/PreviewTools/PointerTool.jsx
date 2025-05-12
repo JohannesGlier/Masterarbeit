@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import { isElementInRectangle } from "@/utils/elementUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import { getCanvasMousePosition } from "@/utils/canvasUtils";
 import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
-import { useCursor } from '@/components/Canvas/CursorContext';
+import { useCursor } from "@/components/Canvas/CursorContext";
+import { useLanguage } from "@/components/Canvas/LanguageContext";
 
-const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => {
+const PointerTool = ({
+  canvasRef,
+  canvasWrapperRef,
+  elements,
+  addTextcard,
+}) => {
   const {
     offsetRef,
     scaleRef,
@@ -17,7 +23,11 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
   } = useCanvas();
   const { setCursorStyle } = useCursor();
   const [tempRectangle, setTempRectangle] = useState(null);
-  const chatGPTService = new ChatGPTService();
+  const { language } = useLanguage();
+  const chatGPTService = useMemo(() => {
+    console.log(`Initializing ChatGPTService with language: ${language}`);
+    return new ChatGPTService(language);
+  }, [language]);
   const [preview, setPreview] = useState([]);
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
 
@@ -29,7 +39,12 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
       setIsDrawing(true);
       setSelectedElements([]);
 
-      const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
+      const mousePos = getCanvasMousePosition(
+        event,
+        canvasRef,
+        offsetRef,
+        scaleRef
+      );
       setTempRectangle({ x: mousePos.x, y: mousePos.y, width: 0, height: 0 });
     };
 
@@ -37,7 +52,12 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
       if (event.button !== 0) return;
       if (!isDrawing || !tempRectangle) return;
 
-      const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
+      const mousePos = getCanvasMousePosition(
+        event,
+        canvasRef,
+        offsetRef,
+        scaleRef
+      );
 
       setTempRectangle({
         x: tempRectangle.x,
@@ -62,13 +82,21 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
 
-      if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0 && event.ctrlKey) {
-        console.log("Aktion: Rechteck über Elemente ziehen\n", selectedElements);
+      if (
+        tempRectangle &&
+        tempRectangle.width > 0 &&
+        tempRectangle.height > 0 &&
+        event.ctrlKey
+      ) {
+        console.log(
+          "Aktion: Rechteck über Elemente ziehen\n",
+          selectedElements
+        );
         createPreviewTextcard();
         CreateSummaryTextcard();
       }
 
-      if (!isSummaryLoading) { 
+      if (!isSummaryLoading) {
         setCursorStyle("default");
       }
 
@@ -114,8 +142,12 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
 
     previewsData.push({
       key: `preview-${defaultWidth}`,
-      x: (tempRectangle.x + tempRectangle.width + 20) * scaleRef.current + offsetRef.current.x,
-      y: (tempRectangle.y + tempRectangle.height + 20) * scaleRef.current + offsetRef.current.y,
+      x:
+        (tempRectangle.x + tempRectangle.width + 20) * scaleRef.current +
+        offsetRef.current.x,
+      y:
+        (tempRectangle.y + tempRectangle.height + 20) * scaleRef.current +
+        offsetRef.current.y,
       width: defaultWidth * scaleRef.current,
       height: defaultHeight * scaleRef.current,
       text: "",
@@ -123,22 +155,23 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
     });
 
     setPreview(previewsData);
-  }
+  };
 
   const CreateSummaryTextcard = async () => {
     setIsSummaryLoading(true);
-    
+
     try {
-      if(selectedElements.length > 0){
-        const simplifiedElements = selectedElements.map(el => {
-          if (el.type === "textcard") {
-            return el.text;
-          }
-          else if (el.type === "rectangle") {
-            return el.heading;
-          }
-          return null;
-        }).filter(item => item !== null);
+      if (selectedElements.length > 0) {
+        const simplifiedElements = selectedElements
+          .map((el) => {
+            if (el.type === "textcard") {
+              return el.text;
+            } else if (el.type === "rectangle") {
+              return el.heading;
+            }
+            return null;
+          })
+          .filter((item) => item !== null);
 
         const text = JSON.stringify(simplifiedElements, null, 2);
         console.log("Eingabe als Prompt:", text);
@@ -150,7 +183,7 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
           y: tempRectangle.y + tempRectangle.height + 20,
           width: 250,
           height: 125,
-          text: response.content
+          text: response.content,
         };
 
         addTextcard(newTextcard);
@@ -161,11 +194,11 @@ const PointerTool = ({ canvasRef, canvasWrapperRef, elements, addTextcard }) => 
       setIsSummaryLoading(false);
       setPreview([]);
     }
-  }
+  };
 
   return (
     <div>
-      {preview.map(preview => (
+      {preview.map((preview) => (
         <PreviewTextcard
           key={preview.key}
           finalTop={preview.y}

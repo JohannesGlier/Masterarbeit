@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import { getCanvasMousePosition } from "@/utils/canvasUtils";
 import { getElementAtPosition } from "@/utils/elementUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
+import { useLanguage } from "@/components/Canvas/LanguageContext";
 
 const ScissorTool = ({
   canvasRef,
@@ -12,7 +13,11 @@ const ScissorTool = ({
   addTextcard,
 }) => {
   const { offsetRef, scaleRef, setSelectedTool, setHoveredElement } = useCanvas();
-  const chatGPTService = new ChatGPTService();
+  const { language } = useLanguage();
+  const chatGPTService = useMemo(() => {
+    console.log(`Initializing ChatGPTService with language: ${language}`);
+    return new ChatGPTService(language);
+  }, [language]);
   const isCutting = useRef(false);
   const [previews, setPreviews] = useState([]);
   const [isAnimatingCut, setIsAnimatingCut] = useState(false);

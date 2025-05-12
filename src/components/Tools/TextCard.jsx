@@ -12,6 +12,7 @@ import { getElementsInRectangle } from "@/utils/elementUtils";
 import { ChatGPTService } from "@/services/ChatGPTService";
 import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
 import { useCursor } from '@/components/Canvas/CursorContext';
+import { useLanguage } from "@/components/Canvas/LanguageContext";
 
 const TextCard = ({
   rect,
@@ -38,7 +39,11 @@ const TextCard = ({
   const [currentResponseIndex, setCurrentResponseIndex] = useState(0);
   const [accumulatedDistance, setAccumulatedDistance] = useState(0);
   const [lastPosition, setLastPosition] = useState({ x: position.x, y: position.y }); 
-  const chatGPTService = new ChatGPTService();
+  const { language } = useLanguage();
+  const chatGPTService = useMemo(() => {
+    console.log(`Initializing ChatGPTService with language: ${language}`);
+    return new ChatGPTService(language); // Übergebe die Sprache an den Konstruktor
+  }, [language]);
   const { setCursorStyle, cursorStyle: currentGlobalCursor } = useCursor();
 
   const {
