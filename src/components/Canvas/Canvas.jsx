@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { useCanvas } from '@/components/Canvas/CanvasContext';
+import { useCanvas } from "@/components/Canvas/CanvasContext";
 import CanvasToolbar from "@/components/Canvas/CanvasToolbar/CanvasToolbar";
 import CanvasMenu from "@/components/Canvas/CanvasMenu/CanvasMenu";
 import CanvasContent from "@/components/Canvas/CanvasContent";
-import ViewMenu from '@/components/Canvas/CanvasViewMenu/ViewMenu'; 
-import { useCursor } from '@/components/Canvas/CursorContext';
+import ViewMenu from "@/components/Canvas/CanvasViewMenu/ViewMenu";
+import { useCursor } from "@/components/Canvas/CursorContext";
 
 const InfiniteCanvas = ({ onBack }) => {
   const { scaleRef, offsetRef, selectedTool, selectedElements } = useCanvas();
@@ -16,7 +16,7 @@ const InfiniteCanvas = ({ onBack }) => {
   const isPanning = useRef(false);
   const [maxOffsetX, setMaxOffsetX] = useState(0);
   const [maxOffsetY, setMaxOffsetY] = useState(0);
-  const lastMousePos = useRef({ x: 0, y: 0 }); 
+  const lastMousePos = useRef({ x: 0, y: 0 });
 
   const MIN_SCALE = 1;
   const MAX_SCALE = 3;
@@ -35,17 +35,17 @@ const InfiniteCanvas = ({ onBack }) => {
     if (typeof window !== "undefined") {
       const visibleWidth = window.innerWidth / scale;
       const visibleHeight = window.innerHeight / scale;
-  
+
       const halfBackground = BACKGROUND_SIZE / 2;
-  
+
       // Maximale Grenzen berechnen
       const maxX = halfBackground - visibleWidth / 2;
       const maxY = halfBackground - visibleHeight / 2;
-      
+
       // Minimale Grenzen berechnen (negativ, weil man nach links/oben scrollt)
       const minX = -halfBackground + visibleWidth / 2;
       const minY = -halfBackground + visibleHeight / 2;
-  
+
       setMaxOffsetX(maxX);
       setMaxOffsetY(maxY);
       setOffset((prevOffset) => ({
@@ -57,18 +57,29 @@ const InfiniteCanvas = ({ onBack }) => {
 
   const handleWheel = (event) => {
     if (!canvasRef.current) return;
-  
-    const newScale = Math.min(Math.max(scale - event.deltaY * 0.001, MIN_SCALE), MAX_SCALE);
+
+    let wheelDeltaY = event.deltaY;
+
+    const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+
+    if (isMac) {
+      wheelDeltaY = -wheelDeltaY;
+    }
+
+    const newScale = Math.min(
+      Math.max(scale - wheelDeltaY * 0.001, MIN_SCALE),
+      MAX_SCALE
+    );
     if (newScale === scale) return;
-  
+
     const rect = canvasRef.current.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
     const scaleRatio = newScale / scale;
-  
+
     const newOffsetX = (offset.x - mouseX) * scaleRatio + mouseX;
     const newOffsetY = (offset.y - mouseY) * scaleRatio + mouseY;
-  
+
     setScale(newScale);
     setOffset({
       x: Math.min(Math.max(newOffsetX, -maxOffsetX / 2), maxOffsetX / 2),
@@ -88,23 +99,35 @@ const InfiniteCanvas = ({ onBack }) => {
     if (isPanning.current) {
       const dx = event.clientX - lastMousePos.current.x;
       const dy = event.clientY - lastMousePos.current.y;
-  
-      const newOffsetX = Math.min(Math.max(offset.x + dx, -(BACKGROUND_SIZE * scale - window.innerWidth) / 2), (BACKGROUND_SIZE * scale - window.innerWidth) / 2);
-      const newOffsetY = Math.min(Math.max(offset.y + dy, -(BACKGROUND_SIZE * scale - window.innerHeight) / 2), (BACKGROUND_SIZE * scale - window.innerHeight) / 2);
-  
+
+      const newOffsetX = Math.min(
+        Math.max(
+          offset.x + dx,
+          -(BACKGROUND_SIZE * scale - window.innerWidth) / 2
+        ),
+        (BACKGROUND_SIZE * scale - window.innerWidth) / 2
+      );
+      const newOffsetY = Math.min(
+        Math.max(
+          offset.y + dy,
+          -(BACKGROUND_SIZE * scale - window.innerHeight) / 2
+        ),
+        (BACKGROUND_SIZE * scale - window.innerHeight) / 2
+      );
+
       setOffset({ x: newOffsetX, y: newOffsetY });
       lastMousePos.current = { x: event.clientX, y: event.clientY };
     }
   };
 
   const handleMouseUp = () => {
-    if(isPanning.current) setCursorStyle("default");
+    if (isPanning.current) setCursorStyle("default");
     isPanning.current = false;
   };
 
-
-  const pointerEvents =
-  selectedElements.some(el => el.isResizing || el.isDragging)
+  const pointerEvents = selectedElements.some(
+    (el) => el.isResizing || el.isDragging
+  )
     ? "none"
     : "auto";
 
@@ -138,7 +161,12 @@ const InfiniteCanvas = ({ onBack }) => {
           transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
         }}
       />
-      {<CanvasContent canvasRef={canvasRef} canvasWrapperRef={canvasWrapperRef}/>}
+      {
+        <CanvasContent
+          canvasRef={canvasRef}
+          canvasWrapperRef={canvasWrapperRef}
+        />
+      }
       <div
         style={{
           position: "absolute",
@@ -153,17 +181,17 @@ const InfiniteCanvas = ({ onBack }) => {
       </div>
       <div
         style={{
-          position: 'absolute',
-          top: '16px',             // Gleiche Höhe wie die anderen Menüs
-          left: '50%',             // Startet bei 50% der Breite
-          transform: 'translateX(-50%)', // Zentriert das Element horizontal
-          zIndex: 4001,            // Gleiche Ebene wie die anderen Menüs
+          position: "absolute",
+          top: "16px", // Gleiche Höhe wie die anderen Menüs
+          left: "50%", // Startet bei 50% der Breite
+          transform: "translateX(-50%)", // Zentriert das Element horizontal
+          zIndex: 4001, // Gleiche Ebene wie die anderen Menüs
         }}
       >
         <ViewMenu /> {/* Hier die neue Komponente einfügen */}
       </div>
     </div>
   );
-}
+};
 
 export default InfiniteCanvas;
