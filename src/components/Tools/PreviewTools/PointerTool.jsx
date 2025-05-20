@@ -52,48 +52,58 @@ const PointerTool = ({
       if (event.button !== 0) return;
       if (!isDrawing || !tempRectangle) return;
 
-      const mousePos = getCanvasMousePosition(
-        event,
-        canvasRef,
-        offsetRef,
-        scaleRef
-      );
+      const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
 
-      setTempRectangle({
+      const updatedTempRectangle = {
         x: tempRectangle.x,
         y: tempRectangle.y,
         width: mousePos.x - tempRectangle.x,
         height: mousePos.y - tempRectangle.y,
-      });
+      };
+      setTempRectangle(updatedTempRectangle);
 
-      if (
-        tempRectangle &&
-        tempRectangle.width > 0 &&
-        tempRectangle.height > 0
-      ) {
-        const selected = elements.filter((element) =>
-          isElementInRectangle(element, tempRectangle)
+      const normalizedRect = {
+        x: Math.min(updatedTempRectangle.x, mousePos.x),
+        y: Math.min(updatedTempRectangle.y, mousePos.y),
+        width: Math.abs(updatedTempRectangle.width),
+        height: Math.abs(updatedTempRectangle.height),
+      };
+
+      if (normalizedRect.width > 0 || normalizedRect.height > 0) {
+        const selected = elements.filter(
+          (element) => isElementInRectangle(element, normalizedRect)
         );
-
         setSelectedElements(selected);
+      } else {
+        setSelectedElements([]);
       }
     };
 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
 
-      if (
-        tempRectangle &&
-        tempRectangle.width > 0 &&
-        tempRectangle.height > 0 &&
-        event.ctrlKey
-      ) {
-        console.log(
-          "Aktion: Rechteck über Elemente ziehen\n",
-          selectedElements
-        );
-        createPreviewTextcard();
-        CreateSummaryTextcard();
+      if (tempRectangle && event.ctrlKey) {
+        const finalRectNormalized = {
+          x:
+            tempRectangle.width < 0
+              ? tempRectangle.x + tempRectangle.width
+              : tempRectangle.x,
+          y:
+            tempRectangle.height < 0
+              ? tempRectangle.y + tempRectangle.height
+              : tempRectangle.y,
+          width: Math.abs(tempRectangle.width),
+          height: Math.abs(tempRectangle.height),
+        };
+
+        if (finalRectNormalized.width > 0 && finalRectNormalized.height > 0) {
+          console.log(
+            "Aktion: Rechteck über Elemente ziehen (normalisiert)\n",
+            selectedElements
+          );
+          createPreviewTextcard();
+          CreateSummaryTextcard();
+        }
       }
 
       if (!isSummaryLoading) {
@@ -142,8 +152,8 @@ const PointerTool = ({
 
     previewsData.push({
       key: `preview-${defaultWidth}`,
-      x: (tempRectangle.x + tempRectangle.width + 20),
-      y: (tempRectangle.y + tempRectangle.height + 20),
+      x: tempRectangle.x + tempRectangle.width + 20,
+      y: tempRectangle.y + tempRectangle.height + 20,
       width: defaultWidth,
       height: defaultHeight,
       text: "",
@@ -208,10 +218,10 @@ const PointerTool = ({
         <div
           style={{
             position: "absolute",
-            top: tempRectangle.y * scaleRef.current + offsetRef.current.y,
-            left: tempRectangle.x * scaleRef.current + offsetRef.current.x,
-            width: `${tempRectangle.width * scaleRef.current}px`,
-            height: `${tempRectangle.height * scaleRef.current}px`,
+            top: (tempRectangle.height < 0 ? tempRectangle.y + tempRectangle.height : tempRectangle.y) * scaleRef.current + offsetRef.current.y,
+            left: (tempRectangle.width < 0 ? tempRectangle.x + tempRectangle.width : tempRectangle.x) * scaleRef.current + offsetRef.current.x,
+            width: `${Math.abs(tempRectangle.width) * scaleRef.current}px`,
+            height: `${Math.abs(tempRectangle.height) * scaleRef.current}px`,
             backgroundColor: "rgba(0, 0, 255, 0.3)",
             border: "1px dashed blue",
             borderRadius: "8px",

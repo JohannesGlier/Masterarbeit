@@ -47,20 +47,44 @@ const TextCardTool = ({
       if (!isDrawing || !tempRectangle) return;
 
       const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
-      setTempRectangle({
-        x: tempRectangle.x,
-        y: tempRectangle.y,
-        width: mousePos.x - tempRectangle.x,
-        height: mousePos.y - tempRectangle.y,
-      });
+      setTempRectangle((prevRect) => ({
+        x: prevRect.x,
+        y: prevRect.y,
+        width: mousePos.x - prevRect.x,
+        height: mousePos.y - prevRect.y,
+      }));
     };
 
     const handleMouseUp = async (event) => {
       if (event.button !== 0) return;
 
-      if (tempRectangle && tempRectangle.width > 0 && tempRectangle.height > 0) {
+      let significantDrag = false;
+      let normalizedRect = null;
+
+      if (tempRectangle) {
+        normalizedRect = {
+          x: tempRectangle.width < 0 ? tempRectangle.x + tempRectangle.width : tempRectangle.x,
+          y: tempRectangle.height < 0 ? tempRectangle.y + tempRectangle.height : tempRectangle.y,
+          width: Math.abs(tempRectangle.width),
+          height: Math.abs(tempRectangle.height),
+        };
+
+        const MIN_DRAG_DIMENSION = 5; // Mindestgröße in Weltkoordinaten
+
+        if (normalizedRect.width > MIN_DRAG_DIMENSION || normalizedRect.height > MIN_DRAG_DIMENSION) {
+          significantDrag = true;
+        }
+      }
+
+      if (significantDrag && normalizedRect) {
         // Benutzerdefiniertes Rechteck durch Ziehen
-        addTextcard({ ...tempRectangle, text: "" });
+        addTextcard({
+          x: normalizedRect.x,
+          y: normalizedRect.y,
+          width: normalizedRect.width,
+          height: normalizedRect.height,
+          text: "",
+        });
         setSelectedTool("Pointer");
       } else {
         const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
@@ -236,10 +260,10 @@ const TextCardTool = ({
         <div
           style={{
             position: "absolute",
-            top: tempRectangle.y * scaleRef.current + offsetRef.current.y,
-            left: tempRectangle.x * scaleRef.current + offsetRef.current.x,
-            width: `${tempRectangle.width * scaleRef.current}px`,
-            height: `${tempRectangle.height * scaleRef.current}px`,
+            top: (tempRectangle.height < 0 ? tempRectangle.y + tempRectangle.height : tempRectangle.y) * scaleRef.current + offsetRef.current.y,
+            left: (tempRectangle.width < 0 ? tempRectangle.x + tempRectangle.width : tempRectangle.x) * scaleRef.current + offsetRef.current.x,
+            width: `${Math.abs(tempRectangle.width) * scaleRef.current}px`,
+            height: `${Math.abs(tempRectangle.height) * scaleRef.current}px`,
             backgroundColor: "rgba(0, 0, 255, 0.3)",
             border: "1px dashed blue",
             borderRadius: "25px",

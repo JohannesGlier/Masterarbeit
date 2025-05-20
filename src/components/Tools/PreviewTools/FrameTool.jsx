@@ -4,6 +4,7 @@ import {
   getElementsInRectangle,
 } from "@/utils/elementUtils";
 import { useCursor } from '@/components/Canvas/CursorContext';
+import { getCanvasMousePosition } from "@/utils/canvasUtils";
 
 const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
   const { offsetRef, scaleRef, setSelectedTool, setHeadingGeneration } = useCanvas();
@@ -17,50 +18,62 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
     const handleMouseDown = (event) => {
       if (event.button !== 0) return;
       setIsDrawing(true);
-
-      const rect = canvasRef.current.getBoundingClientRect();
-      const startX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const startY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
-      setTempRectangle({ x: startX, y: startY, width: 0, height: 0 });
+      const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
+      setTempRectangle({ x: mousePos.x, y: mousePos.y, width: 0, height: 0 });
     };
 
     const handleMouseMove = (event) => {
       if (event.button !== 0) return;
       if (!isDrawing || !tempRectangle) return;
 
-      const rect = canvasRef.current.getBoundingClientRect();
-      const endX = (event.clientX - rect.left - offsetRef.current.x) / scaleRef.current;
-      const endY = (event.clientY - rect.top - offsetRef.current.y) / scaleRef.current;
-
-      setTempRectangle({
-        x: tempRectangle.x,
-        y: tempRectangle.y,
-        width: endX - tempRectangle.x,
-        height: endY - tempRectangle.y,
-      });
+      const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
+      setTempRectangle(prevRect => ({
+        x: prevRect.x,
+        y: prevRect.y,
+        width: mousePos.x - prevRect.x,
+        height: mousePos.y - prevRect.y,
+      }));
     };
 
     const handleMouseUp = (event) => {
       if (event.button !== 0) return;
-      if (tempRectangle && tempRectangle.width > 50 && tempRectangle.height > 50) {
-        // Benutzerdefiniertes Rechteck durch Ziehen
-        const rectId = addRectangle(tempRectangle);
 
-        // Check, ob der Bereich über anderen Element ist, wenn ja, generiere eine passende Überschrift
-        const text = getTextInsideFrame(elements, tempRectangle);
-        if(text) {
+      if (!isDrawing || !tempRectangle) {
+        setIsDrawing(false);
+        setTempRectangle(null);
+        return;
+      }
+
+      const normalizedRect = {
+        x: tempRectangle.width < 0 ? tempRectangle.x + tempRectangle.width : tempRectangle.x,
+        y: tempRectangle.height < 0 ? tempRectangle.y + tempRectangle.height : tempRectangle.y,
+        width: Math.abs(tempRectangle.width),
+        height: Math.abs(tempRectangle.height),
+      };
+      const MIN_DRAG_DIMENSION = 10;
+
+      if (normalizedRect.width > MIN_DRAG_DIMENSION && normalizedRect.height > MIN_DRAG_DIMENSION) {
+        // User-defined rectangle by dragging
+        const rectToAdd = {
+          x: normalizedRect.x,
+          y: normalizedRect.y,
+          width: normalizedRect.width,
+          height: normalizedRect.height,
+        };
+        const rectId = addRectangle(rectToAdd);
+
+        const text = getTextInsideFrame(elements, rectToAdd);
+        if (text && rectId) {
           setHeadingGeneration(prev => ({
             ...prev,
-            [rectId]: { // Verwende die rectId als Schlüssel
+            [rectId]: {
               generateHeading: true,
               text: text,
             },
           }));
         }
-
         setSelectedTool('Pointer');
-      }
+      } 
       else {
         // Vordefiniertes Rechteck durch Click
         const defaultWidth = 250;
@@ -76,10 +89,10 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
 
         // Check, ob der Bereich über anderen Element ist, wenn ja, generiere eine passende Überschrift
         const text = getTextInsideFrame(elements, finalRectangle);
-        if(text) {
+        if(text && rectId) {
           setHeadingGeneration(prev => ({
             ...prev,
-            [rectId]: { // Verwende die rectId als Schlüssel
+            [rectId]: {
               generateHeading: true,
               text: text,
             },
@@ -129,10 +142,10 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
         <div
           style={{
             position: "absolute",
-            top: tempRectangle.y * scaleRef.current + offsetRef.current.y,
-            left: tempRectangle.x * scaleRef.current + offsetRef.current.x,
-            width: `${tempRectangle.width * scaleRef.current}px`,
-            height: `${tempRectangle.height * scaleRef.current}px`,
+            top: (tempRectangle.height < 0 ? tempRectangle.y + tempRectangle.height : tempRectangle.y) * scaleRef.current + offsetRef.current.y,
+            left: (tempRectangle.width < 0 ? tempRectangle.x + tempRectangle.width : tempRectangle.x) * scaleRef.current + offsetRef.current.x,
+            width: `${Math.abs(tempRectangle.width) * scaleRef.current}px`,
+            height: `${Math.abs(tempRectangle.height) * scaleRef.current}px`,
             backgroundColor: "rgba(0, 0, 255, 0.3)",
             border: "1px dashed blue",
             pointerEvents: "none",
