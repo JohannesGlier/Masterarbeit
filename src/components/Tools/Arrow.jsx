@@ -128,11 +128,6 @@ const Arrow = ({
     return { x1, y1, x2, y2, dx, dy, length, lengthSq };
   }, [startX, startY, endX, endY]);
 
-  const forceCursor = (style) => {
-    document.body.style.cursor = style;
-    document.body.style.pointerEvents = "auto";
-  };
-
   const handleMouseMove = useCallback(
     (event) => {
       const isArrayCheckResult = Array.isArray(responseItems);
@@ -808,6 +803,7 @@ const Arrow = ({
             textColor={properties.textColor}
             zIndex={arrowInlineStyles.zIndex}
             pointerEvents={pointerEvents}
+            runPrompt={runPromptButton}
           />
           <RunPromptButton
             position={{ x: middleX, y: middleY }}

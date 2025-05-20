@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-const TextInput = ({ placeholder, value, onChange, maxWidth, minWidth, textAlign, fontSize, textColor, fontStyles, font }) => {
+const TextInput = ({ placeholder, value, onChange, maxWidth, minWidth, textAlign, fontSize, textColor, fontStyles, font, onEnterPress }) => {
   const inputRef = useRef(null);
   const [width, setWidth] = useState("auto");
 
@@ -12,6 +12,15 @@ const TextInput = ({ placeholder, value, onChange, maxWidth, minWidth, textAlign
     }
   }, [value, maxWidth]);
 
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      if (onEnterPress) {
+        onEnterPress(value);
+      }
+      inputRef.current?.blur();
+    }
+  };
+
   return (
     <input
       ref={inputRef}
@@ -19,6 +28,7 @@ const TextInput = ({ placeholder, value, onChange, maxWidth, minWidth, textAlign
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onKeyDown={handleKeyDown}
       style={{
         width: width,
         minWidth: minWidth,

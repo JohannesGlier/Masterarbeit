@@ -14,6 +14,7 @@ const ArrowLabel = ({
   textColor,
   zIndex,
   pointerEvents,
+  runPrompt,
 }) => {
   let rotationAngle =
     textAlignment === "horizontal"
@@ -46,6 +47,7 @@ const ArrowLabel = ({
           fontSize={textSize}
           textColor={textColor}
           fontStyles={{ bold: false, italic: false, underline: false }}
+          onEnterPress={runPrompt}
         />
       </div>
     </>

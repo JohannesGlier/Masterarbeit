@@ -14,9 +14,12 @@ const InfiniteCanvas = ({ onBack }) => {
   const canvasRef = useRef(null);
   const canvasWrapperRef = useRef(null);
   const isPanning = useRef(false);
-  const [maxOffsetX, setMaxOffsetX] = useState(0);
-  const [maxOffsetY, setMaxOffsetY] = useState(0);
   const lastMousePos = useRef({ x: 0, y: 0 });
+
+  const [minAllowedOffsetX, setMinAllowedOffsetX] = useState(0);
+  const [maxAllowedOffsetX, setMaxAllowedOffsetX] = useState(0);
+  const [minAllowedOffsetY, setMinAllowedOffsetY] = useState(0);
+  const [maxAllowedOffsetY, setMaxAllowedOffsetY] = useState(0);
 
   const MIN_SCALE = 1;
   const MAX_SCALE = 3;
@@ -33,57 +36,67 @@ const InfiniteCanvas = ({ onBack }) => {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const visibleWidth = window.innerWidth / scale;
-      const visibleHeight = window.innerHeight / scale;
+      const maxCoordinate = BACKGROUND_SIZE; // Dies ist die maximale Ausdehnung vom Ursprung
+      const maxCoordinateScaled = maxCoordinate * scale;
 
-      const halfBackground = BACKGROUND_SIZE / 2;
+      const newMinX = window.innerWidth - maxCoordinateScaled;
+      const newMaxX = maxCoordinateScaled;
+      const newMinY = window.innerHeight - maxCoordinateScaled;
+      const newMaxY = maxCoordinateScaled;
 
-      // Maximale Grenzen berechnen
-      const maxX = halfBackground - visibleWidth / 2;
-      const maxY = halfBackground - visibleHeight / 2;
+      setMinAllowedOffsetX(newMinX);
+      setMaxAllowedOffsetX(newMaxX);
+      setMinAllowedOffsetY(newMinY);
+      setMaxAllowedOffsetY(newMaxY);
 
-      // Minimale Grenzen berechnen (negativ, weil man nach links/oben scrollt)
-      const minX = -halfBackground + visibleWidth / 2;
-      const minY = -halfBackground + visibleHeight / 2;
-
-      setMaxOffsetX(maxX);
-      setMaxOffsetY(maxY);
       setOffset((prevOffset) => ({
-        x: Math.min(Math.max(prevOffset.x, minX), maxX),
-        y: Math.min(Math.max(prevOffset.y, minY), maxY),
+        x: Math.max(newMinX, Math.min(prevOffset.x, newMaxX)),
+        y: Math.max(newMinY, Math.min(prevOffset.y, newMaxY)),
       }));
     }
-  }, [scale]);
+  }, [
+    scale,
+    typeof window !== "undefined" ? window.innerWidth : null,
+    typeof window !== "undefined" ? window.innerHeight : null,
+  ]);
 
   const handleWheel = (event) => {
     if (!canvasRef.current) return;
 
     let wheelDeltaY = event.deltaY;
-
     const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-
     if (isMac) {
       wheelDeltaY = -wheelDeltaY;
     }
 
-    const newScale = Math.min(
-      Math.max(scale - wheelDeltaY * 0.001, MIN_SCALE),
-      MAX_SCALE
-    );
-    if (newScale === scale) return;
+    const oldScale = scale;
+    const newScaleAttempt = scale - wheelDeltaY * 0.001;
+    const newScale = Math.min(Math.max(newScaleAttempt, MIN_SCALE), MAX_SCALE);
+
+    if (newScale === oldScale) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
-    const scaleRatio = newScale / scale;
+    const scaleRatio = newScale / oldScale;
 
-    const newOffsetX = (offset.x - mouseX) * scaleRatio + mouseX;
-    const newOffsetY = (offset.y - mouseY) * scaleRatio + mouseY;
+    const newIdealOffsetX = mouseX - (mouseX - offset.x) * scaleRatio;
+    const newIdealOffsetY = mouseY - (mouseY - offset.y) * scaleRatio;
 
     setScale(newScale);
+
+    // Grenzen hier neu berechnen mit newScale und korrekter Logik
+    const maxCoordinate = BACKGROUND_SIZE;
+    const maxCoordinateScaled = maxCoordinate * newScale; // Wichtig: newScale verwenden!
+
+    const currentMinX = window.innerWidth - maxCoordinateScaled;
+    const currentMaxX = maxCoordinateScaled;
+    const currentMinY = window.innerHeight - maxCoordinateScaled;
+    const currentMaxY = maxCoordinateScaled;
+
     setOffset({
-      x: Math.min(Math.max(newOffsetX, -maxOffsetX / 2), maxOffsetX / 2),
-      y: Math.min(Math.max(newOffsetY, -maxOffsetY / 2), maxOffsetY / 2),
+      x: Math.max(currentMinX, Math.min(newIdealOffsetX, currentMaxX)),
+      y: Math.max(currentMinY, Math.min(newIdealOffsetY, currentMaxY)),
     });
   };
 
@@ -96,29 +109,26 @@ const InfiniteCanvas = ({ onBack }) => {
   };
 
   const handleMouseMove = (event) => {
-    if (isPanning.current) {
-      const dx = event.clientX - lastMousePos.current.x;
-      const dy = event.clientY - lastMousePos.current.y;
+  if (isPanning.current) {
+    const dx = event.clientX - lastMousePos.current.x;
+    const dy = event.clientY - lastMousePos.current.y;
 
-      const newOffsetX = Math.min(
-        Math.max(
-          offset.x + dx,
-          -(BACKGROUND_SIZE * scale - window.innerWidth) / 2
-        ),
-        (BACKGROUND_SIZE * scale - window.innerWidth) / 2
-      );
-      const newOffsetY = Math.min(
-        Math.max(
-          offset.y + dy,
-          -(BACKGROUND_SIZE * scale - window.innerHeight) / 2
-        ),
-        (BACKGROUND_SIZE * scale - window.innerHeight) / 2
-      );
+    const maxCoordinate = BACKGROUND_SIZE;
+    const maxCoordinateScaled = maxCoordinate * scale; // Aktuelle Skala verwenden
 
-      setOffset({ x: newOffsetX, y: newOffsetY });
-      lastMousePos.current = { x: event.clientX, y: event.clientY };
-    }
-  };
+    // Dieselben Grenzen wie beim Zoomen und im useEffect
+    const currentMinX = window.innerWidth - maxCoordinateScaled;
+    const currentMaxX = maxCoordinateScaled;
+    const currentMinY = window.innerHeight - maxCoordinateScaled;
+    const currentMaxY = maxCoordinateScaled;
+
+    const newPanOffsetX = Math.max(currentMinX, Math.min(offset.x + dx, currentMaxX));
+    const newPanOffsetY = Math.max(currentMinY, Math.min(offset.y + dy, currentMaxY));
+
+    setOffset({ x: newPanOffsetX, y: newPanOffsetY });
+    lastMousePos.current = { x: event.clientX, y: event.clientY };
+  }
+};
 
   const handleMouseUp = () => {
     if (isPanning.current) setCursorStyle("default");
