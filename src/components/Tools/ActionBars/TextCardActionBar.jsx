@@ -84,32 +84,33 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
     <div
       style={{
         position: "relative",
-        width: "1000px",
-        top: rect.top - 200,
-        left: rect.left + (rect.width - 1000) / 2,
+        width: "750px",
+        height: "65px",
+        top: rect.top - 150,
+        left: rect.left + (rect.width - 750) / 2,
         display: "flex",
-        gap: "32px",
+        gap: "16px",
         backgroundColor: "#fff",
-        padding: "16px",
+        padding: "4px",
         borderRadius: "8px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
         zIndex: 4003,
       }}
     >
       {/* Font */}
-      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "8px" }}>
         <Dropdown
             menu={{
             items: ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', 'Trebuchet MS', 'Garamond', 'Brush Script MT', 'Tahoma']
             .map(font => ({
                 key: font,
                 label: <span style={{ fontFamily: font }}>{font}</span>,
-                style: { fontFamily: font, fontSize: '24px' }
+                style: { fontFamily: font, fontSize: '16px' }
             })),
             onClick: (e) => handleFontChange(e.key),
             }}
             overlayStyle={{
-                minWidth: "250px",
+                minWidth: "175px",
                 maxHeight: "400px",
                 overflowY: "auto",
                 paddingTop: "40px",
@@ -119,7 +120,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
             <Button 
                 style={{ 
                     fontFamily: selectedFont, 
-                    fontSize: "24px", 
+                    fontSize: "20px", 
                     padding: "8px 20px", 
                     border: "none",
                     width: "200px",
@@ -132,30 +133,30 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
       </div>
 
       {/* Schriftgröße */}
-      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "8px" }}>
         <Dropdown
           menu={{
             items: [10, 12, 14, 16, 18, 20, 24, 30].map((size) => ({
               key: size,
               label: `${size}px`,
               onClick: () => handleTextSizeChange(size),
-              style: { fontSize: "24px", marginBottom: "5px" }
+              style: { fontSize: "16px", marginBottom: "2px" }
             })),
           }}
-          overlayStyle={{ paddingTop: "40px", zIndex: 4003 }}
+          overlayStyle={{ paddingTop: "30px", zIndex: 4003 }}
         >
-          <Button style={{ fontSize: "28px", padding: "8px 12px", bottom: "2px", border: "none" }}>{textSize}</Button>
+          <Button style={{ fontSize: "24px", padding: "8px 8px", bottom: "1px", border: "none" }}>{textSize}</Button>
         </Dropdown>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <Button
             icon={<IoIosArrowUp style={{ transform: "rotate(0deg)" }} />}
             onClick={increaseTextSize}
-            style={{ fontSize: "24px", border: "none" }}
+            style={{ fontSize: "20px", border: "none" }}
           />
           <Button
             icon={<IoIosArrowUp style={{ transform: "rotate(-180deg)" }} />}
             onClick={decreaseTextSize}
-            style={{ fontSize: "24px", border: "none" }}
+            style={{ fontSize: "20px", border: "none" }}
           />
         </div>
       </div>
@@ -165,17 +166,18 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
         <Dropdown
             trigger={["hover"]}
             placement="bottom"
-            align={{ offset: [0, 36] }}
+            align={{ offset: [0, 28] }}
             overlayStyle={{ zIndex: 4003 }}
             dropdownRender={() => (
             <div
                 style={{
                   display: "flex",
-                  gap: "8px",
-                  padding: "8px",
+                  gap: "4px",
+                  padding: "4px",
                   background: "#fff",
                   boxShadow: "0 3px 6px -4px rgba(0,0,0,0.12)",
                   borderRadius: "4px",
+                  zIndex: 4003,
                 }}
             >
                 {["bold", "italic", "underline"].map((style) => (
@@ -189,10 +191,10 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
                     }[style]}
                     onClick={() => toggleFontStyle(style)}
                     style={{ 
-                        minWidth: "50px", 
-                        height: "50px", 
+                        minWidth: "40px", 
+                        height: "30px", 
                         border: "none", 
-                        fontSize: "24px",
+                        fontSize: "20px",
                         background: "transparent", 
                         color: fontStyles[style] ? "#1890ff" : "inherit", // Nur Icon färben
                     }}
@@ -204,9 +206,9 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
         <Button 
           icon={<FaFont />}
           style={{ 
-            width: "40px", 
-            height: "40px", 
-            fontSize: "30px", 
+            width: "30px", 
+            height: "30px", 
+            fontSize: "28px", 
             border: "none",
             display: "flex",
             alignItems: "center",
@@ -222,14 +224,14 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
       <Dropdown
         trigger={["hover"]}
         placement="bottom"
-        align={{ offset: [0, 36] }} // Dropdown weiter nach unten verschoben
+        align={{ offset: [0, 28] }} // Dropdown weiter nach unten verschoben
         overlayStyle={{ zIndex: 4003 }}
         dropdownRender={() => (
           <div
             style={{
               display: "flex",
-              gap: "8px",
-              padding: "8px",
+              gap: "4px",
+              padding: "4px",
               background: "#fff",
               boxShadow: "0 3px 6px -4px rgba(0,0,0,0.12)",
               borderRadius: "4px",
@@ -242,10 +244,10 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
                 icon={icons[alignment]}
                 onClick={() => handleTextAlignmentChange(alignment)}
                 style={{
-                  minWidth: "50px",
-                  height: "50px",
+                  minWidth: "40px",
+                  height: "30px",
                   border: "none",
-                  fontSize: "32px",
+                  fontSize: "20px",
                   background: "transparent",
                   // Nur das Icon soll blau werden, wenn ausgewählt ist:
                   color: textAlign === alignment ? "#1890ff" : "inherit",
@@ -259,9 +261,9 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
         <Button
           icon={icons[textAlign] || <FiAlignCenter />}
           style={{
-            width: "40px",
-            height: "40px",
-            fontSize: "36px",
+            width: "30px",
+            height: "30px",
+            fontSize: "32px",
             border: "none",
             display: "flex",
             alignItems: "center",
@@ -272,11 +274,11 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
       </div>
 
       {/* Text Color */}
-      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "16px" }}>
         <div
           style={{
-            width: "40px",
-            height: "40px",
+            width: "32px",
+            height: "32px",
             borderRadius: "50%",
             backgroundColor: textColor,
             cursor: "pointer",
@@ -285,7 +287,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
           onClick={() => setShowColorPicker(!showColorPicker)}
         />
         {showColorPicker && (
-          <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
+          <div style={{ position: "absolute", zIndex: 20, top: "90px" }}>
             <ChromePicker
               color={textColor}
               onChange={handleTextColorChange}
@@ -300,14 +302,14 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
         <div onClick={() => setShowTextcardColorPicker(!showTextcardColorPicker)}>
             <MdRectangle
             style={{
-                fontSize: "45px",
+                fontSize: "40px",
                 color: textcardColor,
                 cursor: "pointer",
             }}
             />
         </div>
         {showTextcardColorPicker && (
-            <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
+            <div style={{ position: "absolute", zIndex: 20, top: "90px" }}>
             <ChromePicker
                 color={textcardColor}
                 onChange={handleTextcardColorChange}
@@ -322,14 +324,14 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
         <div onClick={() => setShowTextcardBorderColorPicker(!showTextcardBorderColorPicker)}>
             <MdOutlineRectangle
             style={{
-                fontSize: "45px",
+                fontSize: "40px",
                 color: textcardBorderColor,
                 cursor: "pointer", 
             }}
             />
         </div>
         {showTextcardBorderColorPicker && (
-            <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
+            <div style={{ position: "absolute", zIndex: 20, top: "90px" }}>
             <ChromePicker
                 color={textcardBorderColor}
                 onChange={handleTextcardBorderColorChange}
@@ -341,7 +343,7 @@ const TextCardActionBar = ({ rect, updateTextcardStyle }) => {
 
       {/* Frame Broder Thickness */}
       <div style={{ display: "flex", flexDirection: "column", alignSelf: "end", alignItems: "center"}}>
-        <span style={{ marginBottom: "2px", fontSize: "20px", color: "black" }}>Border Thickness</span>
+        <span style={{ marginBottom: "-4px", fontSize: "16px", color: "black" }}>Border Thickness</span>
         <Slider
           min={0}
           max={10}

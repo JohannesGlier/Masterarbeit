@@ -38,6 +38,7 @@ const ArrowTool = ({
   const [startPoint, setStartPoint] = useState(null);
   const [endPoint, setEndPoint] = useState(null);
   const MAX_LENGTH = 500;
+  const MIN_ARROW_LENGTH = 30;
 
   const [previewEntries, setPreviewEntries] = useState([]);
   const [previewStatus, setPreviewStatus] = useState("idle");
@@ -249,12 +250,7 @@ const ArrowTool = ({
     const handleMouseUp = async (event) => {
       if (event.button !== 0) return;
 
-      const { x: mouseX, y: mouseY } = getCanvasMousePosition(
-        event,
-        canvasRef,
-        offsetRef,
-        scaleRef
-      );
+      const { x: mouseX, y: mouseY } = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
       const endElement = getElementAtPosition(elements, mouseX, mouseY);
 
       // Startpunkt vorbereiten
@@ -274,6 +270,16 @@ const ArrowTool = ({
         const referenceY = startPoint.elementId ? startPoint.y : startPoint.y;
         const anchorData = getAnchorData(endElement, referenceX, referenceY);
         end = { ...anchorData, elementId: endElement.id };
+      }
+
+      const dx = end.x - start.x;
+      const dy = end.y - start.y;
+      const actualLength = Math.sqrt(dx * dx + dy * dy);
+
+      if (actualLength < MIN_ARROW_LENGTH) {
+        console.log(`Pfeil zu kurz (Länge: ${actualLength.toFixed(2)}). Wird nicht erstellt.`);
+        resetDrawingState();
+        return;
       }
 
       let textcardID = null;
@@ -520,25 +526,31 @@ const ArrowTool = ({
   return (
     <div>
       {isDrawing && startPoint && endPoint && (() => {
-      let arrowDisplayColor;
-      let arrowDisplayHeight;
+        const dx = endPoint.x - startPoint.x;
+        const dy = endPoint.y - startPoint.y;
+        const currentActualLength = Math.sqrt(dx * dx + dy * dy);
 
-      const currentNormalizedLength = calculateNormalizedLength(startPoint, endPoint);
+        let arrowDisplayColor;
+        let arrowDisplayHeight;
 
-      if (initialStart) {
-        const clampedLength = Math.max(0, Math.min(1, currentNormalizedLength));
-        const hue = (1 - clampedLength) * 120;
-        const saturation = "100%";
-        const lightness = "50%";
-        arrowDisplayColor = `hsl(${hue}, ${saturation}, ${lightness})`;
+        const currentNormalizedLength = calculateNormalizedLength(startPoint, endPoint);
 
-        const thicknessRange = MAX_ARROW_THICKNESS - MIN_ARROW_THICKNESS;
-        const currentThickness = (1 - clampedLength) * thicknessRange + MIN_ARROW_THICKNESS;
-        arrowDisplayHeight = `${currentThickness}px`;
-      } else {
-        arrowDisplayColor = "blue";
-        arrowDisplayHeight = `${MIN_ARROW_THICKNESS + 2}px`;
-      }
+        if (initialStart) {
+          const clampedLength = Math.max(0, Math.min(1, currentNormalizedLength));
+          const hue = (1 - clampedLength) * 120; 
+          arrowDisplayColor = `hsl(${hue}, 100%, 50%)`;
+
+          const thicknessRange = MAX_ARROW_THICKNESS - MIN_ARROW_THICKNESS;
+          const currentThickness = (1 - clampedLength) * thicknessRange + MIN_ARROW_THICKNESS;
+          arrowDisplayHeight = `${currentThickness}px`;
+        } else {
+          if (currentActualLength < MIN_ARROW_LENGTH)
+            arrowDisplayColor = "rgba(255, 0, 0, 0.8)";
+          else
+            arrowDisplayColor = "blue";
+          
+          arrowDisplayHeight = `${MIN_ARROW_THICKNESS + 2}px`;
+        }
 
       return (
         <div

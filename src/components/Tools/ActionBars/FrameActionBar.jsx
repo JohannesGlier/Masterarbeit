@@ -105,32 +105,33 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
     <div
       style={{
         position: "relative",
-        width: "1170px",
-        top: rect.top - 200,
-        left: rect.left + (rect.width - 1170) / 2,
+        width: "850px",
+        height: "65px",
+        top: rect.top - 150,
+        left: rect.left + (rect.width - 850) / 2,
         display: "flex",
-        gap: "32px",
+        gap: "16px",
         backgroundColor: "#fff",
-        padding: "16px",
+        padding: "4px",
         borderRadius: "8px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
         zIndex: 4003,
       }}
     >
       {/* Font */}
-      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "8px" }}>
         <Dropdown
             menu={{
             items: ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana', 'Trebuchet MS', 'Garamond', 'Brush Script MT', 'Tahoma']
             .map(font => ({
                 key: font,
                 label: <span style={{ fontFamily: font }}>{font}</span>,
-                style: { fontFamily: font, fontSize: '24px' }
+                style: { fontFamily: font, fontSize: '16px' }
             })),
             onClick: (e) => handleFontChange(e.key),
             }}
             overlayStyle={{
-                minWidth: "250px",
+                minWidth: "175px",
                 maxHeight: "400px",
                 overflowY: "auto",
                 paddingTop: "40px",
@@ -140,7 +141,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
             <Button 
                 style={{ 
                     fontFamily: selectedFont,  // selectedFont sollte aus deinem State kommen
-                    fontSize: "24px", 
+                    fontSize: "20px", 
                     padding: "8px 20px", 
                     border: "none",
                     width: "200px",
@@ -153,30 +154,30 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
       </div>
 
       {/* Schriftgröße */}
-      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "8px" }}>
         <Dropdown
           menu={{
             items: [10, 12, 14, 16, 18, 20, 24, 30].map((size) => ({
               key: size,
               label: `${size}px`,
               onClick: () => handleTextSizeChange(size),
-              style: { fontSize: "24px", marginBottom: "5px" }
+              style: { fontSize: "16px", marginBottom: "2px" }
             })),
           }}
-          overlayStyle={{ paddingTop: "40px", zIndex: 4003 }}
+          overlayStyle={{ paddingTop: "30px", zIndex: 4003 }}
         >
-          <Button style={{ fontSize: "28px", padding: "8px 12px", bottom: "2px", border: "none" }}>{fontSize}</Button>
+          <Button style={{ fontSize: "24px", padding: "8px 8px", bottom: "1px", border: "none" }}>{fontSize}</Button>
         </Dropdown>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <Button
             icon={<IoIosArrowUp style={{ transform: "rotate(0deg)" }} />}
             onClick={increaseTextSize}
-            style={{ fontSize: "24px", border: "none" }}
+            style={{ fontSize: "20px", border: "none" }}
           />
           <Button
             icon={<IoIosArrowUp style={{ transform: "rotate(-180deg)" }} />}
             onClick={decreaseTextSize}
-            style={{ fontSize: "24px", border: "none" }}
+            style={{ fontSize: "20px", border: "none" }}
           />
         </div>
       </div>
@@ -186,13 +187,13 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         <Dropdown
             trigger={["hover"]}
             placement="bottom"
-            align={{ offset: [0, 36] }}
+            align={{ offset: [0, 28] }}
             dropdownRender={() => (
             <div
                 style={{
                   display: "flex",
-                  gap: "8px",
-                  padding: "8px",
+                  gap: "4px",
+                  padding: "4px",
                   background: "#fff",
                   boxShadow: "0 3px 6px -4px rgba(0,0,0,0.12)",
                   borderRadius: "4px",
@@ -210,10 +211,10 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
                     }[style]}
                     onClick={() => toggleFontStyle(style)}
                     style={{ 
-                        minWidth: "50px", 
-                        height: "50px", 
+                        minWidth: "40px", 
+                        height: "30px", 
                         border: "none", 
-                        fontSize: "24px",
+                        fontSize: "20px",
                         background: "transparent", 
                         color: fontStyles[style] ? "#1890ff" : "inherit" // Nur Icon färben
                     }}
@@ -225,9 +226,9 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         <Button 
           icon={<FaFont />}
           style={{ 
-            width: "40px", 
-            height: "40px", 
-            fontSize: "30px", 
+            width: "30px", 
+            height: "30px", 
+            fontSize: "28px", 
             border: "none",
             display: "flex",
             alignItems: "center",
@@ -242,13 +243,13 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
       <Dropdown
         trigger={["hover"]}
         placement="bottom"
-        align={{ offset: [0, 36] }} // Dropdown weiter nach unten verschoben
+        align={{ offset: [0, 28] }} // Dropdown weiter nach unten verschoben
         dropdownRender={() => (
           <div
             style={{
               display: "flex",
-              gap: "8px",
-              padding: "8px",
+              gap: "4px",
+              padding: "4px",
               background: "#fff",
               boxShadow: "0 3px 6px -4px rgba(0,0,0,0.12)",
               borderRadius: "4px",
@@ -262,10 +263,10 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
                 icon={icons[alignment]}
                 onClick={() => handleTextAlignmentChange(alignment)}
                 style={{
-                  minWidth: "50px",
-                  height: "50px",
+                  minWidth: "40px",
+                  height: "30px",
                   border: "none",
-                  fontSize: "32px",
+                  fontSize: "20px",
                   background: "transparent",
                   // Nur das Icon soll blau werden, wenn ausgewählt ist:
                   color: textAlign === alignment ? "#1890ff" : "inherit",
@@ -279,9 +280,9 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         <Button
           icon={icons[textAlign] || <FiAlignCenter />}
           style={{
-            width: "40px",
-            height: "40px",
-            fontSize: "36px",
+            width: "30px",
+            height: "30px",
+            fontSize: "32px",
             border: "none",
             display: "flex",
             alignItems: "center",
@@ -292,11 +293,11 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
       </div>
 
       {/* Text Color */}
-      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "16px" }}>
         <div
           style={{
-            width: "40px",
-            height: "40px",
+            width: "32px",
+            height: "32px",
             borderRadius: "50%",
             backgroundColor: textColor,
             cursor: "pointer",
@@ -305,7 +306,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
           onClick={() => setShowColorPicker(!showColorPicker)}
         />
         {showColorPicker && (
-          <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
+          <div style={{ position: "absolute", zIndex: 20, top: "90px" }}>
             <ChromePicker
               color={textColor}
               onChange={handleTextColorChange}
@@ -320,14 +321,14 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         <div onClick={() => setShowFrameColorPicker(!showFrameColorPicker)}>
             <MdRectangle
             style={{
-                fontSize: "45px",
+                fontSize: "40px",
                 color: frameColor,
                 cursor: "pointer",
             }}
             />
         </div>
         {showFrameColorPicker && (
-            <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
+            <div style={{ position: "absolute", zIndex: 20, top: "90px" }}>
             <ChromePicker
                 color={frameColor}
                 onChange={handleFrameColorChange}
@@ -342,14 +343,14 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         <div onClick={() => setShowFrameBorderColorPicker(!showFrameBorderColorPicker)}>
             <MdOutlineRectangle
             style={{
-                fontSize: "45px",
+                fontSize: "40px",
                 color: frameBorderColor,
                 cursor: "pointer",
             }}
             />
         </div>
         {showFrameBorderColorPicker && (
-            <div style={{ position: "absolute", zIndex: 20, top: "110px" }}>
+            <div style={{ position: "absolute", zIndex: 20, top: "90px" }}>
             <ChromePicker
                 color={frameBorderColor}
                 onChange={handleFrameBorderColorChange}
@@ -360,8 +361,8 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
       </div>
 
       {/* Frame Broder Thickness */}
-      <div style={{ display: "flex", flexDirection: "column", alignSelf: "end", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "32px" }}>
-        <span style={{ marginBottom: "2px", fontSize: "20px", color: "black" }}>Border Thickness</span>
+      <div style={{ display: "flex", flexDirection: "column", alignSelf: "end", alignItems: "center", borderRight: "1px solid #e0e0e0", paddingRight: "16px" }}>
+        <span style={{ marginBottom: "-4px", fontSize: "16px", color: "black" }}>Border Thickness</span>
         <Slider
           min={0}
           max={10}
@@ -376,7 +377,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         <Button
           icon={<BsLayerForward />}
           onClick={layerUp}
-          style={{ fontSize: "32px", border: "none" }}
+          style={{ fontSize: "28px", border: "none" }}
         />
       </div>
 
@@ -385,7 +386,7 @@ const FrameActionBar = ({ rect, updateFrameStyle }) => {
         <Button
           icon={<BsLayerBackward />}
           onClick={layerDown}
-          style={{ fontSize: "32px", border: "none" }}
+          style={{ fontSize: "28px", border: "none" }}
         />
       </div>
     </div>

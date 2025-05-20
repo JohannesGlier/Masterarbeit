@@ -101,10 +101,14 @@ const InfiniteCanvas = ({ onBack }) => {
   };
 
   const handleMouseDown = (event) => {
-    if (event.button === 2) {
+    if (event.button === 2 || event.button === 1) {
       isPanning.current = true;
       lastMousePos.current = { x: event.clientX, y: event.clientY };
       setCursorStyle("grabbing");
+
+      if (event.button === 1) {
+        event.preventDefault(); 
+      }
     }
   };
 
@@ -130,9 +134,14 @@ const InfiniteCanvas = ({ onBack }) => {
   }
 };
 
-  const handleMouseUp = () => {
-    if (isPanning.current) setCursorStyle("default");
-    isPanning.current = false;
+  const handleMouseUp = (event) => {
+    if (isPanning.current && (event.button === 2 || event.button === 1)) {
+      setCursorStyle("default");
+      isPanning.current = false;
+    }
+
+    //if (isPanning.current) setCursorStyle("default");
+    //isPanning.current = false;
   };
 
   const pointerEvents = selectedElements.some(
