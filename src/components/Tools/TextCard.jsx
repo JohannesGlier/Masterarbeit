@@ -221,7 +221,8 @@ const TextCard = ({
         y: freePosition.y,
         width: currentOverTextcard.size.width,
         height: currentOverTextcard.size.height,
-        text: textcardCache[currentOverTextcard.id].responses[currentResponseIndex]
+        text: textcardCache[currentOverTextcard.id].responses[currentResponseIndex],
+        aiGenerated: true
       };
   
       addTextcard(newTextcard);
@@ -393,6 +394,7 @@ const TextCard = ({
         rect.zIndex,
         isDragging,
         currentOverTextcard,
+        rect.aiGenerated,
       ),
     [
       position,
@@ -409,6 +411,7 @@ const TextCard = ({
       rect.zIndex,
       isDragging,
       currentOverTextcard,
+      rect.aiGenerated
     ]
   );
 

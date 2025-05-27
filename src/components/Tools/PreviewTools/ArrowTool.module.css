@@ -2,12 +2,12 @@
 @keyframes pulse-div {
     0%, 100% {
       transform: scale(1);
-      background-color: rgba(230, 230, 230, 0.4); /* Start-/Endfarbe */
+      background-color: rgba(201, 204, 227, 0.4); /* Start-/Endfarbe */
       box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Start-/Endschatten */
     }
     50% {
       transform: scale(1.03); /* Leicht vergrößern */
-      background-color: rgba(200, 200, 200, 0.55); /* Andere Farbe im Puls */
+      background-color: rgba(178, 176, 234, 0.55); /* Andere Farbe im Puls */
       box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3); /* Intensiverer Schatten im Puls */
     }
   }

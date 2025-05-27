@@ -462,6 +462,7 @@ const Arrow = ({
         width: tooltipBaseWidth,
         height: tooltipBaseHeight,
         text: tooltipText,
+        aiGenerated: true,
       };
 
       console.log("Erstelle Tooltip als Textkarte:", newTextcard);
@@ -525,6 +526,7 @@ const Arrow = ({
           width: newTextcard.width,
           height: newTextcard.height,
           text: "",
+          aiGenerated: false,
         });
 
         updateArrowPosition(
@@ -729,7 +731,7 @@ const Arrow = ({
             width: `${200 * scaleRef.current}px`,
             height: `${75 * scaleRef.current}px`,
             color: "black",
-            backgroundColor: "rgba(230, 230, 230, 0.4)",
+            backgroundColor: "#F8F9FA",
             borderRadius: "25px",
             boxShadow: "2px 2px 5px rgba(0, 0, 0, 0.2)",
             padding: "12px",

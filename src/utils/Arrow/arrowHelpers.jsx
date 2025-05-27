@@ -99,6 +99,7 @@ export const positionCardsInGrid = (
         y,
         ...cardSize,
         text: card.text,
+        aiGenerated: true,
       });
     }
   });

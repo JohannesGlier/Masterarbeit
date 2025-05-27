@@ -84,6 +84,7 @@ const TextCardTool = ({
           width: normalizedRect.width,
           height: normalizedRect.height,
           text: "",
+          aiGenerated: false,
         });
         setSelectedTool("Pointer");
       } else {
@@ -161,6 +162,7 @@ const TextCardTool = ({
       width: defaultWidth,
       height: defaultHeight,
       text: text,
+      aiGenerated: true,
     };
     addTextcard(finalTextcard);
   };

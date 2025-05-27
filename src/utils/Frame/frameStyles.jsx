@@ -16,7 +16,7 @@ export const getFrameStyles = (
   width: `${size.width * scale}px`,
   height: `${size.height * scale}px`,
   backgroundColor: properties.frameColor,
-  borderRadius: "10px",
+  borderRadius: "0px",
   border:
     isSelected || isHovered || isMouseDown
       ? `${properties.borderWidth <= 2 ? 3 : properties.borderWidth}px solid rgb(23, 104, 255)`

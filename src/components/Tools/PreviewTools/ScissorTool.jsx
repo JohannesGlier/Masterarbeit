@@ -126,6 +126,7 @@ const ScissorTool = ({
             width: 200,
             height: 75,
             text: "",
+            aiGenerated: true,
           });
         }
         return;
@@ -237,6 +238,7 @@ const ScissorTool = ({
                 width: 200,
                 height: 75,
                 text: item.text,
+                aiGenerated: true,
               });
               resolve();
             }, index * 100);

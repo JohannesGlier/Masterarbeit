@@ -374,6 +374,7 @@ const ArrowTool = ({
       width: newTextcard.width,
       height: newTextcard.height,
       text: initialText,
+      aiGenerated: true,
     });
     
     setLastTextcardId(newTextcardId); // Speichere ID für späteres Update

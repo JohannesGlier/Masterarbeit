@@ -190,6 +190,7 @@ const PointerTool = ({
           width: 250,
           height: 125,
           text: response.content,
+          aiGenerated: true,
         };
 
         addTextcard(newTextcard);

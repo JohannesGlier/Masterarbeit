@@ -215,6 +215,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       text: textcard.text,
       zIndex,
       activeView: activeView,
+      aiGenerated: textcard.aiGenerated,
     };
     setTextCards((prevTextcards) => [...prevTextcards, newTextcard]);
     return newTextcard.id;
