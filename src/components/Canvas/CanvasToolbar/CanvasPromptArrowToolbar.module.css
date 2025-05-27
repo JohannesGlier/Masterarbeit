@@ -1,0 +1,39 @@
+.promptArrowToolbar {
+  padding: 6px; /* Etwas kompakter */
+  background-color: #ffffff; /* Eigener Hintergrund */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Subtiler Schatten */
+  border: 1px solid #e0e0e0; /* Leichter Rand */
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 4005; /* Muss über Elementen im Canvas, aber unter Haupt-UI-Elementen sein */
+  width: 55px; /* Etwas schmaler falls gewünscht */
+}
+
+.button {
+  background-color: #f8f9fa00; /* Hintergrund des Buttons */
+  color: #374151;             /* Farbe des Icons im Normalzustand */
+  padding: 6px;                /* Dein Wert */
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+
+  /* KORREKTUR: Explizite Border-Definition und kein Box-Shadow */
+  border: 0px solid #ffffff00; /* Beispiel: Heller, sauberer Rand */
+  border-radius: 4px;         /* Dein Wert aus vorherigen Beispielen, ggf. anpassen */
+  box-shadow: none;           /* Stellt sicher, dass kein unerwünschter Schatten vorhanden ist */
+}
+
+.button:hover {
+  background-color: #0091ff2a;
+}
+
+.selectedButton {
+    background-color: #0091ff2a;
+    color: #0055ff;
+}

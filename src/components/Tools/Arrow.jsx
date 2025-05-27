@@ -73,6 +73,8 @@ const Arrow = ({
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [hoverPointPosition, setHoverPointPosition] = useState(null);
   const prevIsLoadingRef = useRef();
+  const promptRunForAssociatedTemplateRef = useRef(false);
+  const prevIsOutputEndConnectedRef = useRef(undefined);
 
   const {
     selectedTool,
@@ -86,6 +88,8 @@ const Arrow = ({
     contextMenu,
     closeContextMenu,
     showContextMenu,
+    arrowTemplateAssociations,
+    removeArrowTemplateAssociation,
   } = useCanvas();
 
   const start = arrow.start.elementId
@@ -114,6 +118,23 @@ const Arrow = ({
   const middleY = (startY + endY) / 2;
 
   const lineAngle = Math.atan2(endY - startY, endX - startX);
+
+
+  const associatedTemplate = useMemo(() => {
+    return arrowTemplateAssociations && arrowTemplateAssociations[arrow.id];
+  }, [arrowTemplateAssociations, arrow.id]);
+
+  useEffect(() => {
+    if (associatedTemplate && !promptRunForAssociatedTemplateRef.current) {
+      console.log(`Arrow ${arrow.id}: Applying template "${associatedTemplate.name}" for text and color`);
+      setText(associatedTemplate.prompt);
+      setProperties(prevProps => ({
+        ...prevProps,
+        lineColor: associatedTemplate.color,
+      }));
+    }
+  }, [arrow.id, associatedTemplate]);
+
 
   const arrowGeometry = useMemo(() => {
     const x1 = startX;
@@ -700,15 +721,56 @@ const Arrow = ({
     [styles["arrow-loading"]]: isLoading || generatingResponse,
   });
 
+  useEffect(() => {
+    if (associatedTemplate && text === associatedTemplate.prompt && !promptRunForAssociatedTemplateRef.current) {
+      console.log(`Arrow ${arrow.id}: Running prompt with auto-set text: "${text}"`);
+      runPromptButton();
+      promptRunForAssociatedTemplateRef.current = true;
+    }
+  }, [text, associatedTemplate, runPromptButton]);
+
   const hasHeadAtStart = properties.arrowHeadStart;
   const hasHeadAtEnd = properties.arrowHeadEnd;
+  const isExactlyOneHeadSet = hasHeadAtStart !== hasHeadAtEnd;  // Bedingung A: Ist genau eine Pfeilspitze gesetzt? 
+  const isConnectedAtHeadLocation = (hasHeadAtStart && start) || (!hasHeadAtStart && end);  // Bedingung B: Ist der Punkt an der gesetzten Pfeilspitze NICHT verbunden?
+  
+  const showPromptArrow = isExactlyOneHeadSet && !isConnectedAtHeadLocation && !associatedTemplate;
 
-  // Bedingung A: Ist genau eine Pfeilspitze gesetzt?
-  const isExactlyOneHeadSet = hasHeadAtStart !== hasHeadAtEnd;
-  // Bedingung B: Ist der Punkt an der gesetzten Pfeilspitze NICHT verbunden?
-  const isConnectedAtHeadLocation = (hasHeadAtStart && start) || (!hasHeadAtStart && end); 
+  const isOutputEndConnected = useMemo(() => {
+    if (!isExactlyOneHeadSet) return false; // Nur für unidirektionale Pfeile relevant
+    // Wenn die Pfeilspitze am Ende ist (üblicher Fall), prüfen wir `endElement`
+    if (hasHeadAtEnd && !hasHeadAtStart) return !!end;
+    // Wenn die Pfeilspitze am Anfang ist, prüfen wir `startElement`
+    if (hasHeadAtStart && !hasHeadAtEnd) return !!start;
+    return false;
+  }, [hasHeadAtStart, hasHeadAtEnd, start, end, isExactlyOneHeadSet]);
 
-  const showPromptArrow = isExactlyOneHeadSet && !isConnectedAtHeadLocation;
+  useEffect(() => {
+    const currentIsOutputConnected = isOutputEndConnected;
+
+    if (associatedTemplate && promptRunForAssociatedTemplateRef.current) {
+      if (prevIsOutputEndConnectedRef.current === true && !currentIsOutputConnected) {
+        console.log(`Arrow ${arrow.id}: Output element detached for template "${associatedTemplate.name}". Dissociating template.`);
+        
+        const originalPromptText = associatedTemplate.prompt;
+        
+        removeArrowTemplateAssociation(arrow.id);
+        setText(originalPromptText); // Text zurücksetzen
+
+        setProperties(prev => ({ ...prev, lineColor: ARROW_DEFAULTS.lineColor }));
+        
+        promptRunForAssociatedTemplateRef.current = false; // Erlaube erneuten Auto-Run, falls neu assoziiert
+      }
+    }
+    prevIsOutputEndConnectedRef.current = currentIsOutputConnected;
+  }, [
+    arrow.id, 
+    associatedTemplate, 
+    isOutputEndConnected,
+    removeArrowTemplateAssociation, 
+    setText,
+    setProperties
+  ]);
 
   return (
     <>
@@ -788,6 +850,35 @@ const Arrow = ({
         color={properties.lineColor}
         zIndex={arrowInlineStyles.zIndex}
       />
+
+      {isExactlyOneHeadSet && associatedTemplate && (
+        <>
+          {(() => {
+            const screenMidX = middleX * scaleRef.current + offsetRef.current.x;
+            const screenMidY = middleY * scaleRef.current + offsetRef.current.y;
+            const templateNameLabelStyle = {
+              position: "absolute",
+              top: `${screenMidY}px`,
+              left: `${screenMidX}px`,
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "rgba(255, 255, 255, 1)", // Etwas weniger transparent
+              color: "#333",
+              padding: "4px 8px",
+              borderRadius: "4px",
+              fontSize: `${10 * scaleRef.current}px`, // Angepasst von deinem Beispiel (war 8)
+              pointerEvents: "none",
+              zIndex: (arrowInlineStyles.zIndex || 1) + 1, // Über dem Pfeil
+              whiteSpace: "nowrap",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)", // Leichter Schatten für bessere Lesbarkeit
+            };
+            return (
+              <div style={templateNameLabelStyle}>
+                {associatedTemplate.name}
+              </div>
+            );
+          })()}
+        </>
+      )}
 
       {showPromptArrow && (
         <>

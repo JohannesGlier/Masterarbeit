@@ -1,0 +1,174 @@
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.65); /* Etwas dunkler für besseren Fokus */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+    padding: 20px; /* Padding für kleine Bildschirme */
+}
+
+.modalContent {
+    background-color: #ffffff;
+    padding: 20px 25px;
+    border-radius: 12px; /* Größerer Radius */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Deutlicherer Schatten */
+    width: 100%;
+    max-width: 550px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px; /* Mehr Abstand zwischen Gruppen */
+    max-height: 90vh; /* Verhindert, dass das Modal zu groß wird */
+    overflow-y: auto; /* Scrollbar, falls Inhalt zu lang */
+}
+
+.modalContent h2 {
+    margin-top: 0;
+    margin-bottom: 10px; /* Weniger Abstand nach der Überschrift */
+    color: #333; /* Dunkleres Grau für Text */
+    font-size: 1.6rem; /* Etwas größer */
+    font-weight: 600; /* Etwas dicker */
+    text-align: center;
+    border-bottom: 1px solid #eee; /* Leichte Trennlinie */
+    padding-bottom: 15px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Guter Abstand zwischen Label und Input */
+}
+
+.formGroup label {
+    font-weight: 500; /* Etwas leichter als bold */
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.formInput,
+.formTextarea {
+    width: 100%;
+    padding: 12px 15px; /* Mehr Padding */
+    border: 1px solid #ccc; /* Hellerer Rand */
+    border-radius: 6px; /* Abgerundeter */
+    box-sizing: border-box;
+    font-size: 1rem;
+    background-color: #fff; /* Heller Hintergrund */
+    color: #333; /* Dunkler Text */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formInput:focus,
+.formTextarea:focus {
+    border-color: #007bff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.2); /* Weicherer Fokus-Schatten */
+}
+
+.formColorInput {
+    width: 100%;
+    height: 45px; /* Etwas höher */
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #fff; /* Sicherstellen, dass der Hintergrund hell ist */
+}
+
+.formColorInput::-webkit-color-swatch-wrapper {
+    padding: 4px; /* Etwas Padding um die Farbbox */
+}
+.formColorInput::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+}
+
+
+/* --- Icon Picker Grid Styling --- */
+.iconGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); /* Responsive Spalten */
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #f9f9f9; /* Leichter Hintergrund für den Picker-Bereich */
+    max-height: 200px; /* Maximale Höhe, falls viele Icons */
+    overflow-y: auto; /* Scrollbar für viele Icons */
+}
+
+.iconCell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%; /* Füllt die Grid-Zelle */
+    height: 40px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    color: #333; /* Icon Farbe */
+}
+
+.iconCell:hover {
+    background-color: #e9ecef;
+    border-color: #bbb;
+}
+
+.selectedIconCell {
+    background-color: #007bff; /* Hintergrund für ausgewähltes Icon */
+    border-color: #0056b3;
+    color: #fff; /* Icon Farbe für ausgewähltes Icon */
+}
+
+.selectedIconCell:hover {
+    background-color: #0069d9;
+    border-color: #0056b3;
+}
+
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px; /* Mehr Abstand oben */
+    padding-top: 15px;
+    border-top: 1px solid #eee; /* Leichte Trennlinie */
+}
+
+.modalButton {
+    padding: 10px 22px; /* Mehr Padding */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500; /* Etwas leichter */
+    font-size: 0.95rem;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.modalButton:active {
+    transform: translateY(1px); /* Leichter Klick-Effekt */
+}
+
+.saveButton {
+    background-color: #28a745;
+    color: white;
+}
+
+.saveButton:hover {
+    background-color: #218838;
+}
+
+.cancelButton {
+    background-color: #6c757d;
+    color: white;
+}
+
+.cancelButton:hover {
+    background-color: #5a6268;
+}

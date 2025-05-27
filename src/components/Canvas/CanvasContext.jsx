@@ -8,7 +8,11 @@ export const CanvasProvider = ({ children }) => {
   const zIndexTextCards = useRef(3000);  // Baselayer für Textkarten
 
   const [selectedTool, setSelectedTool] = useState('Pointer');
+  const [selectedArrowTemplate, setSelectedArrowTemplate] = useState(null);
   const [activeView, setActiveView] = useState('StandardView');
+
+  // Zustand für die Zuordnung von Pfeil-IDs zu Templates
+  const [arrowTemplateAssociations, setArrowTemplateAssociations] = useState({});
 
   const [selectedElements, setSelectedElements] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -24,6 +28,25 @@ export const CanvasProvider = ({ children }) => {
     arrowID: null,
   });
   const [headingGeneration, setHeadingGeneration] = useState({});
+
+
+  // Funktion zum Speichern einer Pfeil-Template-Zuordnung
+  const associateArrowWithTemplate = (arrowId, template) => {
+    setArrowTemplateAssociations(prevAssociations => ({
+      ...prevAssociations,
+      [arrowId]: template,
+    }));
+    console.log('Associated arrow', arrowId, 'with template:', template?.name);
+  };
+
+  // Funktion zum Entfernen einer Zuordnung
+  const removeArrowTemplateAssociation = (arrowId) => {
+    setArrowTemplateAssociations(prevAssociations => {
+      const newAssociations = { ...prevAssociations };
+      delete newAssociations[arrowId];
+      return newAssociations;
+    });
+  };
 
   const showContextMenu = (position, point, id) => {
     setContextMenu({
@@ -48,6 +71,10 @@ export const CanvasProvider = ({ children }) => {
       setSelectedTool(tool);
       if (selectedTool === 'Pointer') {
         setSelectedElements([]);
+      }
+
+      if (tool !== 'Arrow') {
+        setSelectedArrowTemplate(null);
       }
     }
   };
@@ -120,6 +147,11 @@ export const CanvasProvider = ({ children }) => {
         setHeadingGeneration,
         activeView,
         setActiveView,
+        selectedArrowTemplate,
+        setSelectedArrowTemplate,
+        arrowTemplateAssociations,
+        associateArrowWithTemplate,
+        removeArrowTemplateAssociation,
       }}
     >
       {children}

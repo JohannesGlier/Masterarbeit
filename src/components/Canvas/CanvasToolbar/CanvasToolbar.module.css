@@ -1,11 +1,29 @@
 .canvasToolbar {
-    position: absolute;
+    position: fixed;
     top: 30vh;
-    left: 0;
+    left: 16px;
     padding: 8px;
     
     background-color: #ffffff;
     box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 5px; 
+
+    display: flex; 
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 42px; 
+    z-index: 4001;
+}
+
+.promptArrowToolbar {
+    position: fixed;
+    top: 38vh;
+    left: 85px;
+
+    padding: 8px;
+    background-color: #ffffff;
+    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.2);
     border-radius: 5px; 
 
     display: flex; 
@@ -54,4 +72,3 @@
     background-color: #0091ff2a;
     color: #0055ff;
 }
-  

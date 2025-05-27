@@ -33,6 +33,8 @@ const ArrowTool = ({
     hoveredElement,
     setHoveredElement,
     showContextMenu,
+    selectedArrowTemplate,
+    associateArrowWithTemplate,
   } = useCanvas();
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
@@ -290,6 +292,11 @@ const ArrowTool = ({
       } else {
         // Normaler Pfeil
         const newArrow = addArrow({ start, end });
+
+        if (selectedArrowTemplate) {
+          associateArrowWithTemplate(newArrow.id, selectedArrowTemplate);
+        }
+
         showContextMenu({ x: end.x, y: end.y }, "end", newArrow.id);
       }
 
@@ -521,6 +528,49 @@ const ArrowTool = ({
     );
   };
 
+  const renderTemplateNameLabel = () => {
+    if (!isDrawing || !startPoint || !endPoint || !selectedArrowTemplate) return null;
+
+    const dx = endPoint.x - startPoint.x;
+    const dy = endPoint.y - startPoint.y;
+    const currentActualLength = Math.sqrt(dx * dx + dy * dy);
+
+    // NEUE Bedingung: Label nur anzeigen, wenn Pfeil länger als MIN_ARROW_LENGTH ist
+    if (currentActualLength < MIN_ARROW_LENGTH) {
+      return null;
+    }
+
+    // Positionierung ähnlich wie renderLengthIndicator, aber zentriert auf der Linie
+    const midX = ((startPoint.x + endPoint.x) / 2);
+    const midY = ((startPoint.y + endPoint.y) / 2);
+
+    const screenMidX = midX * scaleRef.current + offsetRef.current.x;
+    const screenMidY = midY * scaleRef.current + offsetRef.current.y;
+    
+    // Einfaches Styling für das Label
+    const labelStyle = {
+      position: "absolute",
+      top: `${screenMidY}px`,
+      left: `${screenMidX}px`,
+      transform: "translate(-50%, -50%)", // Zentriert das Label über dem Mittelpunkt
+      backgroundColor: "rgba(255, 255, 255, 1)", // Halbtransparenter Hintergrund
+      color: "#333", // Dunkle Textfarbe
+      padding: "4px 8px",
+      borderRadius: "4px",
+      fontSize: `${10 * scaleRef.current}px`, // Skalierbare Schriftgröße
+      pointerEvents: "none", // Klicks gehen durch das Label hindurch
+      zIndex: 3001, // Über dem Pfeil, aber unter anderen UI-Elementen
+      whiteSpace: "nowrap", // Verhindert Umbruch des Namens
+      boxShadow: "0 1px 3px rgba(0,0,0,0.1)", // Leichter Schatten für bessere Lesbarkeit
+    };
+
+    return (
+      <div style={labelStyle}>
+        {selectedArrowTemplate.name}
+      </div>
+    );
+  };
+
   const MIN_ARROW_THICKNESS = 1;
   const MAX_ARROW_THICKNESS = 12;
 
@@ -547,6 +597,8 @@ const ArrowTool = ({
         } else {
           if (currentActualLength < MIN_ARROW_LENGTH)
             arrowDisplayColor = "rgba(255, 0, 0, 0.8)";
+          else if (selectedArrowTemplate && selectedArrowTemplate.color)
+            arrowDisplayColor = selectedArrowTemplate.color;
           else
             arrowDisplayColor = "blue";
           
@@ -580,6 +632,7 @@ const ArrowTool = ({
     })()}
       {renderLengthIndicator()}
       {renderPreview()}
+      {renderTemplateNameLabel()}
     </div>
   );
 };
