@@ -9,7 +9,8 @@ import {
   getTextFromElement,
   getTextFromAllElement,
   findTopVisibleNearbyElements,
-  getTextFromAllElements
+  getTextFromAllElements,
+  getElementsInRectangle
 } from "@/utils/elementUtils";
 import { useCursor } from '@/components/Canvas/CursorContext';
 import { useLanguage } from "@/components/Canvas/LanguageContext";
@@ -36,7 +37,7 @@ const TextCardTool = ({
   const [tempRectangle, setTempRectangle] = useState(null);
   const { language } = useLanguage();
   const chatGPTService = useMemo(() => {
-    console.log(`Initializing ChatGPTService with language: ${language}`);
+    //console.log(`Initializing ChatGPTService with language: ${language}`);
     return new ChatGPTService(language);
   }, [language]);
   const [preview, setPreview] = useState([]);
@@ -114,12 +115,23 @@ const TextCardTool = ({
         }, CIRCLE_VISIBILITY_DELAY_MS);
       }
 
-      const affectedElements = getElementsInCircle(
-          elements,
-          { x: mousePos.x, y: mousePos.y },
-          circleSelector.radius
-      );
-      setSelectedElements(affectedElements);
+      if(!isOverFrame) {
+        const affectedElements = getElementsInCircle(
+            elements,
+            { x: mousePos.x, y: mousePos.y },
+            circleSelector.radius
+        );
+        setSelectedElements(affectedElements);
+      } else {
+        const currentRect = {
+          x: hoveredElement.position.x,
+          y: hoveredElement.position.y,
+          width: hoveredElement.size.width,
+          height: hoveredElement.size.height,
+        };
+        const elementsInRect = getElementsInRectangle(elements, currentRect);
+        setSelectedElements(elementsInRect);
+      }
     };
 
     const handleMouseMove = (event) => {
@@ -200,12 +212,29 @@ const TextCardTool = ({
         setSelectedElements([]);
       } else if (!dragOccurredToHideCircle) {
         // Fall 2: Kreis-Logik für AI Textkarte
-        const affectedElements = getElementsInCircle(
-            elements,
-            { x: initialCircleSelector.x, y: initialCircleSelector.y },
-            initialCircleSelector.radius
-        );
-        setSelectedElements(affectedElements);
+
+        const mousePos = getCanvasMousePosition(event, canvasRef, offsetRef, scaleRef);
+        const hoveredElement = getElementAtPosition(elements, mousePos.x, mousePos.y);
+        const isOverFrame = hoveredElement && hoveredElement.type === "rectangle";
+
+        let affectedElements;
+        if(!isOverFrame) {
+          affectedElements = getElementsInCircle(
+              elements,
+              { x: initialCircleSelector.x, y: initialCircleSelector.y },
+              initialCircleSelector.radius
+          );
+          setSelectedElements(affectedElements);
+        } else {
+          const currentRect = {
+            x: hoveredElement.position.x,
+            y: hoveredElement.position.y,
+            width: hoveredElement.size.width,
+            height: hoveredElement.size.height,
+          };
+          affectedElements = getElementsInRectangle(elements, currentRect);
+          setSelectedElements(affectedElements);
+        }
 
         setCursorStyle("wait");
 
@@ -222,11 +251,16 @@ const TextCardTool = ({
         try {
           const promptText = getTextFromAllElements(affectedElements);
           console.log("TextCardTool: Context for AI from circle:", promptText, "Affected Elements:", affectedElements.length);
-          if (affectedElements.length > 0 && promptText && promptText !== "Keine Elemente übergeben." && promptText !== "Fehler: Ungültige Eingabe." && promptText !== "[]" && !checkPromptTextStrict(promptText)) {
-            const response = await chatGPTService.neighborbasedTextcard2(promptText);
-            textContent = response.content;
+          if (affectedElements.length > 0 && promptText && promptText !== "Keine relevanten Texte in den Elementen gefunden.") {
+              if(isOverFrame){
+                const response = await chatGPTService.frameBasedTextcard(promptText);
+                textContent = response.content;
+              } else {
+                const response = await chatGPTService.neighborbasedTextcard(promptText);
+                textContent = response.content;
+              }
           } else {
-            const response = await chatGPTService.generateFirstTextcard("");
+            const response = await chatGPTService.generateFirstTextcard();
             textContent = response.content;
           }
         } catch (error) {

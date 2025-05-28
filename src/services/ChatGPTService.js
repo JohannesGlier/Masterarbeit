@@ -105,19 +105,19 @@ export class ChatGPTService {
     });
   }
 
+  async frameBasedTextcard(text) {
+    const prompt = this.promptTemplates.FRAME_BASED_TEXTCARD({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'FRAME_BASED_TEXTCARD' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
   async neighborbasedTextcard(text) {
     const prompt = this.promptTemplates.NEIGHBOR_BASED_TEXTCARD({text});
     return this._sendRequest({
       message: prompt,
       promptType: 'NEIGHBOR_BASED_TEXTCARD' // Füge den promptType hinzu (System Prompt)
-    });
-  }
-
-  async neighborbasedTextcard2(text) {
-    const prompt = this.promptTemplates.NEIGHBOR_BASED_TEXTCARD_2({text});
-    return this._sendRequest({
-      message: prompt,
-      promptType: 'NEIGHBOR_BASED_TEXTCARD_2' // Füge den promptType hinzu (System Prompt)
     });
   }
 

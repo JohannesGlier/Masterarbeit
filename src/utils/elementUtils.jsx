@@ -193,44 +193,45 @@ export const getTextFromAllElement = (allElements) => {
 };
 
 export const getTextFromAllElements = (elements) => {
-  // Prüfen, ob elements ein Array ist und nicht leer
   if (!Array.isArray(elements)) {
     console.error("Ungültige Eingabe: 'elements' ist kein Array.");
-    // Je nach Anforderung hier null, einen leeren String oder eine Fehlermeldung zurückgeben
     return "Fehler: Ungültige Eingabe.";
   }
   if (elements.length === 0) {
-    return "Keine Elemente übergeben."; // Oder "[]" wenn ein leerer JSON-Array gewünscht ist
+    return "Keine Elemente übergeben.";
   }
 
-  // Map durch die Elemente und erstelle das neue Format
-  const simplifiedElements = elements
-    .map((el, index) => {
-      let textContent;
-
-      // Extrahiere den Text basierend auf dem Typ
-      if (el.type === "textcard" && typeof el.text === 'string') {
-        textContent = el.text;
-      } else if (el.type === "rectangle" && typeof el.heading === 'string') {
-        textContent = el.heading;
-      } else {
-        // Element hat keinen relevanten Text oder ist vom falschen Typ
-        return null; // Markiere zum späteren Herausfiltern
+  const textItems = elements
+    .map(el => {
+      let textContent = null;
+      // Extrahiere den Text basierend auf dem Typ und stelle sicher, dass es ein String ist
+      if (el.type === "textcard" && el.text && typeof el.text === 'string') {
+        textContent = el.text.trim(); // Entferne Leerzeichen am Anfang/Ende
+      } else if (el.type === "rectangle" && el.heading && typeof el.heading === 'string') {
+        textContent = el.heading.trim(); // Entferne Leerzeichen am Anfang/Ende
       }
-
-      // Bestimme den Schlüssel basierend auf dem Index
-      const keyName = index === 0 ? "Primary text" : "Secondary text";
-
-      // Erstelle das Objekt mit dynamischem Schlüssel
-      return { [keyName]: textContent };
+      // Gib nur nicht-leere Strings zurück, sonst null
+      return textContent && textContent.length > 0 ? textContent : null;
     })
-    .filter(item => item !== null); // Entferne Elemente ohne extrahierten Text
+    .filter(text => text !== null); // Entferne alle null-Einträge (Elemente ohne passenden Text oder leere Texte)
 
-  // Konvertiere das Ergebnis-Array in einen JSON-String
-  const jsonText = JSON.stringify(simplifiedElements, null, 2); // null, 2 für Pretty-Printing
+  // 2. Formatiere den String basierend auf der Anzahl der gefundenen Texte
+  if (textItems.length === 0) {
+    // Fall: Elemente vorhanden, aber keine relevanten Texte extrahierbar
+    return "Keine relevanten Texte in den Elementen gefunden.";
+  }
+  if (textItems.length === 1) {
+    // Fall: Nur ein Text vorhanden
+    return textItems[0];
+  }
 
-  console.log("Formatierter Text von Elementen:\n", jsonText);
-  return jsonText;
+  // Fall: Zwei oder mehr Texte vorhanden
+  // Nimm das letzte Element für die "und"-Verknüpfung
+  const lastItem = textItems.pop(); // .pop() entfernt das letzte Element aus textItems und gibt es zurück
+  // Verbinde die verbleibenden Elemente mit ", "
+  const firstPart = textItems.join(", ");
+
+  return `${firstPart} und ${lastItem}`;
 };
 
 const calculateDistance = (x1, y1, x2, y2) => {

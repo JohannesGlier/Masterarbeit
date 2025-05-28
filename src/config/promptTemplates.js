@@ -72,18 +72,17 @@ export const DEFAULT_PROMPT_TEMPLATES = {
       Text to split:
       ${text}`,
 
+    FRAME_BASED_TEXTCARD: ({ text }) => 
+    `Analyze the following group of terms: "${text || "No input text provided."}".
+    Generate exactly ONE new, specific, and concrete word (or a maximum 3-word phrase) that is thematically related but represents a clear, independent, and more specific idea or a concrete example.
+    IMPORTANT: The answer must under no circumstances be a synonym, a repetition, or a slight modification of the input words. It must offer a genuine, distinct addition.
+    Example: Input "vehicle types" -> Output "Amphibious vehicle". Input "dog breeds" -> Output "Shiba Inu". Input "painting, sculpture, art" -> Output "Performance art".`,
+
     NEIGHBOR_BASED_TEXTCARD: ({ text }) => 
-    `Based on the following text: "${text || "No input text provided."}".
-
-    Generate a thematically relevant new text based on the given input, which maintains a clear connection to the input text but introduces ideas or content that is not yet present in the original text.
-    Adapt the output format based on the input:
-    - If the input consists only of keywords, single words, or very short bullet points, your output should be a *single relevant keyword or a very short phrase*.
-    - Otherwise, your output should be a maximum of 2 sentences.
-
-    Your response should contain *only* the generated text snippet/keyword itself, without any introductory phrases, labels, or quotation marks.`,
-
-    NEIGHBOR_BASED_TEXTCARD_2: ({ text }) => 
-      `${text || "No input text provided."}.`,
+    `Analyze the following group of terms: "${text || "No input text provided."}".
+    Generate exactly ONE new, specific, and concrete word (or a maximum 3-word phrase) that is thematically related but represents a clear, independent, and more specific idea or a concrete example.
+    IMPORTANT: The answer must under no circumstances be a synonym, a repetition, or a slight modification of the input words. It must offer a genuine, distinct addition.
+    Example: Input "vehicle types" -> Output "Amphibious vehicle". Input "dog breeds" -> Output "Shiba Inu". Input "painting, sculpture, art" -> Output "Performance art".`,
 
     AUTO_LAYOUT: ({ text }) => 
     `Bitte analysiere die folgenden JSON-Daten, die Elemente (jeweils mit einer id) auf einem Canvas repräsentieren. Basierend auf dem Inhalt der 'Textkarte'-Elemente, ordne alle Elemente logisch und übersichtlich an.
