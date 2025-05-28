@@ -104,16 +104,30 @@ const FrameTool = ({ canvasRef, canvasWrapperRef, addRectangle, elements }) => {
       setIsDrawing(false);
     };
 
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        resetDrawingState();
+      }
+    };
+
+    const resetDrawingState = () => {
+      setTempRectangle(null);
+      setIsDrawing(false);
+      setSelectedTool("Pointer");
+    };
+
     const canvasWrapper = canvasWrapperRef.current;
 
     canvasWrapper.addEventListener("mousedown", handleMouseDown);
     canvasWrapper.addEventListener("mousemove", handleMouseMove);
     canvasWrapper.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
         canvasWrapper.removeEventListener("mousedown", handleMouseDown);
         canvasWrapper.removeEventListener("mousemove", handleMouseMove);
         canvasWrapper.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("keydown", handleKeyDown);
     };
   }, [canvasRef, canvasWrapperRef, isDrawing, tempRectangle, scaleRef, offsetRef]);
 

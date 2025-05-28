@@ -376,3 +376,61 @@ export const findTopVisibleNearbyElements = (
 
   return visibleNeighbors;
 };
+
+// Hilfsfunktion: Findet den Punkt auf einem Rechteck, der einem gegebenen Punkt am nächsten ist.
+function closestPointOnRectToPoint(rect, point) {
+  // rect = { x, y, width, height } (angenommen: Weltkoordinaten)
+  // point = { x, y } (Mittelpunkt des Kreises, Weltkoordinaten)
+  const closestX = Math.max(rect.x, Math.min(point.x, rect.x + rect.width));
+  const closestY = Math.max(rect.y, Math.min(point.y, rect.y + rect.height));
+  return { x: closestX, y: closestY };
+}
+
+/**
+ * Findet alle Elemente, deren Bounding Box den gegebenen Kreis berührt oder schneidet.
+ * @param {Array<Object>} elements - Liste aller Elemente auf dem Canvas.
+ * Jedes Element muss element.position = {x, y} und element.size = {width, height} haben.
+ * @param {Object} circleCenter - Mittelpunkt des Kreises { x, y } in Weltkoordinaten.
+ * @param {number} radius - Radius des Kreises in Weltkoordinaten.
+ * @returns {Array<Object>} - Eine Liste der Elemente, die den Kreis berühren.
+ */
+export const getElementsInCircle = (elements, circleCenter, radius) => {
+  if (!Array.isArray(elements) || !circleCenter || typeof radius !== 'number' || radius <= 0) {
+    console.warn("getElementsInCircle: Ungültige Eingabeparameter.");
+    return [];
+  }
+
+  return elements.filter(element => {
+    // Stelle sicher, dass das Element die benötigten Eigenschaften hat
+    if (!element || typeof element.position?.x !== 'number' || typeof element.position?.y !== 'number' ||
+        typeof element.size?.width !== 'number' || typeof element.size?.height !== 'number') {
+      // console.warn("getElementsInCircle: Element übersprungen, ungültige Struktur:", element);
+      return false;
+    }
+
+    const elRect = {
+      x: element.position.x,
+      y: element.position.y,
+      width: element.size.width,
+      height: element.size.height,
+    };
+
+    // 1. Prüfe, ob der Mittelpunkt des Kreises innerhalb des Rechtecks liegt.
+    // (Dies ist eine schnelle Überprüfung für vollständige Überlappung)
+    if (circleCenter.x >= elRect.x && circleCenter.x <= elRect.x + elRect.width &&
+        circleCenter.y >= elRect.y && circleCenter.y <= elRect.y + elRect.height) {
+      return true;
+    }
+
+    // 2. Finde den dem Kreismittelpunkt am nächsten gelegenen Punkt auf dem Rand des Rechtecks.
+    const closestPt = closestPointOnRectToPoint(elRect, circleCenter);
+
+    // 3. Berechne die Distanz vom Kreismittelpunkt zu diesem nächsten Punkt.
+    const dx = circleCenter.x - closestPt.x;
+    const dy = circleCenter.y - closestPt.y;
+    const distanceSquared = (dx * dx) + (dy * dy);
+
+    // 4. Wenn die quadrierte Distanz kleiner oder gleich dem quadrierten Radius ist, gibt es eine Kollision.
+    return distanceSquared <= (radius * radius);
+  });
+};
