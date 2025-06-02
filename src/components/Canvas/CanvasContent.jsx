@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import FrameTool from "@/components/Tools/PreviewTools/FrameTool";
 import ArrowTool from "@/components/Tools/PreviewTools/ArrowTool";
@@ -568,6 +568,14 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     setRectangles(nextRectangles);
   };
 
+  const handleSetTextCardAiGenerated = useCallback((textcardId) => {
+    setTextCards((prevTextcards) =>
+      prevTextcards.map((tc) =>
+        tc.id === textcardId ? { ...tc, aiGenerated: true } : tc
+      )
+    );
+  }, [setTextCards]);
+
   return (
     <div>
       {selectedTool === "Pointer" && (
@@ -642,9 +650,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
                 onUpdate={handleFrameUpdate}
                 onResize={handleFrameResize}
                 onStartArrowFromFrame={handleStartArrowFromFrame}
-                onHeadingChange={(newHeading) =>
-                  updateFrameHeading(rect.id, newHeading)
-                }
+                onHeadingChange={(newHeading) => updateFrameHeading(rect.id, newHeading)}
             />
           ))}
 
@@ -666,6 +672,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
                 onStartArrowFromFrame={handleStartArrowFromFrame}
                 elements={elements.filter(element => element.activeView === activeView)}
                 addTextcard={addTextcards}
+                onAiGenerationComplete={handleSetTextCardAiGenerated}
               />
           ))}
 
@@ -729,6 +736,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
                 onStartArrowFromFrame={handleStartArrowFromFrame}
                 elements={elements.filter(element => element.activeView === activeView)}
                 addTextcard={addTextcards}
+                onAiGenerationComplete={handleSetTextCardAiGenerated}
               />
           ))}
 

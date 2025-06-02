@@ -13,6 +13,7 @@ import { ChatGPTService } from "@/services/ChatGPTService";
 import PreviewTextcard from "@/components/Tools/PreviewTools/PreviewTextcard";
 import { useCursor } from "@/components/Canvas/CursorContext";
 import { useLanguage } from "@/components/Canvas/LanguageContext";
+import animationStyles from "@/components/Tools/PreviewTools/ArrowTool.module.css";
 
 const TEXTCARD_SIZE_STAGES = [
   // thresholdWidth: Die maximale Breite für diese Stufe (exklusiv der nächsten)
@@ -48,6 +49,7 @@ const TextCard = ({
   onTextChange,
   elements,
   addTextcard,
+  onAiGenerationComplete
 }) => {
   const [properties, setProperties] = useState(() => ({
     ...TEXTCARD_DEFAULTS,
@@ -78,6 +80,7 @@ const TextCard = ({
   const hasDoneInitialGenerationRef = useRef(false);
   const initialBaseTextForGenerationsRef = useRef(null);
   const [optimisticDisplayText, setOptimisticDisplayText] = useState(null);
+  const [isGeneratingStagedTexts, setIsGeneratingStagedTexts] = useState(false);
 
   const {
     selectedTool,
@@ -501,10 +504,10 @@ const TextCard = ({
     startDragging(e);
   };
 
-  const handleResize = useCallback(async (e, handle) => { // `async` kann hier bleiben, schadet nicht.
+  const handleResize = useCallback(async (e, handle) => {
     if (e.buttons !== 1) return;
     e.stopPropagation();
-    handleSelection(e); // Deine existierende Selektionslogik
+    handleSelection(e);
 
     if (optimisticDisplayText !== null) {
       setOptimisticDisplayText(null);
@@ -516,7 +519,6 @@ const TextCard = ({
       console.log(`--- First-Ever Resize for card id ${rect.id}: Initiating ALL Stage Text Generations based on "${currentTextForGeneration}" ---`);
       initialBaseTextForGenerationsRef.current = currentTextForGeneration;
       
-      // Wichtig: Sofort `true` setzen, um mehrfache Auslösung zu verhindern, während diese Runde läuft.
       hasDoneInitialGenerationRef.current = true; 
 
       const loadingTexts = { [ORIGINAL_TEXT_STAGE_KEY]: currentTextForGeneration };
@@ -525,7 +527,8 @@ const TextCard = ({
           loadingTexts[stage.name] = "Generiere..."; // "Generating..."
         }
       });
-      setStagedTexts(loadingTexts); // UI sofort mit Ladeplatzhaltern aktualisieren
+      setStagedTexts(loadingTexts);
+      setIsGeneratingStagedTexts(true);
 
       const stagesToGenerateFor = TEXTCARD_SIZE_STAGES.filter(
         stage => stage.name !== ORIGINAL_TEXT_STAGE_KEY
@@ -570,30 +573,26 @@ const TextCard = ({
             // Stelle sicher, dass der Originaltext der ist, der für die Generierung verwendet wurde.
             return { ...prevStagedTexts, ...newTexts, [ORIGINAL_TEXT_STAGE_KEY]: initialBaseTextForGenerationsRef.current };
           });
-          // hasDoneInitialGenerationRef.current wurde bereits oben optimistisch auf true gesetzt.
+          if (onAiGenerationComplete) {
+            onAiGenerationComplete(rect.id);
+          }
         })
         .catch(error => {
           console.error("Error processing initial stage text generations (Promise.all failed):", error);
-          // Hier könntest du entscheiden, hasDoneInitialGenerationRef.current wieder auf false zu setzen,
-          // damit ein erneuter Versuch beim nächsten Resize möglich ist, oder Fehler in stagedTexts anzeigen.
-          // Für den Moment bleibt es true, um die "nur einmal generieren" Logik strikt zu halten,
-          // aber die Texte könnten Fehler enthalten.
-          // Eine robustere Fehlerbehandlung würde hier ansetzen.
+        })
+        .finally(() => {
+          setIsGeneratingStagedTexts(false);
         });
     }
-
-    // Starte den eigentlichen Resize-Vorgang SOFORT, nachdem die asynchrone Logik angestoßen wurde.
     startResizing(e, handle);
-
   }, [
     textcardText,
-    optimisticDisplayText, // Wird am Anfang von handleResize gelesen
+    optimisticDisplayText,
     startResizing,
     chatGPTService,
     rect.id,
     handleSelection,
-    // setOptimisticDisplayText, setStagedTexts (stabile Setter)
-    // hasDoneInitialGenerationRef, initialBaseTextForGenerationsRef (Refs, ändern nicht die Callback-Identität)
+    onAiGenerationComplete
   ]);
 
   const handleEditing = () => {
@@ -717,26 +716,35 @@ const TextCard = ({
         />
       )}
       <div
+        className={isGeneratingStagedTexts ? animationStyles.loadingPulseDiv : ''}
         style={textcardStyles}
         onMouseDown={handleDrag}
         onDoubleClick={handleEditing}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <TextCardContent
-          isEditing={isEditing}
-          text={displayText}
-          onChange={handleTextChange}
-          onBlur={() => setIsEditing(false)}
-          textAlign={properties.textAlign}
-          textColor={properties.textColor}
-          font={properties.font}
-          textSize={properties.textSize}
-          fontStyles={properties.fontStyles}
-          containerSize={size}
-          scale={scaleRef.current}
-          onDoubleClick={handleDoubleClick}
-        />
+        {isGeneratingStagedTexts ? (
+          <div className={animationStyles ? animationStyles.loadingDotsContainer : "loadingDotsContainer"}>
+            <span>.</span>
+            <span>.</span>
+            <span>.</span>
+          </div>
+        ) : (
+          <TextCardContent
+            isEditing={isEditing}
+            text={displayText}
+            onChange={handleTextChange}
+            onBlur={() => setIsEditing(false)}
+            textAlign={properties.textAlign}
+            textColor={properties.textColor}
+            font={properties.font}
+            textSize={properties.textSize}
+            fontStyles={properties.fontStyles}
+            containerSize={size}
+            scale={scaleRef.current}
+            onDoubleClick={handleDoubleClick}
+          />
+        )}
         {showActionBar && (
           <Handles
             onResize={handleResize}
