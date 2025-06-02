@@ -18,7 +18,7 @@ import animationStyles from "@/components/Tools/PreviewTools/ArrowTool.module.cs
 const TEXTCARD_SIZE_STAGES = [
   // thresholdWidth: Die maximale Breite für diese Stufe (exklusiv der nächsten)
   { name: "Original Text", thresholdWidth: 150, representativeHeight: 50 },
-  { name: "Keyword", thresholdWidth: 190, representativeHeight: 60 },
+  { name: "Keywords", thresholdWidth: 190, representativeHeight: 60 },
   { name: "Short Phrase", thresholdWidth: 250, representativeHeight: 70 },
   { name: "Short Text", thresholdWidth: 300, representativeHeight: 100 },
   { name: "Medium Text", thresholdWidth: 350, representativeHeight: 150 },

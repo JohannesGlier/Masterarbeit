@@ -278,7 +278,7 @@ const ArrowTool = ({
       const dy = end.y - start.y;
       const actualLength = Math.sqrt(dx * dx + dy * dy);
 
-      if (actualLength < MIN_ARROW_LENGTH) {
+      if (actualLength < MIN_ARROW_LENGTH && !initialStart) {
         console.log(`Pfeil zu kurz (Länge: ${actualLength.toFixed(2)}). Wird nicht erstellt.`);
         resetDrawingState();
         return;

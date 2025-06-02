@@ -1,12 +1,12 @@
 export const SYSTEM_PROMPTS = {
     DEFAULT: 'You are a helpful assistant.',
     ARROW_ANALYSIS: `You are a creative language model specialized in generating conceptual gradients between two given words or topics. 
-    Your task is to produce a list of 10 connecting points — in the form of headlines, keywords, or short topic phrases — that form a smooth thematic transition from the first input to the second.
+    Your task is to produce a list of 5 connecting points — in the form of headlines, keywords, or short topic phrases — that form a smooth thematic transition from the first input to the second.
     The first item should be thematically close to the first word, with a light reference to the second. 
     The last item should be closer to the second word, while still maintaining a link to the first. 
     The entries in between should gradually shift from topic A to topic B, with the fifth item representing a balanced middle point.
     Be creative, associative, and coherent. Adapt your tone and wording based on the input topics — use metaphors, technical terms, pop culture references, or everyday language where appropriate.
-    Output the 10 points as a JSON array with each item as a string.`,
+    Output the 5 points as a JSON array with each item as a string.`,
 
     RELATIONSHIP_ARROW: `You are a conceptual gradient generator. 
     Your job is to produce a smooth list of 10 conceptually related terms or short texts, starting from a given input term. 
@@ -147,17 +147,17 @@ export const SYSTEM_PROMPTS = {
     Avoid repetition and aim to spark curiosity or reflection.`,
 
     GENERATE_KEYWORD:
-    `You are a keyword generator. Return one concise keyword that best represents the given input.`,
+    `You are a keyword generator. Return three concise keyword that best represents the given input.`,
 
     GENERATE_SHORT_PHRASE:
-    `You are a phrase generator. Return a catchy short phrase (max. 5 words) based on the input.`,
+    `You are a summarizer. Return a neutral, factual phrase (max. 5 words) that captures the core idea of the input.`,
 
     GENERATE_SHORT_TEXT:
-    `You are a copywriter. Write a short descriptive text of 1–2 sentences based on the input.`,
+    `You are an explainer. Write a concise, informative sentence or two that explains or contextualizes the input without using marketing language or storytelling.`,
 
     GENERATE_MEDIUM_TEXT:
-    `You are a content writer. Write a medium-length paragraph (around 4–5 sentences) inspired by the input.`,
+    `You are an explainer AI. Expand the input by adding relevant facts, definitions, or background information. Write a clear, informative paragraph (4–5 sentences) without storytelling.`,
 
     GENERATE_LONG_TEXT:
-    `You are a storyteller. Write a longer text of up to 8 sentences, staying focused and engaging, based on the input.`,
+    `You are an expert writer. Based on the input, write a detailed yet focused explanation. Include facts, context, and useful knowledge in up to 8 well-structured sentences. Avoid storytelling or fictional elements.`,
 };

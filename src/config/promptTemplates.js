@@ -1,10 +1,10 @@
 export const DEFAULT_PROMPT_TEMPLATES = {
     ARROW_ANALYSIS: ({ startText, endText }) => 
-      `Generate 10 connecting points between the concepts "${startText}" and "${endText}".
+      `Generate 5 connecting points between the concepts "${startText}" and "${endText}".
       The list should represent a conceptual gradient from the first to the second term.
       Return only short headlines, keywords, or phrases.
       Return the result as a JSON array with each item as a string.`, 
-  
+
     RELATIONSHIP_ARROW: ({ textFromTextcard }) => 
       `**Task Description:**
         Generate exactly 10 thematically related terms or short texts based on the provided input term. 
@@ -57,9 +57,9 @@ export const DEFAULT_PROMPT_TEMPLATES = {
        The response must contain only the JSON object.`,
 
     COMBINE_TEXTCARDS: ({ text1, text2 }) => 
-    `Input:
-    Concept 1 (C1): ${text1 || "No context"}
-    Concept 2 (C2): ${text2 || "No context"}`,
+      `Input:
+      Concept 1 (C1): ${text1 || "No context"}
+      Concept 2 (C2): ${text2 || "No context"}`,
 
     SUMMARIZE: ({ text }) => 
       `Summarize the following text concisely. Provide only the summary: ${text}`,
