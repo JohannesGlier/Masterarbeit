@@ -128,7 +128,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (((event.ctrlKey && event.key === "x") || event.key === "Delete" || event.key === "Backspace") && selectedElements.length > 0) {
+      if (((event.ctrlKey && event.key === "x") || event.key === "Delete") && selectedElements.length > 0) {
         deleteSelectedElements();
       }
     };

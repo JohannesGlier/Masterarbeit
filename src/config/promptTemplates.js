@@ -107,6 +107,12 @@ export const DEFAULT_PROMPT_TEMPLATES = {
     GENERATE_FIRST_TEXTCARD: () => 
       `Surprise the user with a random topic, a provocative statement, a creative idea, or a critical question. The generated text must be no longer than one sentence.`,
 
+    GENERATE_KEYWORD: ({ text }) => `${text}`,
+    GENERATE_SHORT_PHRASE: ({ text }) => `${text}`,
+    GENERATE_SHORT_TEXT: ({ text }) => `${text}`,
+    GENERATE_MEDIUM_TEXT: ({ text }) => `${text}`,
+    GENERATE_LONG_TEXT: ({ text }) => `${text}`,
+
     DEFAULT: (message) => message
 };
   

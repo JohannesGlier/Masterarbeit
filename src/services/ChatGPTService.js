@@ -145,6 +145,46 @@ export class ChatGPTService {
     });
   }
 
+  async generateShortPhrase(text) {
+    const prompt = this.promptTemplates.GENERATE_SHORT_PHRASE({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'GENERATE_SHORT_PHRASE' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
+  async generateKeyword(text) {
+    const prompt = this.promptTemplates.GENERATE_KEYWORD({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'GENERATE_KEYWORD' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
+  async generateShortText(text) {
+    const prompt = this.promptTemplates.GENERATE_SHORT_TEXT({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'GENERATE_SHORT_TEXT' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
+  async generateMediumText(text) {
+    const prompt = this.promptTemplates.GENERATE_MEDIUM_TEXT({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'GENERATE_MEDIUM_TEXT' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
+  async generateLongText(text) {
+    const prompt = this.promptTemplates.GENERATE_LONG_TEXT({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'GENERATE_LONG_TEXT' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
   async customRequest(message) {
     const prompt = this.promptTemplates.DEFAULT(message);
     return this._sendRequest({
