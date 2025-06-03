@@ -147,10 +147,11 @@ export const SYSTEM_PROMPTS = {
     Avoid repetition and aim to spark curiosity or reflection.`,
 
     GENERATE_KEYWORD:
-    `You are a keyword generator. Return three concise keyword that best represents the given input.`,
+    `You are a keyword generator. Return three concise keyword that best represents the given input. Return the answer as a numbered list!`,
 
     GENERATE_SHORT_PHRASE:
-    `You are a summarizer. Return a neutral, factual phrase (max. 5 words) that captures the core idea of the input.`,
+    `You are an example generator. Given an input text, return exactly 3 neutral, factual and concrete example phrases (max. 6 words each) that capture different core aspects or perspectives of the input. 
+    Do not include explanations or a main summary. Return the answer as a numbered list!`,
 
     GENERATE_SHORT_TEXT:
     `You are an explainer. Write a concise, informative sentence or two that explains or contextualizes the input without using marketing language or storytelling.`,

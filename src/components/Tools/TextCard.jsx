@@ -19,7 +19,7 @@ const TEXTCARD_SIZE_STAGES = [
   // thresholdWidth: Die maximale Breite für diese Stufe (exklusiv der nächsten)
   { name: "Original Text", thresholdWidth: 150, representativeHeight: 50 },
   { name: "Keywords", thresholdWidth: 190, representativeHeight: 60 },
-  { name: "Short Phrase", thresholdWidth: 250, representativeHeight: 70 },
+  { name: "Examples", thresholdWidth: 250, representativeHeight: 70 },
   { name: "Short Text", thresholdWidth: 300, representativeHeight: 100 },
   { name: "Medium Text", thresholdWidth: 350, representativeHeight: 150 },
   { name: "Long Text", thresholdWidth: Infinity, representativeHeight: 200 }, // Letzte Stufe ohne obere Grenze
@@ -540,8 +540,8 @@ const TextCard = ({
           let response;
           console.log(`   Requesting ChatGPT for stage: "${stage.name}" with base text: "${initialBaseTextForGenerationsRef.current}"`);
           switch (stage.name) {
-            case "Keyword": response = await chatGPTService.generateKeyword(initialBaseTextForGenerationsRef.current); break;
-            case "Short Phrase": response = await chatGPTService.generateShortPhrase(initialBaseTextForGenerationsRef.current); break;
+            case "Keywords": response = await chatGPTService.generateKeyword(initialBaseTextForGenerationsRef.current); break;
+            case "Examples": response = await chatGPTService.generateShortPhrase(initialBaseTextForGenerationsRef.current); break;
             case "Short Text": response = await chatGPTService.generateShortText(initialBaseTextForGenerationsRef.current); break;
             case "Medium Text": response = await chatGPTService.generateMediumText(initialBaseTextForGenerationsRef.current); break;
             case "Long Text": response = await chatGPTService.generateLongText(initialBaseTextForGenerationsRef.current); break;

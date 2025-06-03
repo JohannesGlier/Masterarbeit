@@ -855,23 +855,34 @@ const Arrow = ({
           const shouldAnimate = !isCurrentlyHovered && !hasBeenInteractedWith;
           const animationClass = shouldAnimate ? styles['permanent-point-animate'] : "";
 
+          const pointStyle = {
+              position: "absolute",
+              left: `${pointScreenX}px`,
+              top: `${pointScreenY}px`,
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#B2B0EA", // Default background color
+              borderRadius: "50%",
+              transform: "translate(-50%, -50%)", // Default transform
+              zIndex: (arrowInlineStyles.zIndex || 1) + 1,
+              pointerEvents: "auto",
+              cursor: "pointer",
+              transition: "background-color 0.2s ease, transform 0.2s ease", // Smooth transition for hover effect
+          };
+
+          if (isCurrentlyHovered) {
+              pointStyle.backgroundColor = "#8A88C5"; // Example: darker shade for highlight
+              pointStyle.transform = "translate(-50%, -50%) scale(1.2)"; // Example: make it slightly bigger
+              // You could also add a border, box-shadow, etc.
+              // pointStyle.border = "2px solid #FFFFFF";
+              // pointStyle.boxShadow = "0 0 8px rgba(0,0,0,0.3)";
+          }
+
           return (
             <div
               key={`permanent-point-${arrow.id}-${index}`}
               className={animationClass}
-              style={{
-                position: "absolute",
-                left: `${pointScreenX}px`,
-                top: `${pointScreenY}px`,
-                width: "16px",
-                height: "16px",
-                backgroundColor: "#B2B0EA",
-                borderRadius: "50%",
-                transform: "translate(-50%, -50%)",
-                zIndex: (arrowInlineStyles.zIndex || 1) + 1,
-                pointerEvents: "auto",
-                cursor: "pointer",
-              }}
+              style={pointStyle}
               onDoubleClick={CreateTextcardFromTooltip}
               onMouseEnter={(e) => showTooltipForPoint(e, responseItems[index], index)}
               onMouseLeave={hideTooltip}
