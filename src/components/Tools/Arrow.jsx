@@ -72,6 +72,8 @@ const Arrow = ({
   const [tooltipText, setTooltipText] = useState("");
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [hoverPointPosition, setHoverPointPosition] = useState(null);
+  const [hoveredPointIndex, setHoveredPointIndex] = useState(null);
+  const [interactedPointIndices, setInteractedPointIndices] = useState(new Set());
   const prevIsLoadingRef = useRef();
   const promptRunForAssociatedTemplateRef = useRef(false);
   const prevIsOutputEndConnectedRef = useRef(undefined);
@@ -772,6 +774,32 @@ const Arrow = ({
     setProperties
   ]);
 
+  const showTooltipForPoint = (event, text, index) => {
+    if (typeof text === "string") {
+      setTooltipText(text);
+    } else {
+      console.error("Tooltip-Inhalt ist kein String:", text);
+      setTooltipText("Error: Ungültiger Datentyp");
+    }
+    setTooltipPosition({ x: event.clientX + 15, y: event.clientY + 10 });
+    setTooltipVisible(true);
+    setHoveredPointIndex(index);
+
+    if (!interactedPointIndices.has(index)) {
+      setInteractedPointIndices(prevIndices => {
+        const newIndices = new Set(prevIndices);
+        newIndices.add(index);
+        return newIndices;
+      });
+    }
+  };
+
+  const hideTooltip = () => {
+    setTooltipVisible(false);
+    setHoveredPointIndex(null);
+    setHoverPointPosition(null);
+  };
+
   return (
     <>
       <div
@@ -779,9 +807,9 @@ const Arrow = ({
         className={arrowClassName}
         style={arrowInlineStyles}
         onClick={SelectArrow}
-        onDoubleClick={CreateTextcardFromTooltip}
-        onMouseMove={responseItems?.length > 0 ? handleMouseMove : undefined}
-        onMouseLeave={responseItems?.length > 0 ? handleMouseLeave : undefined}
+        //onDoubleClick={CreateTextcardFromTooltip}
+        //onMouseMove={responseItems?.length > 0 ? handleMouseMove : undefined}
+        //onMouseLeave={responseItems?.length > 0 ? handleMouseLeave : undefined}
       />
 
       {tooltipVisible && start && end && (
@@ -813,28 +841,44 @@ const Arrow = ({
         </div>
       )}
 
-      {tooltipVisible && hoverPointPosition && start && end && (
-        <div
-          style={{
-            position: "absolute",
-            left: `${
-              hoverPointPosition.x * scaleRef.current + offsetRef.current.x
-            }px`,
-            top: `${
-              hoverPointPosition.y * scaleRef.current + offsetRef.current.y
-            }px`,
-            width: "13px",
-            height: "13px",
-            backgroundColor: "rgba(0, 0, 0, 1)",
-            borderRadius: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: (arrowInlineStyles.zIndex || 1) + 1,
-            pointerEvents: "none",
-            transition: "opacity 0.3s ease-in-out",
-            opacity: 1,
-          }}
-          aria-hidden="true"
-        />
+      {responseItems && responseItems.length > 0 && start && end && arrowGeometry && arrowGeometry.lengthSq > 0 && (responseItems.map((_, index) => {
+          const normalizedDistance = (index + 0.5) / responseItems.length;
+          const pointX_logical = arrowGeometry.x1 + arrowGeometry.dx * normalizedDistance;
+          const pointY_logical = arrowGeometry.y1 + arrowGeometry.dy * normalizedDistance;
+
+          const pointScreenX = pointX_logical * scaleRef.current + offsetRef.current.x;
+          const pointScreenY = pointY_logical * scaleRef.current + offsetRef.current.y;
+
+          const isCurrentlyHovered = hoveredPointIndex === index;
+          const hasBeenInteractedWith = interactedPointIndices.has(index);
+
+          const shouldAnimate = !isCurrentlyHovered && !hasBeenInteractedWith;
+          const animationClass = shouldAnimate ? styles['permanent-point-animate'] : "";
+
+          return (
+            <div
+              key={`permanent-point-${arrow.id}-${index}`}
+              className={animationClass}
+              style={{
+                position: "absolute",
+                left: `${pointScreenX}px`,
+                top: `${pointScreenY}px`,
+                width: "16px",
+                height: "16px",
+                backgroundColor: "#B2B0EA",
+                borderRadius: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: (arrowInlineStyles.zIndex || 1) + 1,
+                pointerEvents: "auto",
+                cursor: "pointer",
+              }}
+              onDoubleClick={CreateTextcardFromTooltip}
+              onMouseEnter={(e) => showTooltipForPoint(e, responseItems[index], index)}
+              onMouseLeave={hideTooltip}
+              aria-hidden="true"
+            />
+          );
+        })
       )}
 
       <ArrowHeads

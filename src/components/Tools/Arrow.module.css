@@ -8,6 +8,25 @@
 .arrow-line:hover {
   cursor: inherit; /* Übernimmt den Wert aus den inline-styles */
 }
+
+@keyframes pulse-blink-animation {
+  0% {
+    transform: scale(1) translate(-50%, -50%); /* Basis-Transformation für Zentrierung */
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) translate(-50%, -50%); /* Pulsieren: etwas größer */
+    opacity: 0.8; /* Blinken: etwas transparenter */
+  }
+  100% {
+    transform: scale(1) translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+.permanent-point-animate {
+  animation: pulse-blink-animation 1.5s infinite ease-in-out;
+}
   
 @keyframes pulse-opacity {
   0%, 100% {
