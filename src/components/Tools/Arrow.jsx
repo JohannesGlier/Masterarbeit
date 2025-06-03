@@ -1000,7 +1000,7 @@ const Arrow = ({
           })()
       }
 
-      {isSelected && (
+      {isSelected && selectedElements.length === 1 && (
         <>
           <ArrowHandles
             start={{ x: startX, y: startY }}
@@ -1013,7 +1013,7 @@ const Arrow = ({
             onDoubleClick={SelectOutput}
           />
 
-          <ArrowActionBar {...arrowActionBarProps} />
+          <ArrowActionBar {...arrowActionBarProps}/>
         </>
       )}
 

@@ -46,6 +46,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const [arrowTexts, setArrowTexts] = useState({});
   const previousView = useRef(activeView);
   const { setCursorStyle, cursorStyle: currentGlobalCursor } = useCursor();
+  const [clipboardContent, setClipboardContent] = useState(null);
 
   const elements = useMemo(() => {
     return [
@@ -127,9 +128,40 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   }, [arrows, elements, processedArrows, loadingArrows]);
 
   useEffect(() => {
+    // Shortcuts
     const handleKeyDown = (event) => {
-      if (((event.ctrlKey && event.key === "x") || event.key === "Delete") && selectedElements.length > 0) {
+      // Entfernen
+      if (((event.ctrlKey && (event.key === "x" || event.key === "X")) || event.key === "Delete") && selectedElements.length > 0) {
         deleteSelectedElements();
+      }
+
+      // Alles auswählen
+      if(event.ctrlKey && (event.key === "a" || event.key === "A")){  // Select All Elements
+        event.preventDefault();
+        const allElementsToSelect = [
+          ...rectangles,
+          ...textcards,  
+          ...arrows    
+        ];
+        setSelectedElements(allElementsToSelect);
+      }
+
+      // Duplizieren
+      if (event.ctrlKey && (event.key === "d" || event.key === "D")) {
+        event.preventDefault();
+        duplicateSelectedElements();
+      }
+
+      // Copy
+      if (event.ctrlKey && (event.key === "c" || event.key === "C")) {
+        event.preventDefault();
+        copySelectedElementsToClipboard();
+      }
+
+      // Paste
+      if (event.ctrlKey && (event.key === "v" || event.key === "V")) {
+        event.preventDefault();
+        pasteElementsFromClipboard();
       }
     };
 
@@ -137,7 +169,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedElements]);
+  }, [selectedElements, rectangles, textcards, arrows, clipboardContent]);
 
   useEffect(() => {
     const updatedArrows = arrows.map((arrow) => {
@@ -264,6 +296,172 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
     if (currentGlobalCursor === 'grab' || currentGlobalCursor === 'grabbing') {
       setCursorStyle("default");
    }
+  };
+
+  const duplicateSelectedElements = () => {
+    if (selectedElements.length === 0) {
+      console.log("Keine Elemente zum Duplizieren ausgewählt.");
+      return;
+    }
+
+    // Wichtig: Für DUPLIZIEREN müssen wir die *aktuellen, vollständigen Daten*
+    // der ausgewählten Elemente aus dem Canvas-Zustand holen.
+    const elementsToActuallyDuplicate = selectedElements.map(selectedElRef => {
+      // Finde das vollständige Objekt im jeweiligen Zustandsarray
+      return (
+        rectangles.find(r => r.id === selectedElRef.id) ||
+        textcards.find(tc => tc.id === selectedElRef.id) ||
+        arrows.find(a => a.id === selectedElRef.id)
+      );
+    }).filter(Boolean); // Entferne undefined-Einträge, falls ein Element nicht gefunden wurde
+
+    if (elementsToActuallyDuplicate.length > 0) {
+      const DUPLICATION_OFFSET = 20;
+      const { newSelection } = createAndPlaceCopies(elementsToActuallyDuplicate, DUPLICATION_OFFSET);
+      if (newSelection.length > 0) {
+        setSelectedElements(newSelection); // Die neuen Duplikate auswählen
+      }
+    } else {
+      console.log("Konnte die ausgewählten Elemente nicht für das Duplizieren auflösen.");
+    }
+  };
+
+  const createAndPlaceCopies = (sourceElements, offsetValue) => {
+    if (!sourceElements || sourceElements.length === 0) {
+      console.log("Keine Quell-Elemente zum Erstellen von Kopien übergeben.");
+      return { newCreatedElements: [], newSelection: [] };
+    }
+
+    const newCreatedRectangles = [];
+    const newCreatedTextcards = [];
+    const newCreatedArrows = [];
+    const newSelectionForCanvas = [];
+    const idMap = new Map();
+    const DUPLICATION_OFFSET = offsetValue; 
+
+    // --- PHASE 1: Dupliziere Nicht-Pfeil-Elemente (Rechtecke, Textkarten) ---
+    sourceElements.forEach(selectedEl => {
+      const newId = generateUniqueId();
+
+      // Ist das ausgewählte Element ein Rechteck?
+      const originalRect = rectangles.find(r => r.id === selectedEl.id);
+      if (originalRect) {
+        const newRect = {
+          ...originalRect,
+          id: newId,
+          x: originalRect.x + DUPLICATION_OFFSET,
+          y: originalRect.y + DUPLICATION_OFFSET,
+          zIndex: incrementZIndex("rectangle"),
+        };
+        newCreatedRectangles.push(newRect);
+        newSelectionForCanvas.push(newRect);
+        idMap.set(originalRect.id, newId);
+        return;
+      }
+
+      // Ist das ausgewählte Element eine Textkarte?
+      const originalTextcard = textcards.find(tc => tc.id === selectedEl.id);
+      if (originalTextcard) {
+        const newTextcard = {
+          ...originalTextcard,
+          id: newId,
+          x: originalTextcard.x + DUPLICATION_OFFSET,
+          y: originalTextcard.y + DUPLICATION_OFFSET,
+          zIndex: incrementZIndex("textcard"),
+        };
+        newCreatedTextcards.push(newTextcard);
+        newSelectionForCanvas.push(newTextcard);
+        idMap.set(originalTextcard.id, newId);
+        return;
+      }
+    });
+
+    // --- PHASE 2: Dupliziere Pfeile ---
+    sourceElements.forEach(selectedEl => {
+    const originalArrow = arrows.find(a => a.id === selectedEl.id);
+    if (originalArrow) {
+      const newId = generateUniqueId();
+      const newZIndex = incrementZIndex();
+
+      const newArrow = {
+        ...originalArrow,
+        id: newId,
+        zIndex: incrementZIndex("arrow"),
+        start: { ...originalArrow.start }, // Wichtig: Tiefe Kopie für start/end
+        end: { ...originalArrow.end },
+      };
+
+      // Aktualisiere Startpunkt des Pfeils
+      if (originalArrow.start.elementId) {
+        const newConnectedStartId = idMap.get(originalArrow.start.elementId);
+        if (newConnectedStartId) {
+          newArrow.start.elementId = newConnectedStartId;
+        } else {
+          // Das verbundene Element wurde NICHT dupliziert, Pfeil zeigt weiter auf Original
+          // newArrow.start.elementId bleibt originalArrow.start.elementId
+        }
+      } else {
+        newArrow.start.x += DUPLICATION_OFFSET;
+        newArrow.start.y += DUPLICATION_OFFSET;
+      }
+
+      // Aktualisiere Endpunkt des Pfeils
+      if (originalArrow.end.elementId) {
+        const newConnectedEndId = idMap.get(originalArrow.end.elementId);
+        if (newConnectedEndId) {
+          newArrow.end.elementId = newConnectedEndId;
+        }
+      } else {
+        newArrow.end.x += DUPLICATION_OFFSET;
+        newArrow.end.y += DUPLICATION_OFFSET;
+      }
+
+      newCreatedArrows.push(newArrow);
+      newSelectionForCanvas.push(newArrow);
+      }
+    });
+
+    // --- Zustände aktualisieren ---
+    if (newCreatedRectangles.length > 0) {
+      setRectangles(prev => [...prev, ...newCreatedRectangles]);
+    }
+    if (newCreatedTextcards.length > 0) {
+      setTextCards(prev => [...prev, ...newCreatedTextcards]);
+    }
+    if (newCreatedArrows.length > 0) {
+      setArrows(prev => [...prev, ...newCreatedArrows]);
+    }
+
+    console.log(`${newSelectionForCanvas.length} Element(e) durch 'createAndPlaceCopies' erstellt.`);
+    return { newCreatedElements: newSelectionForCanvas, newSelection: newSelectionForCanvas };
+  };
+
+  const copySelectedElementsToClipboard = () => {
+    if (selectedElements.length === 0) {
+      setClipboardContent(null);
+      console.log("Nichts zum Kopieren ausgewählt.");
+      return;
+    }
+
+    // Erstelle tiefe Kopien, um Änderungen an Originalen nach dem Kopieren zu vermeiden
+    const deepCopiedElements = selectedElements.map(el => JSON.parse(JSON.stringify(el)));
+
+    setClipboardContent({elements: deepCopiedElements});
+    console.log(`${deepCopiedElements.length} Element(e) in die Zwischenablage kopiert.`);
+  };
+
+  const pasteElementsFromClipboard = () => {
+    if (!clipboardContent || clipboardContent.elements.length === 0) {
+      console.log("Zwischenablage ist leer.");
+      return;
+    }
+
+    const PASTE_OFFSET = 30; // Du kannst diesen Wert auch dynamisch machen
+    const { newSelection } = createAndPlaceCopies(clipboardContent.elements, PASTE_OFFSET);
+
+    if (newSelection.length > 0) {
+      setSelectedElements(newSelection); // Die neu eingefügten Elemente auswählen
+    }
   };
 
   const deleteLayoutViewElements = () => {
