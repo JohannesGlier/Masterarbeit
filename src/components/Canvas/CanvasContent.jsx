@@ -838,9 +838,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           {/* Rendern der gespeicherten Rechtecke */}
           {rectangles
             .filter((rect) => rect.activeView === "StandardView")
-            .map((rect, index) => (
+            .map((rect) => (
               <Frame
-                key={index}
+                key={rect.id}
                 rect={rect}
                 headingText={rect.heading}
                 scaleRef={scaleRef}
@@ -855,9 +855,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           {/* Rendern der gespeicherten Textkarten */}
           {textcards
             .filter((textcard) => textcard.activeView === "StandardView")
-            .map((textcard, index) => (
+            .map((textcard) => (
               <TextCard
-                key={index}
+                key={textcard.id}
                 rect={textcard}
                 textcardText={textcard.text}
                 onTextChange={(newText) =>
@@ -877,9 +877,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           {/* Rendern der gespeicherten Verbindungen */}
           {arrows
             .filter((arrow) => arrow.activeView === "StandardView")
-            .map((arrow, index) => (
+            .map((arrow) => (
               <Arrow
-                key={index}
+                key={arrow.id}
                 arrow={arrow}
                 scaleRef={scaleRef}
                 offsetRef={offsetRef}
@@ -900,9 +900,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           {/* Rendern der gespeicherten Rechtecke */}
           {rectangles
             .filter((rect) => rect.activeView === "LayoutView")
-            .map((rect, index) => (
+            .map((rect) => (
               <Frame
-                key={index}
+                key={rect.id}
                 rect={rect}
                 headingText={rect.heading}
                 scaleRef={scaleRef}
@@ -919,9 +919,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           {/* Rendern der gespeicherten Textkarten */}
           {textcards
             .filter((textcard) => textcard.activeView === "LayoutView")
-            .map((textcard, index) => (
+            .map((textcard) => (
               <TextCard
-                key={index}
+                key={textcard.id}
                 rect={textcard}
                 textcardText={textcard.text}
                 onTextChange={(newText) =>
@@ -941,9 +941,9 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           {/* Rendern der gespeicherten Verbindungen */}
           {arrows
             .filter((arrow) => arrow.activeView === "LayoutView")
-            .map((arrow, index) => (
+            .map((arrow) => (
               <Arrow
-                key={index}
+                key={arrow.id}
                 arrow={arrow}
                 scaleRef={scaleRef}
                 offsetRef={offsetRef}
