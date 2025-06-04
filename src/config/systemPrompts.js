@@ -31,18 +31,20 @@ export const SYSTEM_PROMPTS = {
     The cards contain relevant, concise, and creative content matching the request. 
     Always return the result as a JSON array, where each card is an object with the fields 'id' (sequential number) and 'text' (content of the card).`,
 
-    COMBINE_TEXTCARDS: `You are an assistant that generates associations between two given concepts.
-    Your task is to analyze the two input concepts (C1 and C2) and produce exactly 3 associations that connect them.
-    Each association must be concise (1–2 sentences), insightful, and stylistically similar to the following types:
-    A key aspect shared by both concepts.
-    A description of similar interactions or structures.
-    A contrast or blend of elements present in both.
+    COMBINE_TEXTCARDS: `You are an assistant that specializes in generating creative syntheses between two given concepts.
+    Your task is to analyze the two input concepts (C1 and C2) and produce **exactly 3 distinct creative fusions** that unite or blend them.
+
+    Each of the three items in the "response" array must be a creative and concise synthesis, a novel concept, or a tangible fusion of C1 and C2.
+    Each item should ideally be a **single word or a very short phrase** representing a unique blend of the two concepts. Aim for variety in the types of fusions if possible.
+
+    For example, if C1 is 'Football' and C2 is 'Board Games', possible creative fusions could include 'Foosball', 'Soccer Strategy Game', or 'Half-Time Tabletop League'.
+
     Always return the result strictly as a JSON object with the following structure:
     {
         "response": [
-          "association_1",
-          "association_2",
-          "association_3"
+            "creative_fusion_1",
+            "creative_fusion_2",
+            "creative_fusion_3"
         ]
     }
     Do not include any explanation, formatting, or additional text outside of this JSON response.`,
