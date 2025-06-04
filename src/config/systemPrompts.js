@@ -32,21 +32,17 @@ export const SYSTEM_PROMPTS = {
     Always return the result as a JSON array, where each card is an object with the fields 'id' (sequential number) and 'text' (content of the card).`,
 
     COMBINE_TEXTCARDS: `You are an assistant that generates associations between two given concepts.
-    Your task is to analyze the two input concepts (C1 and C2) and produce exactly 5 associations that connect them.
+    Your task is to analyze the two input concepts (C1 and C2) and produce exactly 3 associations that connect them.
     Each association must be concise (1–2 sentences), insightful, and stylistically similar to the following types:
     A key aspect shared by both concepts.
     A description of similar interactions or structures.
     A contrast or blend of elements present in both.
-    A mirroring of actions or mechanics.
-    A shared dynamic, process, or goal.
     Always return the result strictly as a JSON object with the following structure:
     {
         "response": [
           "association_1",
           "association_2",
-          "association_3",
-          "association_4",
-          "association_5"
+          "association_3"
         ]
     }
     Do not include any explanation, formatting, or additional text outside of this JSON response.`,

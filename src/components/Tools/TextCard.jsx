@@ -59,6 +59,7 @@ const TextCard = ({
   const [position, setPosition] = useState({ x: rect.x, y: rect.y });
   const [size, setSize] = useState({ width: rect.width, height: rect.height });
   const [isDragging, setIsDragging] = useState(false);
+  const [showPreviews, setShowPreviews] = useState(false);
   const [textcardCache, setTextcardCache] = useState({});
   const [currentOverTextcard, setCurrentOverTextcard] = useState(null);
   const [currentResponseIndex, setCurrentResponseIndex] = useState(0);
@@ -256,23 +257,66 @@ const TextCard = ({
       const textCardsInside = elementsInside.filter((element) => element.type === "textcard" && element.id !== rect.id);
 
       if (textCardsInside.length > 0) {
-        const topTextCard = textCardsInside.reduce((prev, current) =>prev.zIndex > current.zIndex ? prev : current);
+        const topTextCard = textCardsInside.reduce((prev, current) => prev.zIndex > current.zIndex ? prev : current);
 
         if (topTextCard.id !== currentOverTextcard?.id) {
           setCurrentOverTextcard(topTextCard);
-          const cacheEntry = textcardCache[topTextCard.id];
-
-          if ((!cacheEntry || !cacheEntry.responses || cacheEntry.responses.length === 0 || cacheEntry.error) && topTextCard.text && textcardText) {
-            console.log("Neue Textkarte überfahren oder Cache leer/fehlerhaft, starte ChatGPT-Kombinationsaufruf für 3 Previews");
-            getTextcardCombinationTexts(topTextCard.text, topTextCard.id);
-          } else if (cacheEntry && cacheEntry.responses && cacheEntry.responses.length > 0) {
-            console.log("Verwende zwischengespeicherte Kombinationsantworten.");
-          }
         }
+
+        if (currentOverTextcard && currentOverTextcard.id === topTextCard.id) {
+          const r1 = {
+            left: currentRect.x,
+            top: currentRect.y,
+            right: currentRect.x + currentRect.width,
+            bottom: currentRect.y + currentRect.height,
+            width: currentRect.width,
+            height: currentRect.height,
+          };
+          const r2 = { // topTextCard - Annahme: hat x, y, width, height
+            left: topTextCard.position.x,
+            top: topTextCard.position.y,
+            right: topTextCard.position.x + topTextCard.size.width,
+            bottom: topTextCard.position.y + topTextCard.size.height,
+            width: topTextCard.size.width,
+            height: topTextCard.size.height,
+          };
+
+          // Berechne die Schnittmenge (Überlappungsrechteck)
+          const intersectionLeft = Math.max(r1.left, r2.left);
+          const intersectionTop = Math.max(r1.top, r2.top);
+          const intersectionRight = Math.min(r1.right, r2.right);
+          const intersectionBottom = Math.min(r1.bottom, r2.bottom);
+
+          let overlapArea = 0;
+          if (intersectionRight > intersectionLeft && intersectionBottom > intersectionTop) {
+            overlapArea = (intersectionRight - intersectionLeft) * (intersectionBottom - intersectionTop);
+          }
+
+          const areaTopTextCard = r2.width * r2.height;
+          const overlapThreshold = 0.4 * areaTopTextCard;
+
+          if (areaTopTextCard > 0 && overlapArea > overlapThreshold) {
+            setShowPreviews(true);
+            const cacheEntry = textcardCache[topTextCard.id];
+
+            if ((!cacheEntry || !cacheEntry.responses || !cacheEntry.responses.length === 0 || cacheEntry.error) && topTextCard.text && textcardText) {
+              // Zusätzliche Sicherung: Nur starten, wenn nicht schon eine Generierung für diese Karte läuft
+              if (!cacheEntry?.isGeneratingResponse) {
+                  //console.log("Neue Textkarte überfahren (genug Überlappung) oder Cache leer/fehlerhaft, starte ChatGPT-Kombinationsaufruf für 3 Previews");
+                  getTextcardCombinationTexts(topTextCard.text, topTextCard.id);
+              }
+            } else if (cacheEntry && cacheEntry.responses && cacheEntry.responses.length > 0) {
+              console.log("Genug Überlappung. Verwende zwischengespeicherte Kombinationsantworten.");
+            }
+          }
+          else
+            setShowPreviews(false);
+        }
       } else {
         if (currentOverTextcard !== null) {
           console.log("Keine Überlappung mehr, entferne Previews.");
           setCurrentOverTextcard(null);
+          setShowPreviews(false);
         }
       }
     };
@@ -386,13 +430,13 @@ const TextCard = ({
       const currentEntry = prevCache[baseCardId];
       if (!currentEntry || !currentEntry.responses) {
         if (currentEntry && currentEntry.responses) {
-          arePreviewsRemaining = currentEntry.responses.length > 0;
+          arePreviewsRemaining = currentEntry.responses.some(r => r !== null);
         }
         return prevCache;
       }
 
-      const newResponses = currentEntry.responses.filter((_, idx) => idx !== previewIndex);
-      arePreviewsRemaining = newResponses.length > 0;
+      const newResponses = currentEntry.responses.map((resp, idx) => idx === previewIndex ? null : resp);
+      arePreviewsRemaining = newResponses.some(r => r !== null);
 
       return {
         ...prevCache,
@@ -404,8 +448,19 @@ const TextCard = ({
     });
 
     if (!arePreviewsRemaining) {
-      setCurrentOverTextcard(null);
+      setTextcardCache(prevCache => {
+        const resetEntryState = {
+          isGeneratingResponse: false,
+          responses: [], // Leere Responses
+          error: false,
+        };
+        return {
+          ...prevCache,
+          [baseCardId]: resetEntryState,
+        };
+      });
       console.log("Keine Previews mehr für diese Karte, currentOverTextcard zurückgesetzt.");
+      //setCurrentOverTextcard(null);
     }
   };
 
@@ -640,7 +695,7 @@ const TextCard = ({
 
   return (
     <>
-      {currentOverTextcard && textcardCache[currentOverTextcard.id] && (
+      {currentOverTextcard && textcardCache[currentOverTextcard.id] && showPreviews && (
         <>
           {(() => {
             const cacheEntry = textcardCache[currentOverTextcard.id];
@@ -675,6 +730,9 @@ const TextCard = ({
               });
             } else if (responses && responses.length > 0) {
               return responses.slice(0, numberOfPreviews).map((responseText, index) => {
+                if (responseText === null) {
+                    return null;
+                }
                 const individualPreviewLeft = rowStartX + (index * (previewScaledWidth + previewGap));
                 const currentPreviewPositionAndSize = {
                   x: individualPreviewLeft,
