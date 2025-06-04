@@ -239,223 +239,174 @@ const TextCard = ({
   };
 
   useEffect(() => {
-    if (!isDragging) return;
-
-    const checkOverlappingTextCards = () => {
-      const currentRect = {
-        x: position.x,
-        y: position.y,
-        width: size.width,
-        height: size.height,
-      };
-
-      const elementsInside = getElementsInRectangle(elements, currentRect);
-      const textCardsInside = elementsInside.filter(
-        (element) => element.type === "textcard" && element.id !== rect.id
-      );
-
-      if (textCardsInside.length === 0) {
-        setCurrentOverTextcard(null);
-      }
-
-      const dx = position.x - lastPosition.x;
-      const dy = position.y - lastPosition.y;
-      const frameDistance = Math.sqrt(dx * dx + dy * dy);
-
-      const newAccumulatedDistance = accumulatedDistance + frameDistance;
-      setLastPosition({ x: position.x, y: position.y });
-
-      const DISTANCE_THRESHOLD = 50;
-
-      if (newAccumulatedDistance >= DISTANCE_THRESHOLD) {
-        setCurrentResponseIndex((prev) => {
-          const cacheEntry = currentOverTextcard?.id
-            ? textcardCache[currentOverTextcard.id]
-            : null;
-          const responseCount = cacheEntry?.responses?.length || 0;
-          return responseCount > 0 ? (prev + 1) % responseCount : 0;
-        });
-        setAccumulatedDistance(0);
-
-        const elementsInside = getElementsInRectangle(elements, currentRect);
-        const textCardsInside = elementsInside.filter(
-          (element) => element.type === "textcard" && element.id !== rect.id
-        );
-
-        if (textCardsInside.length > 0) {
-          const topTextCard = textCardsInside.reduce((prev, current) =>
-            prev.zIndex > current.zIndex ? prev : current
-          );
-
-          // Wenn wir eine neue Textkarte überfahren
-          if (topTextCard.id !== currentOverTextcard?.id) {
-            setCurrentOverTextcard(topTextCard);
-            setCurrentResponseIndex(0);
-
-            const cacheEntry = textcardCache[topTextCard.id];
-
-            if (!cacheEntry && topTextCard.text && textcardText) {
-              console.log("Neue Textkarte gefunden, starte ChatGPT-Aufruf");
-              getTextcardCombinationTexts(topTextCard.text, topTextCard.id);
-            } else if (cacheEntry && cacheEntry.responses) {
-              console.log("Verwende zwischengespeicherte Antworten");
-              useCachedResponses(topTextCard.id);
-            }
-          }
-        } else {
-          setCurrentOverTextcard(null);
-          setAccumulatedDistance(0);
-        }
-      } else {
-        setAccumulatedDistance(newAccumulatedDistance);
-      }
-    };
-
-    const intervalId = setInterval(checkOverlappingTextCards, 10);
-    return () => clearInterval(intervalId);
-  }, [
-    isDragging,
-    position,
-    size,
-    elements,
-    rect.id,
-    textcardText,
-    currentOverTextcard,
-    setCurrentOverTextcard,
-    textcardCache,
-    accumulatedDistance,
-    lastPosition,
-    currentResponseIndex,
-  ]);
-
-  const handleDragEnd = useCallback(() => {
-    if (
-      currentOverTextcard &&
-      !textcardCache[currentOverTextcard.id].isGeneratingResponse
-    ) {
-      const findFreePosition = (baseCard, depth = 0) => {
-        // Sicherheitsabbruch nach 10 Versuchen
-        if (depth > 10) return baseCard;
-
-        const testRect = {
-          x: baseCard.position.x,
-          y: baseCard.position.y + baseCard.size.height + 25,
-          width: baseCard.size.width,
-          height: baseCard.size.height,
-        };
-
-        const elementsInside = getElementsInRectangle(elements, testRect);
-        const overlappingCards = elementsInside.filter(
-          (e) => e.type === "textcard"
-        );
-
-        if (overlappingCards.length > 0) {
-          // Nächste Position testen (rekursiv)
-          return findFreePosition(
-            {
-              position: { x: testRect.x, y: testRect.y },
-              size: { width: testRect.width, height: testRect.height },
-            },
-            depth + 1
-          );
-        }
-
-        return testRect;
-      };
-
-      // Startposition bestimmen
-      const freePosition = findFreePosition(currentOverTextcard);
-
-      // Neue Textkarte erstellen
-      const newTextcard = {
-        x: freePosition.x,
-        y: freePosition.y,
-        width: currentOverTextcard.size.width,
-        height: currentOverTextcard.size.height,
-        text: textcardCache[currentOverTextcard.id].responses[
-          currentResponseIndex
-        ],
-        aiGenerated: true,
-      };
-
-      addTextcard(newTextcard);
-      setCurrentOverTextcard(null);
-      setSelectedElements([]);
-      setAccumulatedDistance(0);
-    } else if (
-      currentOverTextcard &&
-      textcardCache[currentOverTextcard.id].isGeneratingResponse
-    ) {
-      //setCurrentOverTextcard(null);
-      setSelectedElements([]);
-      setAccumulatedDistance(0);
-    }
-  }, [currentOverTextcard, textcardCache, currentResponseIndex, elements]);
-
-  const getTextcardCombinationTexts = async (text, sourceId) => {
-    try {
-      setTextcardCache((prev) => ({
-        ...prev,
-        [sourceId]: {
-          isGeneratingResponse: true,
-          responses: [],
-        },
-      }));
-
-      console.log("Eingabe für Prompt:\n", textcardText, " | ", text);
-      const response = await chatGPTService.combineTextcards(
-        textcardText,
-        text
-      );
-      console.log("ChatGPT Antwort", response.content);
-
-      let parsedData = [];
-      try {
-        parsedData = JSON.parse(response.content);
-      } catch (error) {
-        console.error("JSON Parse Error:", error);
-        parsedData = { response: [] }; // Fallback
-      }
-
-      const responses = Array.isArray(parsedData?.response)
-        ? parsedData.response.map((text) => text.trim()).slice(0, 5)
-        : [];
-
-      console.log("Final Responses:", responses);
-
-      setTextcardCache((prev) => ({
-        ...prev,
-        [sourceId]: {
-          isGeneratingResponse: false,
-          responses: responses,
-        },
-      }));
-    } catch (error) {
-      console.error("Fehler bei ChatGPT-Anfrage:", error);
-      setTextcardCache((prev) => ({
-        ...prev,
-        [sourceId]: {
-          isGeneratingResponse: false,
-          responses: [],
-          error: true,
-        },
-      }));
-    }
-  };
-
-  const useCachedResponses = (sourceId) => {
-    const cacheEntry = textcardCache[sourceId];
-
-    if (
-      !cacheEntry ||
-      !cacheEntry.responses ||
-      cacheEntry.responses.length === 0
-    ) {
-      console.log("Keine zwischengespeicherten Antworten vorhanden");
+    if (!isDragging && !currentOverTextcard) {
+      // Wenn nicht gezogen wird UND keine Karte überlappt ist, kann die Prüfung gestoppt werden.
       return;
     }
 
-    console.log("Use Cached Response", cacheEntry.responses[0]);
+    const checkOverlappingTextCards = () => {
+      const currentRect = {
+        x: position.x,
+        y: position.y,
+        width: size.width,
+        height: size.height,
+      };
+
+      const elementsInside = getElementsInRectangle(elements, currentRect);
+      const textCardsInside = elementsInside.filter((element) => element.type === "textcard" && element.id !== rect.id);
+
+      if (textCardsInside.length > 0) {
+        const topTextCard = textCardsInside.reduce((prev, current) =>prev.zIndex > current.zIndex ? prev : current);
+
+        if (topTextCard.id !== currentOverTextcard?.id) {
+          setCurrentOverTextcard(topTextCard);
+          const cacheEntry = textcardCache[topTextCard.id];
+
+          if ((!cacheEntry || !cacheEntry.responses || cacheEntry.responses.length === 0 || cacheEntry.error) && topTextCard.text && textcardText) {
+            console.log("Neue Textkarte überfahren oder Cache leer/fehlerhaft, starte ChatGPT-Kombinationsaufruf für 3 Previews");
+            getTextcardCombinationTexts(topTextCard.text, topTextCard.id);
+          } else if (cacheEntry && cacheEntry.responses && cacheEntry.responses.length > 0) {
+            console.log("Verwende zwischengespeicherte Kombinationsantworten.");
+          }
+        }
+      } else {
+        if (currentOverTextcard !== null) {
+          console.log("Keine Überlappung mehr, entferne Previews.");
+          setCurrentOverTextcard(null);
+        }
+      }
+    };
+
+    const intervalTime = 10;
+    const intervalId = setInterval(checkOverlappingTextCards, intervalTime);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [
+    isDragging,
+    position,
+    size,
+    elements,
+    rect.id,
+    textcardText,
+    currentOverTextcard,
+    textcardCache,
+  ]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+
+    if (currentOverTextcard) {
+      setSelectedElements([]); // Überdenken, ob das hier noch gewünscht ist.
+      console.log("Ziehen beendet über einer Karte. Previews bleiben sichtbar.");
+    } else {
+      console.log("Ziehen beendet, nicht über einer Karte.");
+    }
+
+    //setCursorStyle("grab");
+  }, [currentOverTextcard, textcardCache, currentResponseIndex, elements]);
+
+  const getTextcardCombinationTexts = async (text, sourceId) => {
+    try {
+      setTextcardCache((prev) => ({
+        ...prev,
+        [sourceId]: {
+          isGeneratingResponse: true,
+          responses: [], // Wird bis zu 3 Antworten enthalten
+          error: false,
+        },
+      }));
+
+      console.log("Eingabe für Prompt (Kombination für 3 Previews):\n", textcardText, " | ", text);
+      const response = await chatGPTService.combineTextcards(textcardText, text);
+      console.log("ChatGPT Antwort (Kombination)", response.content);
+
+      let parsedData = { response: [] };
+      try {
+        parsedData = JSON.parse(response.content);
+      } catch (error) {
+        console.error("JSON Parse Error (Kombination):", error);
+      }
+
+      const combinedResponses = Array.isArray(parsedData?.response) ? parsedData.response.map((item) => String(item || "").trim()).slice(0, 3) : [];
+
+      console.log("Finale Kombinations-Antworten (bis zu 3):", combinedResponses);
+
+      setTextcardCache((prev) => ({
+        ...prev,
+        [sourceId]: {
+          isGeneratingResponse: false,
+          responses: combinedResponses,
+          error: combinedResponses.length === 0 && !parsedData?.response,
+        },
+      }));
+    } catch (error) {
+      console.error("Fehler bei ChatGPT-Kombinationsanfrage:", error);
+      setTextcardCache((prev) => ({
+        ...prev,
+        [sourceId]: {
+          isGeneratingResponse: false,
+          responses: [],
+          error: true,
+        },
+      }));
+    }
+  };
+
+  const handlePreviewDoubleClick = (
+    previewText,
+    previewPositionAndSize,
+    previewIndex,      
+    baseCardId    
+  ) => {
+    if (!previewText || !previewPositionAndSize || previewIndex === undefined || !baseCardId) return;
+
+    //console.log(`Preview (Index: ${previewIndex}) doppelt geklickt. Erstelle permanente Karte mit Text: "${previewText}".`);
+
+    const newCardX = (previewPositionAndSize.x - offsetRef.current.x) / scaleRef.current;
+    const newCardY = (previewPositionAndSize.y - offsetRef.current.y) / scaleRef.current;
+    const newCardWidth = previewPositionAndSize.width / scaleRef.current;
+    const newCardHeight = previewPositionAndSize.height / scaleRef.current;
+
+    const newTextcard = {
+      x: newCardX,
+      y: newCardY,
+      width: newCardWidth,
+      height: newCardHeight,
+      text: previewText,
+      aiGenerated: true,
+    };
+
+    addTextcard(newTextcard);
+
+    let arePreviewsRemaining = false;
+
+    // Geklickte Preview aus dem Cache entfernen
+    setTextcardCache(prevCache => {
+      const currentEntry = prevCache[baseCardId];
+      if (!currentEntry || !currentEntry.responses) {
+        if (currentEntry && currentEntry.responses) {
+          arePreviewsRemaining = currentEntry.responses.length > 0;
+        }
+        return prevCache;
+      }
+
+      const newResponses = currentEntry.responses.filter((_, idx) => idx !== previewIndex);
+      arePreviewsRemaining = newResponses.length > 0;
+
+      return {
+        ...prevCache,
+        [baseCardId]: {
+          ...currentEntry,
+          responses: newResponses,
+        },
+      };
+    });
+
+    if (!arePreviewsRemaining) {
+      setCurrentOverTextcard(null);
+      console.log("Keine Previews mehr für diese Karte, currentOverTextcard zurückgesetzt.");
+    }
   };
 
   const handleMouseEnter = () => {
@@ -689,32 +640,67 @@ const TextCard = ({
 
   return (
     <>
-      {currentOverTextcard && (
-        <PreviewTextcard
-          key={rect.id}
-          finalTop={
-            (currentOverTextcard.position.y -
-              currentOverTextcard.size.height -
-              25) *
-              scaleRef.current +
-            offsetRef.current.y
-          }
-          finalLeft={
-            currentOverTextcard.position.x * scaleRef.current +
-            offsetRef.current.x
-          }
-          scaledWidth={currentOverTextcard.size.width * scaleRef.current}
-          scaledHeight={currentOverTextcard.size.height * scaleRef.current}
-          isLoading={
-            textcardCache[currentOverTextcard.id]?.isGeneratingResponse
-          }
-          previewTextContent={
-            textcardCache[currentOverTextcard.id]?.responses[
-              currentResponseIndex
-            ]
-          }
-        />
+      {currentOverTextcard && textcardCache[currentOverTextcard.id] && (
+        <>
+          {(() => {
+            const cacheEntry = textcardCache[currentOverTextcard.id];
+            const isLoading = cacheEntry?.isGeneratingResponse;
+            const responses = cacheEntry?.responses;
+            const baseCard = currentOverTextcard;
+
+            const numberOfPreviews = 3;
+            const previewScaledWidth = 200 * scaleRef.current;
+            const previewScaledHeight = 75 * scaleRef.current;
+            const previewGap = 20 * scaleRef.current;
+
+            const totalPreviewsRowWidth = (numberOfPreviews * previewScaledWidth) + ((numberOfPreviews - 1) * previewGap);
+            const baseCardCenterX = (baseCard.position.x + baseCard.size.width / 2) * scaleRef.current + offsetRef.current.x;
+            const rowStartX = baseCardCenterX - (totalPreviewsRowWidth / 2);
+            const commonFinalTop = (baseCard.position.y - baseCard.size.height - 25) * scaleRef.current + offsetRef.current.y;
+
+            if (isLoading && (!responses || responses.length === 0)) {
+              return Array.from({ length: numberOfPreviews }).map((_, index) => {
+                const individualPreviewLeft = rowStartX + (index * (previewScaledWidth + previewGap));
+                return (
+                  <PreviewTextcard
+                    key={`${baseCard.id}-loading-preview-${index}`}
+                    finalTop={commonFinalTop}
+                    finalLeft={individualPreviewLeft}
+                    scaledWidth={previewScaledWidth}
+                    scaledHeight={previewScaledHeight}
+                    isLoading={true}
+                    previewTextContent=""
+                  />
+                );
+              });
+            } else if (responses && responses.length > 0) {
+              return responses.slice(0, numberOfPreviews).map((responseText, index) => {
+                const individualPreviewLeft = rowStartX + (index * (previewScaledWidth + previewGap));
+                const currentPreviewPositionAndSize = {
+                  x: individualPreviewLeft,
+                  y: commonFinalTop,
+                  width: previewScaledWidth,
+                  height: previewScaledHeight,
+                };
+                return (
+                  <PreviewTextcard
+                    key={`${baseCard.id}-preview-${index}`}
+                    finalTop={commonFinalTop}
+                    finalLeft={individualPreviewLeft}
+                    scaledWidth={previewScaledWidth}
+                    scaledHeight={previewScaledHeight}
+                    isLoading={isLoading && index === 0 && responses.length < numberOfPreviews}
+                    previewTextContent={responseText}
+                    onDoubleClick={() => handlePreviewDoubleClick(responseText, currentPreviewPositionAndSize, index, baseCard.id)}
+                  />
+                );
+              });
+            }
+            return null;
+          })()}
+        </>
       )}
+      
       <div
         className={isGeneratingStagedTexts ? animationStyles.loadingPulseDiv : ''}
         style={textcardStyles}

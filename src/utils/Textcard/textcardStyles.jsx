@@ -29,7 +29,7 @@ export const getTextcardStyles = (
   padding: "12px",
   boxSizing: "border-box",
   //cursor: isEditing ? "text" : "grab",
-  zIndex: isDragging ? 4000 : zIndex,
+  zIndex: currentOverTextcard ? 4000 : zIndex,
   pointerEvents,
   opacity: currentOverTextcard ? 0.7 : 1,
 });

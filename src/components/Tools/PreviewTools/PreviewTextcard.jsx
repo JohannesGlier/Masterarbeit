@@ -8,6 +8,7 @@ const PreviewTextcard = ({
   scaledHeight,
   isLoading,
   previewTextContent,
+  onDoubleClick,
 }) => {
   const containerStyle = {
     position: "absolute",
@@ -23,17 +24,19 @@ const PreviewTextcard = ({
     boxSizing: "border-box",
     border: "0px solid #ccc",
     zIndex: 5000,
-    pointerEvents: "none",
+    pointerEvents: typeof onDoubleClick === 'function' ? "auto" : "none",
     fontSize: "auto",
     textAlign: "center",
     alignContent: "center",
     overflow: "hidden",
+    cursor: typeof onDoubleClick === 'function' ? "pointer" : "default",
   };
 
   return (
     <div
       style={containerStyle}
       className={isLoading ? styles.loadingPulseDiv : ""}
+      onDoubleClick={typeof onDoubleClick === 'function' ? onDoubleClick : undefined}
     >
       {isLoading ? (
         <div className={styles.loadingDotsContainer}>
