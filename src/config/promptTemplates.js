@@ -44,6 +44,45 @@ export const DEFAULT_PROMPT_TEMPLATES = {
           ]
         }`, 
 
+    RELATIONSHIP_ARROW_2: ({ textFromTextcard }) => 
+      `**Task Description:**
+        Generate exactly 10 thematically related terms or short texts based on the provided input term.
+        These items should represent a conceptual gradient moving from **concrete and closely related** to **abstract and thematically distant**.
+
+        **Input:**
+        Input Term: ${textFromTextcard}
+
+        **Requirements:**
+        1.  **Conceptual Gradient:**
+            * The first item (Item 1) in the list must be **very concrete and thematically very close** (e.g., a specific instance of the input, a direct physical component, a synonym if the input is already concrete, or a closely related concrete concept) to the Input Term (but not the input term itself).
+            * The last item (Item 10) must be **highly abstract and thematically distant** from the Input Term, while still possessing a recognizable conceptual or metaphorical link. The connection should emphasize abstraction and a more indirect relationship.
+            * Items 2 through 9 must create a smooth, gradual transition, bridging the conceptual gap by **progressively increasing in abstraction and thematic distance** from the Input Term. Each step should logically follow the previous one while subtly shifting towards greater abstraction and a more distant (yet still discernible) thematic connection.
+        2.  **Length Consistency:** Each of the 10 generated items should ideally have a character count that is approximately similar to the character count of the Input Term. Aim for within ±20% deviation, but prioritize the quality and coherence of the conceptual gradient if exact length matching conflicts with finding suitable terms.
+        3.  **Quantity:** Ensure exactly 10 items are generated in the list.
+
+        **Output Structure:**
+        You MUST return the result **exclusively** as a single, valid JSON object.
+        * This JSON object must contain exactly one top-level key named: "conceptual_gradient".
+        * The value associated with the "conceptual_gradient" key must be a JSON array.
+        * This JSON array must contain exactly 10 elements.
+        * Each element within the array must be a string representing one of the generated terms or short texts, ordered according to the conceptual gradient (Item 1 = most concrete and closest, Item 10 = most abstract and most distant).
+
+        **Example of the Required Output Format (Structure Only):**
+        {
+          "conceptual_gradient": [
+            "string_representing_item_1",
+            "string_representing_item_2",
+            "string_representing_item_3",
+            "string_representing_item_4",
+            "string_representing_item_5",
+            "string_representing_item_6",
+            "string_representing_item_7",
+            "string_representing_item_8",
+            "string_representing_item_9",
+            "string_representing_item_10"
+          ]
+        }`, 
+
     PROMPT_ARROW_INPUT: ({ inputText, promptText }) => 
       `Context: "${inputText}"
       User Prompt: "${promptText}"
