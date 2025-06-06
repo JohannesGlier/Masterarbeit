@@ -1,7 +1,10 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { useCanvas } from "@/components/Canvas/CanvasContext";
 import openAIService from "@/services/OpenAIService";
 import { useCursor } from '@/components/Canvas/CursorContext';
+import { ChatGPTService } from "@/services/ChatGPTService";
+import { useLanguage } from "@/components/Canvas/LanguageContext";
+import { getAnchorData2 } from "@/utils/Arrow/anchorUtils";
 
 const getColorForCluster = (clusterId) => {
   if (clusterId === -1) return "#888888"; // Grau für Rauschen
@@ -20,13 +23,20 @@ const getColorForCluster = (clusterId) => {
   return colors[clusterId % colors.length];
 };
 
-const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectangle }) => {
+const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectangle, addArrow }) => {
   const { setSelectedTool, setHeadingGeneration, associateRectangleWithColor } = useCanvas();
   const hasRunForThisMount = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const { setCursorStyle } = useCursor();
+  const { language } = useLanguage();
+  const chatGPTService = useMemo(() => {
+    //console.log(`Initializing ChatGPTService with language: ${language}`);
+    return new ChatGPTService(language); // Übergebe die Sprache an den Konstruktor
+  }, [language]);
 
-  const handleFetchEmbeddings = async () => {
+
+
+  const createClusters = async () => {
     if (isLoading) return;
 
     setIsLoading(true);
@@ -257,6 +267,181 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
     }
   };
 
+  const createMindMap = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setCursorStyle("wait");
+
+    if (textcards.length < 5) {
+      console.log("Not enough Textcards for Auto Layout");
+      setIsLoading(false);
+      setCursorStyle("default");
+      setSelectedTool("Pointer");
+      return;
+    }
+
+    try {
+      // Erstelle Mindmap
+      const texts = textcards
+        .map(card => card.text)
+        .filter(text => typeof text === 'string' && text.trim() !== '');
+
+      console.log("Eingabe für Mindmap: ", texts);
+      const response = await chatGPTService.generateMindMap(texts);
+
+      console.log("Response: ", response.content);
+      const jsonMatch = response.content.match(/```json\s*([\s\S]*?)\s*```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : response.content;
+
+      // JSON-String parsen
+      let mindMapData;
+      try {
+        mindMapData = JSON.parse(jsonString);
+      } catch (parseError) {
+        console.error("Fehler beim Parsen der JSON-Antwort:", parseError);
+        throw new Error("Ungültiges Format von der AI erhalten.");
+      }
+
+      console.log("Parsed Response: ", mindMapData);
+
+      // Schritt 1: Hierarchische Daten für D3 aufbereiten
+      const nodes = [];
+      const links = [];
+      flattenHierarchy(mindMapData, null, nodes, links, 0, { count: 0 });
+
+      // Schritt 2: D3-Simulation konfigurieren (siehe oben)
+      const d3 = require("d3-force");
+      const width = 1700;
+      const height = 1300;
+      const simulation = d3.forceSimulation(nodes)
+          .force("link", d3.forceLink(links).id(d => d.id).distance(d => (d.source.level + 1) * 80).strength(1))
+          .force("charge", d3.forceManyBody().strength(-500))
+          .force("collide", d3.forceCollide().radius(d => d.level === 0 ? 120 : 80).strength(1))
+          .force("center", d3.forceCenter(width / 2, height / 2))
+          .force("radial", d3.forceRadial(d => d.level * 250, width / 2, height / 2).strength(0.8));
+
+      // Schritt 3: Simulation ausführen und Karten zeichnen
+      simulation.stop();
+      for (let i = 0; i < 300; ++i) {
+        simulation.tick();
+      }
+
+      // Schritt 4: Knoten nach Level gruppieren
+      const groupedNodes = simulation.nodes().reduce((acc, node) => {
+        const level = node.level;
+        if (!acc[level]) { acc[level] = []; }
+        acc[level].push(node);
+        return acc;
+      }, {});
+
+      animateMindMap(groupedNodes, simulation.force("link").links());
+    } 
+    catch (err) {
+      console.error("Fehler beim Erstellen der Mindmap:", err);
+    } 
+    finally {
+      console.log("Finished: Resetting states");
+      setIsLoading(false);
+      setCursorStyle("default");
+      setSelectedTool("Pointer");
+    }
+  };
+
+
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+
+  async function animateMindMap(groupedNodes, links) {
+    const levels = Object.keys(groupedNodes).sort((a, b) => a - b);
+
+    for (const level of levels) {
+      const nodesInLevel = groupedNodes[level];
+      
+      // --- SCHRITT 1: KARTEN DES AKTUELLEN LEVELS ZEICHNEN & IDs SPEICHERN ---
+      nodesInLevel.forEach(node => {
+        const cardWidth = node.level === 0 ? 200 : 150;
+        const cardHeight = 75;
+        
+        const newCard = {
+          x: node.x - cardWidth / 2,
+          y: node.y - cardHeight / 2,
+          width: cardWidth,
+          height: cardHeight,
+          text: node.text,
+          aiGenerated: true
+        };
+
+        const createdCardId = addTextcard(newCard); 
+        newCard.id = createdCardId;
+        node.cardData = newCard;
+      });
+
+      // --- SCHRITT 2: PFEILE ZUM AKTUELLEN LEVEL ZEICHNEN ---
+      const linksToThisLevel = links.filter(link => link.target.level == level);
+
+      linksToThisLevel.forEach(link => { createArrowBetweenNodes(link.source, link.target); });
+
+      // Warte bis zum nächsten Level
+      await delay(500); 
+    }
+  }
+
+  function createArrowBetweenNodes(parentNode, childNode) {
+    if (!parentNode.cardData || !childNode.cardData) {
+      console.error("Kann Pfeil nicht erstellen: Kartendaten fehlen auf D3-Knoten.");
+      return;
+    }
+    
+    // --- Startpunkt vorbereiten (am Rand der Eltern-Karte) ---
+    const parentAnchorData = getAnchorData2(
+      parentNode.cardData,
+      childNode.x,
+      childNode.y
+    );
+    const start = {
+      elementId: parentNode.cardData.id,
+      ...parentAnchorData,
+    };
+
+    // --- Endpunkt vorbereiten (am Rand der Kind-Karte) ---
+    const childAnchorData = getAnchorData2(
+      childNode.cardData,
+      start.x,  
+      start.y
+    );
+    const end = {
+      elementId: childNode.cardData.id,
+      ...childAnchorData,
+    };
+
+    // --- Finalen Pfeil erstellen ---
+    addArrow({ start, end });
+  }
+
+  function flattenHierarchy(nodeData, parentId, nodes, links, level, idCounter) {
+    const nodeId = `node-${idCounter.count++}`;
+    
+    nodes.push({
+      id: nodeId,
+      text: nodeData.topic,
+      level: level,
+    });
+
+    if (parentId !== null) {
+      links.push({
+        source: parentId,
+        target: nodeId,
+      });
+    }
+
+    if (nodeData.children && nodeData.children.length > 0) {
+      nodeData.children.forEach(child => {
+        flattenHierarchy(child, nodeId, nodes, links, level + 1, idCounter);
+      });
+    }
+  }
+
+
   useEffect(() => {
     if (isLoading) {
       setCursorStyle("wait");
@@ -280,7 +465,9 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
 
     console.log("Effect condition met: Starting performAutoLayout.");
     hasRunForThisMount.current = true;
-    handleFetchEmbeddings();
+    
+    //createClusters();
+    createMindMap();
 
     return () => {
       console.log("AutoLayoutTool Cleanup (Unmount)");

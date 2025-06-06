@@ -152,6 +152,15 @@ export const DEFAULT_PROMPT_TEMPLATES = {
     GENERATE_MEDIUM_TEXT: ({ text }) => `${text}`,
     GENERATE_LONG_TEXT: ({ text }) => `${text}`,
 
+    GENERATE_MINDMAP: ({ text }) => 
+    `Basierend auf den folgenden Texten, erstelle eine Mindmap-Struktur.
+    Identifiziere das zentrale Thema und organisiere die restlichen Texte als Haupt- und Unterpunkte. Fasse ähnliche oder zusammengehörige Texte zusammen, wenn es sinnvoll ist.
+    Gib das Ergebnis ausschließlich als JSON-Objekt zurück. 
+    Das JSON-Objekt soll eine rekursive Struktur haben mit einem Schlüssel "topic" für den Text des Knotens und einem optionalen Schlüssel "children" für eine Liste von untergeordneten Knoten.
+
+    Hier sind die Texte:
+    ${text}`,
+
     DEFAULT: (message) => message
 };
   

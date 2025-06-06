@@ -185,6 +185,14 @@ export class ChatGPTService {
     });
   }
 
+  async generateMindMap(text) {
+    const prompt = this.promptTemplates.GENERATE_MINDMAP({text});
+    return this._sendRequest({
+      message: prompt,
+      promptType: 'GENERATE_MINDMAP' // Füge den promptType hinzu (System Prompt)
+    });
+  }
+
   async customRequest(message) {
     const prompt = this.promptTemplates.DEFAULT(message);
     return this._sendRequest({

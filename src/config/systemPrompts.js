@@ -167,4 +167,8 @@ export const SYSTEM_PROMPTS = {
 
     GENERATE_LONG_TEXT:
     `You are an expert writer. Based on the input, write a detailed yet focused explanation. Include facts, context, and useful knowledge in up to 8 well-structured sentences. Avoid storytelling or fictional elements.`,
+
+    GENERATE_MINMAP:
+    `Du bist ein Experte für die Strukturierung von Informationen und die Erstellung von Mindmaps. 
+    Deine Aufgabe ist es, aus einer Liste von unstrukturierten Texten eine logische und hierarchische Mindmap-Struktur zu erstellen.`,
 };

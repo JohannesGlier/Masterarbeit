@@ -73,6 +73,8 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
 
   useEffect(() => {
     arrows.forEach((arrow) => {
+      if(activeView === "LayoutView") return;
+
       const hasStartElementId = arrow.start?.elementId !== undefined;
       const hasEndElementId = arrow.end?.elementId !== undefined;
 
@@ -86,11 +88,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
       const startElementExists = !!startElement;
       const endElementExists = !!endElement;
 
-      if (
-        startElementExists &&
-        endElementExists &&
-        !processedArrows.has(arrow.id)
-      ) {
+      if (startElementExists && endElementExists && !processedArrows.has(arrow.id)) {
         console.log(
           `Arrow ${arrow.id} ist an beiden Enden mit Elementen verbunden:`
         );
@@ -830,6 +828,7 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
           handleTextcardUpdate={handleTextcardUpdate}
           addTextcard={addTextcards}
           addRectangle={addRectangle}
+          addArrow={addArrows}
         />
       )}
 
