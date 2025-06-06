@@ -28,7 +28,15 @@ export const CanvasProvider = ({ children }) => {
     arrowID: null,
   });
   const [headingGeneration, setHeadingGeneration] = useState({});
+  const [rectangleColorAssociations, setRectangleColorAssociations] = useState({});
 
+
+  const associateRectangleWithColor = (rectId, color) => {
+    setRectangleColorAssociations(prevAssociations => ({
+      ...prevAssociations,
+      [rectId]: color,
+    }));
+  };
 
   // Funktion zum Speichern einer Pfeil-Template-Zuordnung
   const associateArrowWithTemplate = (arrowId, template) => {
@@ -152,6 +160,8 @@ export const CanvasProvider = ({ children }) => {
         arrowTemplateAssociations,
         associateArrowWithTemplate,
         removeArrowTemplateAssociation,
+        rectangleColorAssociations,
+        associateRectangleWithColor,
       }}
     >
       {children}

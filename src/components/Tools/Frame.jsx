@@ -48,8 +48,10 @@ const Frame = ({
     isArrowDragging,
     headingGeneration,
     setHeadingGeneration,
+    rectangleColorAssociations
   } = useCanvas();
 
+  const color = rectangleColorAssociations[rect.id] || 'rgba(205, 205, 205, 0)';
 
   useEffect(() => {
     setPosition({ x: rect.x, y: rect.y });
@@ -227,6 +229,7 @@ const Frame = ({
         mouseDownElement?.id === rect.id,
         pointerEvents(),
         properties.zIndex,
+        color,
       ),
     [
       position,
@@ -240,6 +243,7 @@ const Frame = ({
       mouseDownElement,
       pointerEvents(),
       properties.zIndex,
+      color
     ]
   );
 

@@ -21,7 +21,7 @@ const getColorForCluster = (clusterId) => {
 };
 
 const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectangle }) => {
-  const { setSelectedTool, setHeadingGeneration } = useCanvas();
+  const { setSelectedTool, setHeadingGeneration, associateRectangleWithColor } = useCanvas();
   const hasRunForThisMount = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const { setCursorStyle } = useCursor();
@@ -45,9 +45,7 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
         console.log("Embeddings received in component:", results);
 
         // 1. Clustering auf Basis der 'embedding'-Vektoren durchführen
-        const embeddings = Array.isArray(results)
-          ? results.map((item) => item.embedding)
-          : [];
+        const embeddings = Array.isArray(results) ? results.map((item) => item.embedding) : [];
         console.log("Embeddings:", embeddings);
 
         const epsilon = 1.08; // neighborhood radius --> Dies ist der Radius der Nachbarschaft um einen Datenpunkt. Ein größerer Wert bedeutet, dass mehr Punkte als Nachbarn betrachtet werden
@@ -219,6 +217,9 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
               const rectWidth = maxX - minX + 2 * padding;
               const rectHeight = maxY - minY + 2 * padding;
 
+              // Farbe für das Cluster bestimmen
+              const clusterColor = getColorForCluster(parseInt(clusterId, 10));
+
               // Erstelle das Rechteck
               const finalRect = {
                 x: rectX,
@@ -228,6 +229,9 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
                 heading: "",
               };
               const rectId = addRectangle(finalRect);
+
+              // Farbe für Rechteck setzen
+              associateRectangleWithColor(rectId, clusterColor);
 
               const textFromCluster = clusterTextcards.map((textcard) => textcard.text);
               //const text = JSON.stringify(textFromCluster, null, 2)

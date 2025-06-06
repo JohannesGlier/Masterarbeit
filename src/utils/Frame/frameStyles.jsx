@@ -9,13 +9,14 @@ export const getFrameStyles = (
   isMouseDown,
   pointerEvents,
   zIndex,
+  color,
 ) => ({
   position: "absolute",
   top: position.y * scale + offset.y,
   left: position.x * scale + offset.x,
   width: `${size.width * scale}px`,
   height: `${size.height * scale}px`,
-  backgroundColor: properties.frameColor,
+  backgroundColor: color,
   borderRadius: "0px",
   border:
     isSelected || isHovered || isMouseDown
