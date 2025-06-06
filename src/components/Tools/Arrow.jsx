@@ -861,7 +861,7 @@ const Arrow = ({
               top: `${pointScreenY}px`,
               width: "16px",
               height: "16px",
-              backgroundColor: "#B2B0EA", // Default background color
+              backgroundColor: "black",  // "#B2B0EA", // Default background color
               borderRadius: "50%",
               transform: "translate(-50%, -50%)", // Default transform
               zIndex: (arrowInlineStyles.zIndex || 1) + 1,
@@ -871,8 +871,8 @@ const Arrow = ({
           };
 
           if (isCurrentlyHovered) {
-              pointStyle.backgroundColor = "#8A88C5"; // Example: darker shade for highlight
-              pointStyle.transform = "translate(-50%, -50%) scale(1.2)"; // Example: make it slightly bigger
+              pointStyle.backgroundColor = "black"; // Example: darker shade for highlight
+              pointStyle.transform = "translate(-50%, -50%) scale(1.25)"; // Example: make it slightly bigger
               // You could also add a border, box-shadow, etc.
               // pointStyle.border = "2px solid #FFFFFF";
               // pointStyle.boxShadow = "0 0 8px rgba(0,0,0,0.3)";

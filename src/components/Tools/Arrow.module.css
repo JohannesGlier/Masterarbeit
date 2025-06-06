@@ -15,8 +15,8 @@
     opacity: 1;
   }
   50% {
-    transform: scale(1.2) translate(-50%, -50%); /* Pulsieren: etwas größer */
-    opacity: 0.8; /* Blinken: etwas transparenter */
+    transform: scale(1.15) translate(-50%, -50%); /* Pulsieren: etwas größer */
+    opacity: 1; /* Blinken: etwas transparenter */
   }
   100% {
     transform: scale(1) translate(-50%, -50%);
