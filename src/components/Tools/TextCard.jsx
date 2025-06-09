@@ -653,7 +653,8 @@ const TextCard = ({
         rect.zIndex,
         isDragging,
         currentOverTextcard,
-        rect.aiGenerated
+        rect.aiGenerated,
+        rect.color
       ),
     [
       position,
@@ -671,6 +672,7 @@ const TextCard = ({
       isDragging,
       currentOverTextcard,
       rect.aiGenerated,
+      rect.color
     ]
   );
 

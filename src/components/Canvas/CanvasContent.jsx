@@ -237,15 +237,10 @@ const CanvasContent = ({ canvasRef, canvasWrapperRef }) => {
   const addTextcards = (textcard) => {
     const zIndex = incrementZIndex("textcard");
     const newTextcard = {
+      ...textcard,
       id: generateUniqueId(),
-      x: textcard.x,
-      y: textcard.y,
-      width: textcard.width,
-      height: textcard.height,
-      text: textcard.text,
       zIndex,
       activeView: activeView,
-      aiGenerated: textcard.aiGenerated,
     };
     setTextCards((prevTextcards) => [...prevTextcards, newTextcard]);
     return newTextcard.id;

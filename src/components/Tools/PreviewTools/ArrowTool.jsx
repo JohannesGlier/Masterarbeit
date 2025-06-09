@@ -366,6 +366,39 @@ const ArrowTool = ({
   const addTextcardToShortcutArrow = async (start, end) => {
     // Erstelle die Textkarte immer sofort
     const arrow = addArrow({ start, end });
+
+    const currentNormalizedLength = calculateNormalizedLength(start, end);
+    const clampedLength = Math.max(0, Math.min(1, currentNormalizedLength));
+    
+    const hue = 210;
+    const lightness = 50 - (clampedLength * 25);
+    const alpha = 1 - (clampedLength * 0.6);
+    let arrowDisplayColor = `hsl(${hue}, 100%, ${lightness}%, ${alpha})`;
+
+    const endElement = getElementAtPosition(elements, end.x, end.y);
+    if (endElement) return null;
+
+    const normalizedLength = calculateNormalizedLength(start, end);
+    let lengthText;
+
+    if (normalizedLength <= 0.33) {
+      lengthText = "Near";
+    } else if (normalizedLength <= 0.66) {
+      lengthText = "Medium";
+    } else {
+      lengthText = "Far";
+    }
+
+    const shortcutTemplate = {
+      id: "Shortcut_Template",
+      name: lengthText, // Far, Middle, Near
+      iconName: "FaBook",
+      color: arrowDisplayColor,   // Aktuelle Farbe
+      prompt: "",  // ""
+      iconSize: 40,
+    };
+    associateArrowWithTemplate(arrow.id, shortcutTemplate);
+
     const newTextcard = attachTextcardToArrow(arrow, start.anchor);
     
     // Bestimme den initialen Text
@@ -588,12 +621,15 @@ const ArrowTool = ({
 
         if (initialStart) {
           const clampedLength = Math.max(0, Math.min(1, currentNormalizedLength));
-          const hue = (1 - clampedLength) * 120; 
-          arrowDisplayColor = `hsl(${hue}, 100%, 50%)`;
+          
+          const hue = 210;
+          const lightness = 50 - (clampedLength * 25);
+          const alpha = 1 - (clampedLength * 0.6);
+          arrowDisplayColor = `hsl(${hue}, 100%, ${lightness}%, ${alpha})`;
 
           const thicknessRange = MAX_ARROW_THICKNESS - MIN_ARROW_THICKNESS;
           const currentThickness = (1 - clampedLength) * thicknessRange + MIN_ARROW_THICKNESS;
-          arrowDisplayHeight = `${currentThickness}px`;
+          arrowDisplayHeight = `${currentThickness + 1}px`;
         } else {
           if (currentActualLength < MIN_ARROW_LENGTH)
             arrowDisplayColor = "rgba(255, 0, 0, 0.8)";

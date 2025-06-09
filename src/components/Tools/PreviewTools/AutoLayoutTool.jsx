@@ -23,6 +23,21 @@ const getColorForCluster = (clusterId) => {
   return colors[clusterId % colors.length];
 };
 
+const getColorForLevel = (level) => {
+  if (level === 0) {
+    return 'gold';
+  }
+
+  const hue = 210;
+  const saturation = 90;
+
+  // Statt um 15 pro Level, reduzieren wir nur um 10.
+  // Der Minimalwert wird auf 40% gesetzt, damit es nie zu düster wird.
+  const lightness = Math.max(40, 85 - (level * 10));
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+};
+
 const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectangle, addArrow }) => {
   const { setSelectedTool, setHeadingGeneration, associateRectangleWithColor } = useCanvas();
   const hasRunForThisMount = useRef(false);
@@ -309,13 +324,14 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
       const nodes = [];
       const links = [];
       flattenHierarchy(mindMapData, null, nodes, links, 0, { count: 0 });
+      const levelDistances = [60, 50, 40, 35];
 
       // Schritt 2: D3-Simulation konfigurieren (siehe oben)
       const d3 = require("d3-force");
       const width = 1700;
       const height = 1300;
       const simulation = d3.forceSimulation(nodes)
-          .force("link", d3.forceLink(links).id(d => d.id).distance(d => (d.source.level + 1) * 80).strength(1))
+          .force("link", d3.forceLink(links).id(d => d.id).distance(d => { return levelDistances[d.source.level] || 40; }).strength(1).iterations(10))
           .force("charge", d3.forceManyBody().strength(-500))
           .force("collide", d3.forceCollide().radius(d => d.level === 0 ? 120 : 80).strength(1))
           .force("center", d3.forceCenter(width / 2, height / 2))
@@ -362,13 +378,17 @@ const AutoLayoutTool = ({ isAutoLayoutRunning, textcards, addTextcard, addRectan
         const cardWidth = node.level === 0 ? 200 : 150;
         const cardHeight = 75;
         
+        const cardColor = getColorForLevel(node.level);
+
         const newCard = {
           x: node.x - cardWidth / 2,
           y: node.y - cardHeight / 2,
           width: cardWidth,
           height: cardHeight,
           text: node.text,
-          aiGenerated: true
+          aiGenerated: true,
+          color: cardColor, 
+          level: node.level
         };
 
         const createdCardId = addTextcard(newCard); 

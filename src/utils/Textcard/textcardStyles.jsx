@@ -13,13 +13,18 @@ export const getTextcardStyles = (
   isDragging,
   currentOverTextcard,
   isAiGenerated,
+  cardColor
 ) => ({
   position: "absolute",
   top: position.y * scale + offset.y,
   left: position.x * scale + offset.x,
   width: `${size.width * scale}px`,
   height: `${size.height * scale}px`,
-  backgroundColor: isAiGenerated ? "#C9CCE3" : properties.textcardColor,
+  backgroundColor: cardColor
+    ? cardColor // 1. Priorität: Die übergebene Farbe, falls vorhanden
+    : isAiGenerated
+    ? "#C9CCE3" // 2. Priorität: Die Farbe für KI-Karten
+    : properties.textcardColor,
   border:
     isSelected || isHovered || isMouseDown
       ? `${properties.borderWidth <= 2 ? 3 : properties.borderWidth}px solid rgb(23, 104, 255)`
