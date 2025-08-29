@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     
     const completion = await openai.chat.completions.create({
       messages,
-      model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',   // gpt-4o-mini-2024-07-18
+      model: process.env.OPENAI_MODEL || 'gpt-4.1-2025-04-14',   // gpt-4o-mini-2024-07-18
       max_tokens: 3000,       // Maximale Anzahl von Tokens in der Antwort
       temperature: 0.7,       // Kreativität der Antwort (0 = deterministisch, 1 = kreativ)
       top_p: 1,               // Sampling-Methode (Alternative zu temperature)

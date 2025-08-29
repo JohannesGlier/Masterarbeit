@@ -5,17 +5,6 @@ import { useLanguage } from "@/components/Canvas/LanguageContext";
 const HomeScreen = ({ onSelectCanvas }) => {
   const { language, setLanguage } = useLanguage();
 
-  const buttons = [
-    { label: "Demo 1" },
-    { label: "Demo 2" },
-    { label: "Demo 3" },
-    { label: "Demo 4" },
-    { label: "Demo 5" },
-    { label: "Demo 6" },
-    { label: "Demo 7" },
-    { label: "Demo 8" },
-  ];
-
   return (
     <>
       <div className={styles["home-container"]}>
@@ -39,15 +28,13 @@ const HomeScreen = ({ onSelectCanvas }) => {
             En
           </button>
         </div>
-        <h1>Wähle eine Demo</h1>
+        <h1>Go to Canvas</h1>
         <div className={styles["button-grid"]}>
-          {buttons.map((btn, index) => (
             <HomeScreenButton
-              key={index}
-              label={btn.label}
-              onClick={() => onSelectCanvas(index)}
+              label="Demo"
+              // Ruft die erste Demo (Index 0) auf, wenn geklickt wird.
+              onClick={() => onSelectCanvas(0)}
             />
-          ))}
         </div>
       </div>
     </>

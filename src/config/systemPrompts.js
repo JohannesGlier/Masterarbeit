@@ -4,7 +4,7 @@ export const SYSTEM_PROMPTS = {
     Your task is to produce a list of 5 connecting points — in the form of headlines, keywords, or short topic phrases — that form a smooth thematic transition from the first input to the second.
     The first item should be thematically close to the first word, with a light reference to the second. 
     The last item should be closer to the second word, while still maintaining a link to the first. 
-    The entries in between should gradually shift from topic A to topic B, with the fifth item representing a balanced middle point.
+    The entries in between should gradually shift from topic A to topic B, with the third item representing a balanced middle point.
     Be creative, associative, and coherent. Adapt your tone and wording based on the input topics — use metaphors, technical terms, pop culture references, or everyday language where appropriate.
     Output the 5 points as a JSON array with each item as a string.`,
 

@@ -8,7 +8,7 @@ const CanvasMenu = ({ onBack }) => {
   return (
     <div>
       <button className={styles['demo']}>
-        Demo 1
+        Demo
       </button>
       <button onClick={onBack} className={styles['button']}>
         <TiHome />
